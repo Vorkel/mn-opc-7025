@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np
 from pathlib import Path
+import os
 from typing import Dict, List, Tuple, Optional, Union, Any
 import mlflow
 import mlflow.sklearn
@@ -60,13 +61,19 @@ class ModelTrainer:
         self.best_model: Optional[Any] = None
         self.best_threshold: Optional[float] = None
 
-        # Configuration MLFlow avec fallback local
+        # Configuration MLflow: URI depuis env, défaut local file:mlruns
+        uri = os.getenv("MLFLOW_TRACKING_URI", "file:mlruns")
         try:
+            # Si file:mlruns → s'assurer que le dossier existe
+            if uri.startswith("file:"):
+                mlruns_path = uri.split("file:", 1)[1] or "mlruns"
+                Path(mlruns_path).mkdir(parents=True, exist_ok=True)
+            mlflow.set_tracking_uri(uri)
             mlflow.set_experiment(experiment_name)
             self.mlflow_enabled = True
-            logger.info(f"MLFlow configuré avec expérience: {experiment_name}")
+            logger.info(f"MLFlow configuré — URI: {uri}, exp: {experiment_name}")
         except Exception as e:
-            logger.warning(f"MLFlow non accessible ({str(e)}), mode local activé")
+            logger.warning(f"MLFlow non accessible ({str(e)}), mode local désactivé")
             self.mlflow_enabled = False
 
     def prepare_data(
@@ -312,14 +319,24 @@ class ModelTrainer:
         )
 
         with mlflow_context:
-            # Paramètres à optimiser
-            param_grid = {
-                "n_estimators": [100, 200],
-                "learning_rate": [0.05, 0.1],
-                "max_depth": [3, 5, 7],
-                "num_leaves": [31, 50],
-                "min_child_samples": [20, 30],
-            }
+            # Paramètres à optimiser (mode rapide via env FAST_TRAINING=1)
+            fast = os.getenv("FAST_TRAINING", "0") == "1"
+            if fast:
+                param_grid = {
+                    "n_estimators": [100],
+                    "learning_rate": [0.1],
+                    "max_depth": [3, 5],
+                    "num_leaves": [31],
+                    "min_child_samples": [20],
+                }
+            else:
+                param_grid = {
+                    "n_estimators": [100, 200],
+                    "learning_rate": [0.05, 0.1],
+                    "max_depth": [3, 5, 7],
+                    "num_leaves": [31, 50],
+                    "min_child_samples": [20, 30],
+                }
 
             # Modèle de base
             lgbm = LGBMClassifier(
@@ -553,10 +570,14 @@ class ModelTrainer:
 
 # Exemple d'utilisation complète
 if __name__ == "__main__":
-    # Configuration MLFlow avec fallback local
+    # Configuration MLflow: respecter MLFLOW_TRACKING_URI (défaut local file:mlruns)
+    uri = os.getenv("MLFLOW_TRACKING_URI", "file:mlruns")
     try:
-        mlflow.set_tracking_uri("http://localhost:5000")
-        logger.info("MLFlow URI configuré: http://localhost:5000")
+        if uri.startswith("file:"):
+            mlruns_path = uri.split("file:", 1)[1] or "mlruns"
+            Path(mlruns_path).mkdir(parents=True, exist_ok=True)
+        mlflow.set_tracking_uri(uri)
+        logger.info(f"MLFlow URI configuré: {uri}")
     except Exception as e:
         logger.warning(f"Configuration MLFlow ignorée: {str(e)}")
 
@@ -597,8 +618,8 @@ if __name__ == "__main__":
     # Analyser l'importance des features
     importance_df = trainer.feature_importance_analysis(X_train, list(X.columns))
 
-    # Sauvegarder le meilleur modèle
-    trainer.save_best_model("best_credit_model.pkl")
+    # Sauvegarder le meilleur modèle dans models/
+    trainer.save_best_model("models/best_credit_model.pkl")
 
     logger.info(
         "\n✅ Entraînement terminé! Consultez MLFlow UI sur http://localhost:5000"

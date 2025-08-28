@@ -1,11 +1,13 @@
-# Rules Pack - Auto-activation
-/rules.local.yaml
+# Rules - Confidential
 /docs/rules/
 .rules
 .cursor/
 .claude/
 .windsurf/
 AGENTS.md
+.github/copilot-instructions.md
+.github/workflows/rules-ci.yml
+.tools/
 
 # Python
 __pycache__/
@@ -102,3 +104,10 @@ streamlit_app/ui/
 
 
 
+.github/copilot-instructions.md
+.github/workflows/rules-ci.yml
+.tools/
+.github/copilot-instructions.md
+.github/workflows/rules-ci.yml
+.github/copilot-instructions.md
+.github/workflows/rules-ci.yml

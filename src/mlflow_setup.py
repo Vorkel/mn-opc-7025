@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def setup_mlflow(
-    tracking_uri: str = "http://localhost:5000",
+    tracking_uri: str = "file:mlruns",
     experiment_name: str = "credit_scoring_experiment",
 ) -> Optional[str]:
     """
@@ -25,7 +25,10 @@ def setup_mlflow(
         Optional[str]: Nom de l'expérience configurée ou None en cas d'erreur
     """
     try:
-        # Configuration du serveur de tracking MLFlow
+        # Configuration du serveur de tracking MLFlow (par défaut local file:mlruns)
+        if tracking_uri.startswith("file:"):
+            mlruns_path = tracking_uri.split("file:", 1)[1] or "mlruns"
+            Path(mlruns_path).mkdir(parents=True, exist_ok=True)
         mlflow.set_tracking_uri(tracking_uri)
         logger.info(f"MLFlow tracking URI configuré: {tracking_uri}")
 
@@ -63,7 +66,7 @@ def start_mlflow_server(host: str = "0.0.0.0", port: int = 5000) -> None:
     print(f"Puis ouvrez http://{host}:{port} dans votre navigateur")
 
 
-def check_mlflow_connection(tracking_uri: str = "http://localhost:5000") -> bool:
+def check_mlflow_connection(tracking_uri: str = "file:mlruns") -> bool:
     """
     Vérifie la connexion au serveur MLFlow
 
@@ -74,6 +77,9 @@ def check_mlflow_connection(tracking_uri: str = "http://localhost:5000") -> bool
         bool: True si la connexion réussit, False sinon
     """
     try:
+        if tracking_uri.startswith("file:"):
+            mlruns_path = tracking_uri.split("file:", 1)[1] or "mlruns"
+            Path(mlruns_path).mkdir(parents=True, exist_ok=True)
         mlflow.set_tracking_uri(tracking_uri)
         # Tenter de récupérer la liste des expériences
         experiments = mlflow.search_experiments()

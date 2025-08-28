@@ -16,6 +16,14 @@ import time
 import psutil
 from contextlib import asynccontextmanager
 from logging.handlers import RotatingFileHandler
+from pathlib import Path
+
+from api.security import (
+    check_rate_limit_dependency,
+    validate_and_sanitize_input,
+    SecurityMiddleware,
+    setup_security_logging,
+)
 
 
 # Configuration du logging JSON structuré
@@ -41,11 +49,11 @@ class JSONFormatter(logging.Formatter):
 logger = logging.getLogger("credit_scoring_api")
 logger.setLevel(logging.INFO)
 
-# Handler pour fichier avec rotation (chemin relatif depuis racine projet)
-log_dir = os.path.join("..", "logs")
-os.makedirs(log_dir, exist_ok=True)
+# Handler pour fichier avec rotation (unifié sous logs/ à la racine projet)
+LOG_DIR = Path(__file__).resolve().parents[1] / "logs"
+LOG_DIR.mkdir(parents=True, exist_ok=True)
 file_handler = RotatingFileHandler(
-    os.path.join(log_dir, "api.log"), maxBytes=10 * 1024 * 1024, backupCount=5
+    str(LOG_DIR / "api.log"), maxBytes=10 * 1024 * 1024, backupCount=5
 )
 file_handler.setFormatter(JSONFormatter())
 
@@ -203,20 +211,22 @@ async def lifespan(app: FastAPI):
     """
     global model, threshold, feature_names, scaler, model_load_time
 
-    # Créer le dossier logs s'il n'existe pas
+    # Initialisation des logs sécurité + dossier
     os.makedirs("logs", exist_ok=True)
+    setup_security_logging()
 
     load_start = time.time()
 
     try:
-        model_path = "best_credit_model.pkl"
+        # Chemin modèle: env MODEL_PATH prioritaire, défaut models/best_credit_model.pkl
+        model_path = os.getenv("MODEL_PATH", "models/best_credit_model.pkl")
 
         # Tenter de charger depuis plusieurs emplacements
         possible_paths = [
             model_path,
-            f"models/{model_path}",
-            f"../{model_path}",
-            f"../models/{model_path}",
+            os.path.join("models", os.path.basename(model_path)),
+            os.path.join("..", os.path.basename(model_path)),
+            os.path.join("..", "models", os.path.basename(model_path)),
         ]
 
         model_loaded = False
@@ -291,6 +301,9 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+# Middleware sécurité (logging des accès)
+app.add_middleware(SecurityMiddleware)
 
 # Configuration CORS pour permettre l'accès depuis Streamlit et autres clients
 app.add_middleware(
@@ -491,15 +504,21 @@ async def get_model_info() -> Dict[str, Any]:
 @app.post("/predict", response_model=CreditResponse)
 async def predict_credit(
     request: CreditRequest,
+    http_request: Request,
     client_id: Optional[str] = None,
     current_model: Any = Depends(get_model),
+    api_key: str = Depends(check_rate_limit_dependency),
 ) -> CreditResponse:
     """
     Prédiction du scoring crédit pour un client
     """
     try:
+        # Validation/sanitation sécurité
+        cleaned = validate_and_sanitize_input(request.model_dump(), http_request)
+        validated = CreditRequest(**cleaned)
+
         # Prétraitement des données
-        df = preprocess_input(request)
+        df = preprocess_input(validated)
 
         # Prédiction
         if hasattr(current_model, "predict_proba"):
@@ -537,7 +556,10 @@ async def predict_credit(
 
 @app.post("/batch_predict")
 async def batch_predict(
-    requests: List[CreditRequest], current_model: Any = Depends(get_model)
+    requests: List[CreditRequest],
+    http_request: Request,
+    current_model: Any = Depends(get_model),
+    api_key: str = Depends(check_rate_limit_dependency),
 ) -> Dict[str, Any]:
     """
     Prédiction en lot pour plusieurs clients
@@ -547,7 +569,9 @@ async def batch_predict(
 
         for i, request in enumerate(requests):
             # Prétraitement
-            df = preprocess_input(request)
+            cleaned = validate_and_sanitize_input(request.model_dump(), http_request)
+            validated = CreditRequest(**cleaned)
+            df = preprocess_input(validated)
 
             # Prédiction
             if hasattr(current_model, "predict_proba"):
@@ -587,7 +611,9 @@ async def batch_predict(
 
 @app.get("/feature_importance/{client_id}")
 async def get_feature_importance(
-    client_id: str, current_model: Any = Depends(get_model)
+    client_id: str,
+    current_model: Any = Depends(get_model),
+    api_key: str = Depends(check_rate_limit_dependency),
 ) -> Union[FeatureImportanceResponse, Dict[str, Any]]:
     """
     Analyse d'importance des features pour un client spécifique
@@ -635,14 +661,22 @@ async def get_feature_importance(
 
 @app.post("/explain/{client_id}")
 async def explain_prediction(
-    client_id: str, request: CreditRequest, current_model: Any = Depends(get_model)
+    client_id: str,
+    request: CreditRequest,
+    http_request: Request,
+    current_model: Any = Depends(get_model),
+    api_key: str = Depends(check_rate_limit_dependency),
 ) -> Dict[str, Any]:
     """
     Explication détaillée de la prédiction pour un client
     """
     try:
+        # Validation/sanitation
+        cleaned = validate_and_sanitize_input(request.model_dump(), http_request)
+        validated = CreditRequest(**cleaned)
+
         # Prétraitement
-        df = preprocess_input(request)
+        df = preprocess_input(validated)
 
         # Prédiction
         if hasattr(current_model, "predict_proba"):

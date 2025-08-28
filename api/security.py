@@ -18,13 +18,62 @@ from fastapi import HTTPException, Request, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import json
 import re
+from pathlib import Path
 
-# Configuration sécurité
-VALID_API_KEYS = {
-    "demo_key_123": {"name": "Demo Client", "rate_limit": 100},
-    "prod_key_456": {"name": "Production Client", "rate_limit": 1000},
-    "test_key_789": {"name": "Test Client", "rate_limit": 50},
-}
+def _load_api_keys_from_env() -> Dict[str, Dict[str, object]]:
+    """Charge les clés API depuis les variables d'environnement.
+
+    Prend en charge:
+    - API_KEYS_JSON: mapping JSON { "key": {"name": str, "rate_limit": int}, ... }
+    - API_KEYS: liste CSV de triplets key:name:limit (ex: "k1:Demo:100,k2:Prod:1000")
+
+    Retourne un mapping prêt à l'emploi. Fournit un fallback de développement si non défini.
+    """
+    # JSON explicite prioritaire
+    raw_json = os.getenv("API_KEYS_JSON")
+    if raw_json:
+        try:
+            data = json.loads(raw_json)
+            # Validation minimale de structure
+            valid: Dict[str, Dict[str, object]] = {}
+            for k, v in data.items():
+                if isinstance(v, dict):
+                    name = v.get("name", "Unknown")
+                    limit = int(v.get("rate_limit", 100))
+                    valid[k] = {"name": str(name), "rate_limit": limit}
+            if valid:
+                return valid
+        except Exception:
+            pass  # on retombera sur les autres méthodes
+
+    # Format compact CSV
+    raw_compact = os.getenv("API_KEYS")
+    if raw_compact:
+        valid = {}
+        try:
+            parts = [p.strip() for p in raw_compact.split(",") if p.strip()]
+            for p in parts:
+                # key:name:limit
+                segs = p.split(":")
+                if len(segs) >= 2:
+                    key = segs[0]
+                    name = segs[1]
+                    limit = int(segs[2]) if len(segs) > 2 else 100
+                    valid[key] = {"name": name, "rate_limit": limit}
+            if valid:
+                return valid
+        except Exception:
+            pass
+
+    # Fallback développement (non production)
+    return {
+        "demo_key_123": {"name": "Demo Client", "rate_limit": 100},
+        "test_key_789": {"name": "Test Client", "rate_limit": 50},
+    }
+
+
+# Configuration sécurité (chargée depuis l'environnement si disponible)
+VALID_API_KEYS: Dict[str, Dict[str, object]] = _load_api_keys_from_env()
 
 # Rate limiting storage (en production, utiliser Redis)
 rate_limit_storage = {}
@@ -286,14 +335,19 @@ class SecurityMiddleware:
 
 
 # Configuration des logs de sécurité
-def setup_security_logging():
-    """Configure le logging de sécurité"""
-    security_handler = logging.FileHandler("logs/security.log")
-    security_formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-    security_handler.setFormatter(security_formatter)
-    security_logger.addHandler(security_handler)
+def setup_security_logging() -> None:
+    """Configure le logging de sécurité (fichier sous logs/security.log)"""
+    # S'assurer que le dossier de logs existe
+    logs_dir = Path(__file__).resolve().parents[1] / "logs"
+    logs_dir.mkdir(parents=True, exist_ok=True)
+
+    if not any(isinstance(h, logging.FileHandler) for h in security_logger.handlers):
+        security_handler = logging.FileHandler(str(logs_dir / "security.log"))
+        security_formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+        security_handler.setFormatter(security_formatter)
+        security_logger.addHandler(security_handler)
     security_logger.setLevel(logging.INFO)
 
 

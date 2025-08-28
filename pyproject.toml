@@ -35,7 +35,7 @@ scikit-learn = "^1.3.0"
 # === ALGORITHMES ML ===
 lightgbm = "^4.1.0"
 xgboost = "^1.7.6"
-imbalanced-learn = "^0.11.0"
+imbalanced-learn = ">=0.12.0"
 
 # === MLOPS & TRACKING ===
 mlflow = "^2.8.1"
@@ -116,19 +116,7 @@ ipykernel = "^6.26.0"
 nbconvert = "^7.11.0"
 
 # === SCRIPTS POETRY ===
-[tool.poetry.scripts]
-# Scripts principaux
-start-api = "scripts.start_api:main"
-start-streamlit = "scripts.start_streamlit:main"
-train-model = "src.model_training:main"
-
-# Scripts d'analyse
-analyze-drift = "src.data_drift_detection:main"
-feature-importance = "src.feature_importance:main"
-business-score = "src.business_score:main"
-
-# Scripts utilitaires
-setup-mlflow = "src.mlflow_setup:main"
+# Note: Entrypoints Poetry supprimés au profit de commandes directes via Makefile
 
 # === CONFIGURATION OUTILS ===
 
