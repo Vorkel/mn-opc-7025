@@ -71,8 +71,8 @@ tmp_*
 
 
 # Model files (exclués car trop volumineux pour GitHub)
-models/*.pkl
-models/*.joblib
+# models/*.pkl  # Commenté pour permettre le push vers Hugging Face
+# models/*.joblib  # Commenté pour permettre le push vers Hugging Face
 
 # Data files (exclués car trop volumineux pour GitHub)
 data/raw/
