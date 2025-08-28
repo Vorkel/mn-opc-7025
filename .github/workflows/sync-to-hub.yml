@@ -29,4 +29,5 @@ jobs:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           echo "Pushing to Hugging Face hub with LFS..."
+          git config lfs.allowincompletepush true
           git push https://Kodezar:$HF_TOKEN@huggingface.co/spaces/Kodezar/opcmnep725 master
