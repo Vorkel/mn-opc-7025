@@ -11,7 +11,7 @@ OBJECTIFS DE CE NOTEBOOK :
 """
 
 # =============================================================================
-# Cell 1: Configuration et imports
+# Configuration et imports
 # =============================================================================
 import pandas as pd
 import numpy as np
@@ -41,7 +41,7 @@ print("=" * 50)
 print(f"Date d'exécution: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
 # =============================================================================
-# Cell 2: Chargement des données
+# Chargement des données
 # =============================================================================
 print("\nChargement des données...")
 print("=" * 30)
@@ -72,7 +72,7 @@ except Exception as e:
     exit(1)
 
 # =============================================================================
-# Cell 3: Analyse de la qualité des données
+# Analyse de la qualité des données
 # =============================================================================
 print("\nANALYSE DE LA QUALITÉ DES DONNÉES")
 print("=" * 40)
@@ -99,7 +99,7 @@ print(f"\nValeurs manquantes: {total_missing:,} ({missing_percentage:.2f}%)")
 print(f"Colonnes avec valeurs manquantes: {(missing_data > 0).sum()}")
 
 # =============================================================================
-# Cell 4: Feature Engineering - Variables temporelles
+# Feature Engineering - Variables temporelles
 # =============================================================================
 print("\nFEATURE ENGINEERING - VARIABLES TEMPORELLES")
 print("=" * 50)
@@ -157,7 +157,7 @@ new_features.extend(temporal_features)
 print(f"{len(temporal_features)} features temporelles créées")
 
 # =============================================================================
-# Cell 5: Feature Engineering - Variables financières
+# Feature Engineering - Variables financières
 # =============================================================================
 print("\nFEATURE ENGINEERING - VARIABLES FINANCIÈRES")
 print("=" * 50)
@@ -230,7 +230,7 @@ new_features.extend(financial_features)
 print(f"{len(financial_features)} features financières créées")
 
 # =============================================================================
-# Cell 6: Feature Engineering - Variables d'agrégation
+# Feature Engineering - Variables d'agrégation
 # =============================================================================
 print("\nFEATURE ENGINEERING - VARIABLES D'AGRÉGATION")
 print("=" * 50)
@@ -291,7 +291,7 @@ new_features.extend(agg_features)
 print(f"{len(agg_features)} features d'agrégation créées")
 
 # =============================================================================
-# Cell 7: Gestion des valeurs manquantes
+# Gestion des valeurs manquantes
 # =============================================================================
 print("\nGESTION DES VALEURS MANQUANTES")
 print("=" * 40)
@@ -334,7 +334,7 @@ new_features.extend(missing_indicators)
 print(f"Valeurs manquantes gérées + {len(missing_indicators)} indicateurs créés")
 
 # =============================================================================
-# Cell 8: Encodage des variables catégorielles
+# Encodage des variables catégorielles
 # =============================================================================
 print("\nENCODAGE DES VARIABLES CATÉGORIELLES")
 print("=" * 45)
@@ -401,7 +401,7 @@ for feature in remaining_categorical:
 print(f"{len(encoders)} variables catégorielles encodées")
 
 # =============================================================================
-# Cell 9: Visualisation des nouvelles features
+# Visualisation des nouvelles features
 # =============================================================================
 print("\nVISUALISATION DES NOUVELLES FEATURES")
 print("=" * 45)
@@ -446,7 +446,7 @@ if existing_features:
     print("Graphique des nouvelles features sauvegardé")
 
 # =============================================================================
-# Cell 10: Évaluation des performances
+# Évaluation des performances
 # =============================================================================
 print("\nÉVALUATION DES PERFORMANCES")
 print("=" * 35)
@@ -505,7 +505,7 @@ print(f"\nTop 10 nouvelles features les plus importantes:")
 print(new_features_in_top)
 
 # =============================================================================
-# Cell 11: Sauvegarde des données finales
+# Sauvegarde des données finales
 # =============================================================================
 print("\nSAUVEGARDE DES DONNÉES FINALES")
 print("=" * 35)
@@ -543,7 +543,7 @@ print(f"   label_encoders.pkl: {len(encoders)} encodeurs")
 print(f"   feature_importance.csv: {len(feature_importance)} features")
 
 # =============================================================================
-# Cell 12: Génération du rapport
+# Génération du rapport
 # =============================================================================
 print("\nGÉNÉRATION DU RAPPORT")
 print("=" * 25)
@@ -591,7 +591,7 @@ with open("reports/feature_engineering_report.json", "w") as f:
 print(f"Rapport sauvegardé dans reports/feature_engineering_report.json")
 
 # =============================================================================
-# Cell 13: Résumé final
+# Résumé final
 # =============================================================================
 print("\nRÉSUMÉ DU FEATURE ENGINEERING")
 print("=" * 50)

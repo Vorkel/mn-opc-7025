@@ -115,9 +115,6 @@ jupyterlab = "^4.0.0"
 ipykernel = "^6.26.0"
 nbconvert = "^7.11.0"
 
-# === SCRIPTS POETRY ===
-# Note: Entrypoints Poetry supprimés au profit de commandes directes via Makefile
-
 # === CONFIGURATION OUTILS ===
 
 [tool.black]
@@ -126,15 +123,15 @@ target-version = ['py311']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
-  # directories
-  \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | build
-  | dist
+# directories
+\.eggs
+| \.git
+| \.hg
+| \.mypy_cache
+| \.tox
+| \.venv
+| build
+| dist
 )/
 '''
 

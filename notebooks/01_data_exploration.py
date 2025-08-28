@@ -11,7 +11,7 @@ OBJECTIFS DE CE NOTEBOOK :
 """
 
 # =============================================================================
-# Cell 1: Configuration et imports
+# Configuration et imports
 # =============================================================================
 import pandas as pd
 import numpy as np
@@ -54,7 +54,7 @@ print("=" * 50)
 print(f"Date d'exécution: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
 # =============================================================================
-# Cell 2: Chargement des données principales
+# Chargement des données principales
 # =============================================================================
 print("Chargement des données...")
 
@@ -80,7 +80,7 @@ print(f"Colonnes uniquement dans train: {train_cols - test_cols}")
 print(f"Colonnes uniquement dans test: {test_cols - train_cols}")
 
 # =============================================================================
-# Cell 3: Vue d'ensemble des données
+# Vue d'ensemble des données
 # =============================================================================
 print("\nVUE D'ENSEMBLE DES DONNÉES")
 print("=" * 40)
@@ -104,7 +104,7 @@ print(f"\nAperçu des données:")
 print(df_train.info())
 
 # =============================================================================
-# Cell 4: Analyse de la variable cible
+# Analyse de la variable cible
 # =============================================================================
 print("\nANALYSE DE LA VARIABLE CIBLE")
 print("=" * 40)
@@ -167,7 +167,7 @@ except Exception as e:
     print("Les graphiques HTML sont disponibles dans le dossier reports/")
 
 # =============================================================================
-# Cell 5: Analyse des valeurs manquantes
+# Analyse des valeurs manquantes
 # =============================================================================
 print("\nANALYSE DES VALEURS MANQUANTES")
 print("=" * 40)
@@ -224,7 +224,7 @@ if len(missing_df) > 0:
         print(f"Erreur lors de la sauvegarde PNG: {e}")
 
 # =============================================================================
-# Cell 6: Analyse des features numériques principales
+# Analyse des features numériques principales
 # =============================================================================
 print("\nANALYSE DES FEATURES NUMÉRIQUES")
 print("=" * 40)
@@ -286,7 +286,7 @@ plt.savefig("reports/numeric_features_distribution.png", dpi=300, bbox_inches="t
 print("Graphique matplotlib généré et sauvegardé")
 
 # =============================================================================
-# Cell 7: Analyse des features catégorielles
+# Analyse des features catégorielles
 # =============================================================================
 print("\nANALYSE DES FEATURES CATÉGORIELLES")
 print("=" * 40)
@@ -350,7 +350,7 @@ for feature in existing_categorical[:6]:  # Limiter à 6 pour l'affichage
         print(f"Graphique généré (taux de défaut pour {feature})")
 
 # =============================================================================
-# Cell 8: Analyse des corrélations
+# Analyse des corrélations
 # =============================================================================
 print("\nANALYSE DES CORRÉLATIONS")
 print("=" * 40)
@@ -395,7 +395,7 @@ if "TARGET" in corr_matrix.columns:
         print(f"  {feature}: {corr:.4f}")
 
 # =============================================================================
-# Cell 9: Détection des outliers
+# Détection des outliers
 # =============================================================================
 print("\nDÉTECTION DES OUTLIERS")
 print("=" * 40)
@@ -452,7 +452,7 @@ plt.savefig("reports/outliers_analysis.png", dpi=300, bbox_inches="tight")
 print("Graphique matplotlib généré et sauvegardé")
 
 # =============================================================================
-# Cell 10: Analyse des données temporelles
+# Analyse des données temporelles
 # =============================================================================
 print("\nANALYSE DES DONNÉES TEMPORELLES")
 print("=" * 40)
@@ -499,7 +499,7 @@ plt.savefig("reports/temporal_analysis.png", dpi=300, bbox_inches="tight")
 print("Graphique d'analyse temporelle généré et sauvegardé")
 
 # =============================================================================
-# Cell 11: Insights et recommandations
+# Insights et recommandations
 # =============================================================================
 print("\nINSIGHTS ET RECOMMANDATIONS")
 print("=" * 40)
@@ -546,7 +546,7 @@ for insight in insights:
     print(insight)
 
 # =============================================================================
-# Cell 12: Sauvegarde des résultats
+# Sauvegarde des résultats
 # =============================================================================
 print("\nSAUVEGARDE DES RÉSULTATS")
 print("=" * 40)
