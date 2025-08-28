@@ -1,0 +1,222 @@
+[tool.poetry]
+name = "credit-scoring-mlops"
+version = "1.0.0"
+description = "Système MLOps de scoring crédit avec FastAPI et Streamlit"
+authors = ["Claude Code <claude@anthropic.com>"]
+readme = "README.md"
+license = "MIT"
+repository = "https://github.com/Vorkel/mn-opc-7025"
+homepage = "https://github.com/Vorkel/mn-opc-7025"
+documentation = "https://github.com/Vorkel/mn-opc-7025/blob/main/README.md"
+keywords = ["machine-learning", "credit-scoring", "mlops", "fastapi", "streamlit"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+# Packages à inclure
+packages = [
+    {include = "src"},
+    {include = "api"},
+    {include = "streamlit_app"},
+]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+# === CORE ML & DATA SCIENCE ===
+pandas = "^2.1.0"
+numpy = "^1.25.0"
+scikit-learn = "^1.3.0"
+
+# === ALGORITHMES ML ===
+lightgbm = "^4.1.0"
+xgboost = "^1.7.6"
+imbalanced-learn = "^0.11.0"
+
+# === MLOPS & TRACKING ===
+mlflow = "^2.8.1"
+evidently = "^0.7.11"
+
+# === VISUALISATION ===
+matplotlib = "^3.8.0"
+seaborn = "^0.12.2"
+plotly = "^5.17.0"
+
+# === EXPLAINABILITY ===
+shap = "^0.43.0"
+
+# === API ===
+fastapi = "^0.104.1"
+uvicorn = {extras = ["standard"], version = "^0.24.0"}
+pydantic = "^2.5.0"
+python-multipart = "^0.0.6"
+
+# === INTERFACE ===
+streamlit = "^1.28.1"
+
+# === SÉCURITÉ ===
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+
+# === UTILITAIRES ===
+joblib = "^1.3.2"
+python-dotenv = "^1.0.0"
+psutil = "^5.9.0"
+click = "^8.1.0"
+tqdm = "^4.66.0"
+requests = "^2.31.0"
+setuptools = "^68.0.0"
+wheel = "^0.41.0"
+typing-extensions = "^4.8.0"
+
+[tool.poetry.group.dev.dependencies]
+# === TESTING ===
+pytest = "^7.4.3"
+pytest-cov = "^4.1.0"
+pytest-mock = "^3.12.0"
+pytest-asyncio = "^0.21.0"
+pytest-xdist = "^3.5.0"
+
+# === CODE QUALITY ===
+black = "^23.11.0"
+flake8 = "^6.1.0"
+isort = "^5.12.0"
+mypy = "^1.7.0"
+pre-commit = "^3.5.0"
+autopep8 = "^2.0.0"
+
+# === SECURITY ===
+bandit = "^1.7.5"
+safety = "^2.3.0"
+
+# === PROFILING ===
+memory-profiler = "^0.61.0"
+py-spy = "^0.3.0"
+line-profiler = "^4.1.0"
+
+# === UTILITAIRES DEV ===
+rich = "^13.6.0"
+pip-tools = "^7.3.0"
+pipdeptree = "^2.13.0"
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "^7.2.0"
+sphinx-rtd-theme = "^1.3.0"
+mkdocs = "^1.5.0"
+mkdocs-material = "^9.4.0"
+
+[tool.poetry.group.notebooks.dependencies]
+jupyter = "^1.0.0"
+jupyterlab = "^4.0.0"
+ipykernel = "^6.26.0"
+nbconvert = "^7.11.0"
+
+# === SCRIPTS POETRY ===
+[tool.poetry.scripts]
+# Scripts principaux
+start-api = "scripts.start_api:main"
+start-streamlit = "scripts.start_streamlit:main"
+train-model = "src.model_training:main"
+
+# Scripts d'analyse
+analyze-drift = "src.data_drift_detection:main"
+feature-importance = "src.feature_importance:main"
+business-score = "src.business_score:main"
+
+# Scripts utilitaires
+setup-mlflow = "src.mlflow_setup:main"
+
+# === CONFIGURATION OUTILS ===
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["src", "api", "streamlit_app"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "sklearn.*",
+    "lightgbm.*",
+    "shap.*",
+    "evidently.*",
+    "plotly.*",
+    "mlflow.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+]
+
+[tool.coverage.run]
+source = ["src", "api", "streamlit_app"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    "*/migrations/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
+[tool.bandit]
+exclude_dirs = ["tests", "build", "dist"]
+skips = ["B101", "B601"]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

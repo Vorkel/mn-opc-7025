@@ -1,0 +1,241 @@
+# .github/workflows/ci-cd.yml
+name: CI/CD Pipeline - Credit Scoring MLOps avec Poetry
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  # Variables d'environnement
+  PYTHON_VERSION: "3.11"
+  POETRY_VERSION: "2.1.4"
+  API_PORT: 8000
+
+jobs:
+  # Job de test et validation avec Poetry
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --with dev
+
+      - name: Run tests
+        run: |
+          poetry run pytest tests/ -v --cov=src --cov=api --cov=streamlit_app --cov-report=xml --cov-report=html
+
+      - name: Run linting
+        run: |
+          poetry run flake8 src/ api/ streamlit_app/ tests/
+          poetry run mypy src/ api/ streamlit_app/
+
+      - name: Run code formatting check
+        run: |
+          poetry run black --check src/ api/ streamlit_app/ tests/
+          poetry run isort --check-only src/ api/ streamlit_app/ tests/
+
+      - name: Run security checks
+        run: |
+          poetry run bandit -r src/ api/ streamlit_app/
+          poetry run safety check
+
+      - name: Upload coverage to Codecov
+        if: github.event_name == 'push'
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.python-version }}
+          path: |
+            htmlcov/
+            coverage.xml
+
+  # Job de build de l'image Docker avec Poetry
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            credit-scoring-api
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build API Docker image
+        id: build
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: api/dockerfile
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Test API Docker image
+        run: |
+          docker run --rm -d -p ${{ env.API_PORT }}:${{ env.API_PORT }} --name test-api ${{ steps.meta.outputs.tags }}
+          sleep 15
+          # Test health endpoint
+          curl -f http://localhost:${{ env.API_PORT }}/health || exit 1
+          docker stop test-api
+
+      - name: Build Streamlit Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: streamlit_app/dockerfile
+          push: false
+          tags: credit-scoring-streamlit:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Job de package Poetry
+  package:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+
+      - name: Build package
+        run: poetry build
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package
+          path: dist/
+
+  # Job de déploiement (conditionnel)
+  deploy:
+    needs: [test, build, package]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    environment: 
+      name: production
+      url: https://huggingface.co/spaces/kodezar/opcmne7p-api
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+
+      - name: Export requirements for deployment
+        run: |
+          poetry export -f requirements.txt --output requirements.txt
+          poetry export -f requirements.txt --with dev --output requirements-dev.txt
+
+      - name: Deploy to Render.com
+        if: false # Configuration pour Render.com - désactivé par défaut
+        run: |
+          echo "🚀 Déploiement sur Render.com avec Poetry"
+          echo "Les fichiers requirements.txt ont été générés pour la compatibilité"
+          # Ajoutez ici les commandes spécifiques à Render.com
+
+      - name: Deploy to HuggingFace Spaces
+        if: true # Déploiement par défaut vers HuggingFace
+        run: |
+          echo "🚀 Déploiement vers HuggingFace Spaces"
+          echo "Utilisez les workflows deploy-api-hf.yml et deploy-ui-hf.yml"
+          echo "API: https://huggingface.co/spaces/kodezar/opcmne7p-api"
+          echo "UI: https://huggingface.co/spaces/kodezar/opcmnep7-ui"
+
+  # Job de notification
+  notify:
+    needs: [test, build, package, deploy]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Notify success
+        if: ${{ needs.deploy.result == 'success' }}
+        run: |
+          echo "✅ Pipeline réussi!"
+          echo "Test result: ${{ needs.test.result }}"
+          echo "Build result: ${{ needs.build.result }}"
+          echo "Package result: ${{ needs.package.result }}"
+          echo "Deploy result: ${{ needs.deploy.result }}"
+
+      - name: Notify failure
+        if: ${{ needs.test.result == 'failure' || needs.build.result == 'failure' || needs.package.result == 'failure' || needs.deploy.result == 'failure' }}
+        run: |
+          echo "❌ Pipeline échoué!"
+          echo "Test result: ${{ needs.test.result }}"
+          echo "Build result: ${{ needs.build.result }}"
+          echo "Package result: ${{ needs.package.result }}"
+          echo "Deploy result: ${{ needs.deploy.result }}"
+          exit 1
