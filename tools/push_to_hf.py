@@ -60,15 +60,23 @@ def stage_ui(dst: Path) -> None:
     # Entrypoint expected by HF (Streamlit app at repo root)
     (dst / "app.py").write_text(
         """
-import importlib
-import streamlit as st
+import sys
+from pathlib import Path
 
-# Delegate to project app
-import streamlit_app.streamlit_app  # noqa: F401
+# Ensure 'streamlit_app' directory is importable for absolute imports inside main.py
+sys.path.append(str(Path(__file__).parent / "streamlit_app"))
+
+# Import the Streamlit app script (executes on import)
+import main  # type: ignore  # noqa: F401
 """.strip()
     )
     # Requirements: reuse project requirements.txt for simplicity
     shutil.copy2(ROOT / "requirements.txt", dst / "requirements.txt")
+    # Copy model if exists so UI can run standalone
+    models_src = ROOT / "models" / "best_credit_model.pkl"
+    if models_src.is_file():
+        (dst / "models").mkdir(parents=True, exist_ok=True)
+        shutil.copy2(models_src, dst / "models" / "best_credit_model.pkl")
     (dst / "README.md").write_text(
         "# Credit Scoring UI\n\nStreamlit app for credit scoring (Hugging Face Space).\n"
     )
@@ -105,4 +113,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

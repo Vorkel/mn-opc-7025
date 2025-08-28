@@ -14,7 +14,7 @@
 ### UI Streamlit
 
 - **URL** : https://kodezar-opcmnep7-ui.hf.space
-- **Type** : Docker
+- **Type** : Streamlit
 - **Branch** : main
 - **Variable d'environnement** : `API_URL`
 

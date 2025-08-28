@@ -6,6 +6,7 @@ on:
     branches: [ main ]
     paths:
       - 'api/**'
+      - 'models/**'
       - 'requirements_minimal.txt'
       - 'tools/push_to_hf.py'
 
@@ -28,9 +29,8 @@ jobs:
 
       - name: Upload API to HF Space
         env:
-          HF_TOKEN: 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
+          HF_TOKEN: ${{ secrets.HF_TOKEN_API }}
           HF_SPACE_ID: Kodezar/opcmne7p-api
           COMPONENT: api
         run: |
           python tools/push_to_hf.py
-

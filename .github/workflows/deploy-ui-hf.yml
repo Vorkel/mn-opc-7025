@@ -6,6 +6,7 @@ on:
     branches: [ main ]
     paths:
       - 'streamlit_app/**'
+      - 'models/**'
       - 'requirements.txt'
       - 'tools/push_to_hf.py'
 
@@ -28,9 +29,8 @@ jobs:
 
       - name: Upload UI to HF Space
         env:
-          HF_TOKEN: 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
+          HF_TOKEN: ${{ secrets.HF_TOKEN_UI }}
           HF_SPACE_ID: Kodezar/opcmnep7-ui
           COMPONENT: ui
         run: |
           python tools/push_to_hf.py
-
