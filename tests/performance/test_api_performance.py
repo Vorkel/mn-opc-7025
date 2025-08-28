@@ -29,16 +29,16 @@ class TestAPIPerformance:
         """Test que l'API répond en moins de 100ms"""
         try:
             client = TestClient(app)
-            
+
             start_time = time.time()
             response = client.get("/health")
             end_time = time.time()
-            
+
             response_time = (end_time - start_time) * 1000  # en millisecondes
-            
+
             assert response.status_code == 200
             assert response_time < 100  # moins de 100ms
-            
+
         except Exception as e:
             pytest.skip(f"API non disponible: {e}")
 
@@ -47,7 +47,7 @@ class TestAPIPerformance:
         """Test de performance de l'endpoint de prédiction"""
         try:
             client = TestClient(app)
-            
+
             # Données de test
             test_data = {
                 "CODE_GENDER": "M",
@@ -70,16 +70,16 @@ class TestAPIPerformance:
                 "EXT_SOURCE_2": 0.5,
                 "EXT_SOURCE_3": 0.5
             }
-            
+
             start_time = time.time()
             response = client.post("/predict", json=test_data)
             end_time = time.time()
-            
+
             response_time = (end_time - start_time) * 1000  # en millisecondes
-            
+
             assert response.status_code in [200, 422]  # 422 si validation échoue
             assert response_time < 500  # moins de 500ms pour une prédiction
-            
+
         except Exception as e:
             pytest.skip(f"API non disponible: {e}")
 
@@ -88,7 +88,7 @@ class TestAPIPerformance:
         """Test de performance de l'endpoint de prédiction par lot"""
         try:
             client = TestClient(app)
-            
+
             # Données de test pour le batch
             test_data = [
                 {
@@ -134,16 +134,16 @@ class TestAPIPerformance:
                     "EXT_SOURCE_3": 0.8
                 }
             ]
-            
+
             start_time = time.time()
             response = client.post("/batch_predict", json=test_data)
             end_time = time.time()
-            
+
             response_time = (end_time - start_time) * 1000  # en millisecondes
-            
+
             assert response.status_code in [200, 422]  # 422 si validation échoue
             assert response_time < 1000  # moins de 1 seconde pour 2 prédictions
-            
+
         except Exception as e:
             pytest.skip(f"API non disponible: {e}")
 
@@ -152,7 +152,7 @@ class TestAPIPerformance:
         """Test de performance avec des requêtes concurrentes"""
         try:
             client = TestClient(app)
-            
+
             # Données de test
             test_data = {
                 "CODE_GENDER": "M",
@@ -175,23 +175,23 @@ class TestAPIPerformance:
                 "EXT_SOURCE_2": 0.5,
                 "EXT_SOURCE_3": 0.5
             }
-            
+
             # Simuler des requêtes concurrentes
             start_time = time.time()
-            
+
             responses = []
             for _ in range(5):  # 5 requêtes simultanées
                 response = client.post("/predict", json=test_data)
                 responses.append(response)
-            
+
             end_time = time.time()
             total_time = (end_time - start_time) * 1000  # en millisecondes
-            
+
             # Vérifications
             assert len(responses) == 5
             assert all(r.status_code in [200, 422] for r in responses)
             assert total_time < 2000  # moins de 2 secondes pour 5 requêtes
-            
+
         except Exception as e:
             pytest.skip(f"API non disponible: {e}")
 
@@ -206,32 +206,32 @@ class TestModelPerformance:
             # Créer des données de test
             np.random.seed(42)
             n_samples = 1000
-            
+
             X = pd.DataFrame({
                 'feature_1': np.random.normal(0, 1, n_samples),
                 'feature_2': np.random.normal(0, 1, n_samples),
                 'feature_3': np.random.normal(0, 1, n_samples)
             })
-            
+
             # Créer un modèle simple
             from sklearn.linear_model import LogisticRegression
             model = LogisticRegression(random_state=42)
-            
+
             # Données d'entraînement
             y = np.random.binomial(1, 0.3, n_samples)
             model.fit(X, y)
-            
+
             # Test de vitesse de prédiction
             start_time = time.time()
             predictions = model.predict(X)
             end_time = time.time()
-            
+
             prediction_time = (end_time - start_time) * 1000  # en millisecondes
-            
+
             # Vérifications
             assert len(predictions) == n_samples
             assert prediction_time < 100  # moins de 100ms pour 1000 prédictions
-            
+
         except Exception as e:
             pytest.skip(f"Modèle non disponible: {e}")
 
@@ -242,28 +242,28 @@ class TestModelPerformance:
             # Créer des données de test
             np.random.seed(42)
             n_samples = 1000
-            
+
             X = pd.DataFrame({
                 'feature_1': np.random.normal(0, 1, n_samples),
                 'feature_2': np.random.normal(0, 1, n_samples),
                 'feature_3': np.random.normal(0, 1, n_samples)
             })
             y = np.random.binomial(1, 0.3, n_samples)
-            
+
             # Test de vitesse d'entraînement
             from sklearn.linear_model import LogisticRegression
             model = LogisticRegression(random_state=42)
-            
+
             start_time = time.time()
             model.fit(X, y)
             end_time = time.time()
-            
+
             training_time = (end_time - start_time) * 1000  # en millisecondes
-            
+
             # Vérifications
             assert hasattr(model, 'coef_')
             assert training_time < 1000  # moins de 1 seconde pour l'entraînement
-            
+
         except Exception as e:
             pytest.skip(f"Modèle non disponible: {e}")
 
@@ -274,7 +274,7 @@ class TestModelPerformance:
             # Créer des données de test
             np.random.seed(42)
             n_samples = 1000
-            
+
             X = pd.DataFrame({
                 'feature_1': np.random.normal(0, 1, n_samples),
                 'feature_2': np.random.normal(0, 1, n_samples),
@@ -283,22 +283,22 @@ class TestModelPerformance:
                 'feature_5': np.random.normal(0, 1, n_samples)
             })
             y = np.random.binomial(1, 0.3, n_samples)
-            
+
             # Test de vitesse de calcul d'importance
             from sklearn.ensemble import RandomForestClassifier
             model = RandomForestClassifier(n_estimators=10, random_state=42)
-            
+
             start_time = time.time()
             model.fit(X, y)
             feature_importance = model.feature_importances_
             end_time = time.time()
-            
+
             calculation_time = (end_time - start_time) * 1000  # en millisecondes
-            
+
             # Vérifications
             assert len(feature_importance) == len(X.columns)
             assert calculation_time < 2000  # moins de 2 secondes
-            
+
         except Exception as e:
             pytest.skip(f"Feature importance non disponible: {e}")
 
@@ -311,18 +311,18 @@ class TestDataProcessingPerformance:
         """Test de la vitesse de chargement des données"""
         # Vérifier que les données existent
         train_path = "data/raw/application_train.csv"
-        
+
         if os.path.exists(train_path):
             start_time = time.time()
             data = pd.read_csv(train_path)
             end_time = time.time()
-            
+
             loading_time = (end_time - start_time) * 1000  # en millisecondes
-            
+
             # Vérifications
             assert len(data) > 0
             assert loading_time < 5000  # moins de 5 secondes pour charger les données
-            
+
         else:
             pytest.skip("Données non disponibles")
 
@@ -333,32 +333,32 @@ class TestDataProcessingPerformance:
             # Créer des données de test
             np.random.seed(42)
             n_samples = 1000
-            
+
             data = pd.DataFrame({
                 'numeric_col': np.random.normal(0, 1, n_samples),
                 'categorical_col': np.random.choice(['A', 'B', 'C'], n_samples),
                 'missing_col': np.random.choice([1, 2, np.nan], n_samples)
             })
-            
+
             # Test de vitesse de prétraitement
             start_time = time.time()
-            
+
             # Remplir les valeurs manquantes
             data_filled = data.fillna(data.median())
-            
+
             # Encoder les variables catégorielles
             from sklearn.preprocessing import LabelEncoder
             le = LabelEncoder()
             data_filled['categorical_col'] = le.fit_transform(data_filled['categorical_col'])
-            
+
             end_time = time.time()
-            
+
             preprocessing_time = (end_time - start_time) * 1000  # en millisecondes
-            
+
             # Vérifications
-            assert not data_filled.isnull().any().any()
+            assert not data_filled.isnull().any().any()  # type: ignore
             assert preprocessing_time < 1000  # moins de 1 seconde
-            
+
         except Exception as e:
             pytest.skip(f"Prétraitement non disponible: {e}")
 
@@ -367,28 +367,28 @@ class TestDataProcessingPerformance:
         """Test de la vitesse de calcul du score métier"""
         try:
             from business_score import BusinessScorer
-            
+
             # Créer des données de test
             np.random.seed(42)
             n_samples = 10000
-            
+
             y_true = np.random.binomial(1, 0.3, n_samples)
             y_pred = np.random.binomial(1, 0.3, n_samples)
-            
+
             # Test de vitesse de calcul
             scorer = BusinessScorer()
-            
+
             start_time = time.time()
             cost = scorer.calculate_business_cost(y_true, y_pred)
             end_time = time.time()
-            
+
             calculation_time = (end_time - start_time) * 1000  # en millisecondes
-            
+
             # Vérifications
             assert isinstance(cost, float)
             assert cost >= 0
             assert calculation_time < 100  # moins de 100ms
-            
+
         except Exception as e:
             pytest.skip(f"BusinessScorer non disponible: {e}")
 
@@ -402,33 +402,33 @@ class TestMemoryUsage:
         try:
             import psutil
             import os
-            
+
             # Obtenir l'utilisation mémoire avant
             process = psutil.Process(os.getpid())
             memory_before = process.memory_info().rss / 1024 / 1024  # MB
-            
+
             # Créer et entraîner un modèle
             np.random.seed(42)
             n_samples = 10000
-            
+
             X = pd.DataFrame({
                 'feature_1': np.random.normal(0, 1, n_samples),
                 'feature_2': np.random.normal(0, 1, n_samples),
                 'feature_3': np.random.normal(0, 1, n_samples)
             })
             y = np.random.binomial(1, 0.3, n_samples)
-            
+
             from sklearn.ensemble import RandomForestClassifier
             model = RandomForestClassifier(n_estimators=100, random_state=42)
             model.fit(X, y)
-            
+
             # Obtenir l'utilisation mémoire après
             memory_after = process.memory_info().rss / 1024 / 1024  # MB
             memory_increase = memory_after - memory_before
-            
+
             # Vérifications
             assert memory_increase < 500  # moins de 500MB d'augmentation
-            
+
         except ImportError:
             pytest.skip("psutil non disponible")
         except Exception as e:
@@ -440,15 +440,15 @@ class TestMemoryUsage:
         try:
             import psutil
             import os
-            
+
             # Obtenir l'utilisation mémoire avant
             process = psutil.Process(os.getpid())
             memory_before = process.memory_info().rss / 1024 / 1024  # MB
-            
+
             # Créer un grand dataset
             np.random.seed(42)
             n_samples = 50000
-            
+
             data = pd.DataFrame({
                 'feature_1': np.random.normal(0, 1, n_samples),
                 'feature_2': np.random.normal(0, 1, n_samples),
@@ -456,19 +456,19 @@ class TestMemoryUsage:
                 'feature_4': np.random.normal(0, 1, n_samples),
                 'feature_5': np.random.normal(0, 1, n_samples)
             })
-            
+
             # Traitement des données
             data_processed = data.fillna(data.median())
             data_processed = data_processed * 2  # Opération simple
-            
+
             # Obtenir l'utilisation mémoire après
             memory_after = process.memory_info().rss / 1024 / 1024  # MB
             memory_increase = memory_after - memory_before
-            
+
             # Vérifications
             assert len(data_processed) == n_samples
             assert memory_increase < 1000  # moins de 1GB d'augmentation
-            
+
         except ImportError:
             pytest.skip("psutil non disponible")
         except Exception as e:

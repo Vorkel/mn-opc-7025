@@ -64,7 +64,7 @@ class TestAPIEndpoints:
         }
 
         try:
-            response = client.post("/predict", json=test_data)
+            response = client.post("/predict", json=test_data)  # type: ignore
             assert response.status_code == 200
             data = response.json()
             assert "probability" in data
@@ -84,7 +84,7 @@ class TestAPIEndpoints:
         }
 
         try:
-            response = client.post("/predict", json=invalid_data)
+            response = client.post("/predict", json=invalid_data)  # type: ignore
             # Devrait retourner une erreur 422 (Validation Error)
             assert response.status_code == 422
         except Exception as e:
@@ -139,7 +139,7 @@ class TestAPIEndpoints:
         ]
 
         try:
-            response = client.post("/batch_predict", json=test_data)
+            response = client.post("/batch_predict", json=test_data)  # type: ignore
             assert response.status_code == 200
             data = response.json()
             assert "predictions" in data
@@ -156,7 +156,7 @@ class TestAPIEndpoints:
     def test_feature_importance_endpoint(self):
         """Test de l'endpoint d'importance des features"""
         try:
-            response = client.get("/feature_importance")
+            response = client.get("/feature_importance")  # type: ignore
             assert response.status_code == 200
             data = response.json()
             assert "feature_importance" in data
@@ -189,7 +189,7 @@ class TestAPIEndpoints:
         }
 
         try:
-            response = client.post("/explain", json=test_data)
+            response = client.post("/explain", json=test_data)  # type: ignore
             assert response.status_code == 200
             data = response.json()
             assert "shap_values" in data
@@ -205,7 +205,7 @@ class TestAPIEndpoints:
 
         try:
             start_time = time.time()
-            response = client.get("/health")
+            response = client.get("/health")  # type: ignore
             end_time = time.time()
 
             response_time = (end_time - start_time) * 1000  # en millisecondes
@@ -219,14 +219,14 @@ class TestAPIEndpoints:
         """Test de la gestion d'erreurs de l'API"""
         # Test avec une méthode HTTP non supportée
         try:
-            response = client.put("/predict", json={})
+            response = client.put("/predict", json={})  # type: ignore
             assert response.status_code == 405  # Method Not Allowed
         except Exception as e:
             pytest.skip(f"Test de gestion d'erreurs non disponible: {e}")
 
         # Test avec un endpoint inexistant
         try:
-            response = client.get("/nonexistent")
+            response = client.get("/nonexistent")  # type: ignore
             assert response.status_code == 404  # Not Found
         except Exception as e:
             pytest.skip(f"Test de gestion d'erreurs non disponible: {e}")
@@ -261,7 +261,7 @@ class TestAPISecurity:
         }
 
         try:
-            response = client.post("/predict", json=extreme_data)
+            response = client.post("/predict", json=extreme_data)  # type: ignore
             # L'API devrait gérer ces valeurs extrêmes
             assert response.status_code in [200, 422]
         except Exception as e:
@@ -293,7 +293,7 @@ class TestAPISecurity:
         }
 
         try:
-            response = client.post("/predict", json=malicious_data)
+            response = client.post("/predict", json=malicious_data)  # type: ignore
             # L'API devrait rejeter ou nettoyer ces données
             assert response.status_code in [200, 422, 400]
         except Exception as e:
@@ -343,7 +343,7 @@ class TestAPIModelLoading:
             # Faire plusieurs prédictions identiques
             responses = []
             for _ in range(3):
-                response = client.post("/predict", json=test_data)
+                response = client.post("/predict", json=test_data)  # type: ignore
                 if response.status_code == 200:
                     responses.append(response.json()["probability"])
 

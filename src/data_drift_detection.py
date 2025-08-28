@@ -9,14 +9,15 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Imports Evidently avec gestion de compatibilité
-# Note: Evidently 0.7+ a une API très différente, désactivé pour l'instant
-logger.warning("Evidently désactivé - API incompatible avec la version 0.7+")
-ColumnMapping = None
-Report = None
-DataDriftPreset = None
-TargetDriftPreset = None
-EVIDENTLY_AVAILABLE = False
+# Imports Evidently 0.7+
+try:
+    from evidently import DataDefinition, Report
+    from evidently.metrics import DriftedColumnsCount
+    EVIDENTLY_AVAILABLE = True
+    logger.info("Evidently 0.7+ importé avec succès")
+except ImportError as e:
+    logger.warning(f"Evidently 0.7+ non disponible: {e}")
+    EVIDENTLY_AVAILABLE = False
 
 import warnings
 
@@ -35,7 +36,7 @@ class NativeDriftDetector:
         """Analyse simple de drift sur toutes les features"""
         common_cols = set(self.reference_data.columns) & set(self.current_data.columns)
         drift_detected = len(common_cols) > 0
-        
+
         return {
             "dataset_drift_detected": drift_detected,
             "total_features": len(common_cols),
@@ -113,14 +114,9 @@ class DataDriftDetector:
             col for col in self.reference_data.columns if col != self.target_column
         ]
 
-        if ColumnMapping is not None:
-            self.column_mapping = ColumnMapping(
-                target=self.target_column if target_exists else None,
-                numerical_features=numerical_features,
-                categorical_features=[],
-            )
-        else:
-            self.column_mapping = None
+        # Pour Evidently 0.7+, on n'utilise plus ColumnMapping
+        # La configuration se fait directement dans les métriques
+        self.column_mapping = None
 
         logger.info(f"Features numériques configurées: {len(numerical_features)}")
 
@@ -133,7 +129,58 @@ class DataDriftDetector:
 
         logger.info("Détection du data drift en cours...")
 
-        # Utiliser uniquement l'implémentation native
+        if EVIDENTLY_AVAILABLE:
+            try:
+                # Utiliser Evidently 0.7+
+                self._detect_drift_evidently()
+                logger.info("Analyse de drift Evidently terminée")
+            except Exception as e:
+                logger.warning(f"Erreur avec Evidently, fallback vers native: {e}")
+                self._detect_drift_native()
+        else:
+            # Fallback vers l'implémentation native
+            self._detect_drift_native()
+
+    def _detect_drift_evidently(self) -> None:
+        """Détection de drift avec Evidently 0.7+"""
+        try:
+            # Identifier les colonnes numériques et catégorielles
+            numerical_columns = []
+            categorical_columns = []
+
+            for col in self.reference_data.columns:
+                if col == self.target_column:
+                    continue
+                if self.reference_data[col].dtype in ['int64', 'float64']:
+                    numerical_columns.append(col)
+                else:
+                    categorical_columns.append(col)
+
+            # Créer le rapport de drift
+            drift_report = Report(
+                metrics=[
+                    DriftedColumnsCount(
+                        columns=numerical_columns + categorical_columns,
+                        drift_share=0.5  # Seuil de 50%
+                    )
+                ]
+            )
+
+            # Exécuter l'analyse
+            drift_report.run(
+                reference_data=self.reference_data,  # type: ignore
+                current_data=self.current_data  # type: ignore
+            )
+
+            self.drift_report = drift_report
+            logger.info("Rapport Evidently généré avec succès")
+
+        except Exception as e:
+            logger.error(f"Erreur lors de l'analyse Evidently: {e}")
+            raise
+
+    def _detect_drift_native(self) -> None:
+        """Détection de drift avec l'implémentation native"""
         self.native_detector = NativeDriftDetector(
             self.reference_data, self.current_data, self.target_column
         )
@@ -158,13 +205,61 @@ class DataDriftDetector:
             return None
 
         try:
-            self.drift_report.save_html(output_path)
-            logger.info(f"Rapport de drift sauvegardé: {output_path}")
-            return output_path
+            # Pour Evidently 0.7+, créer un rapport HTML simple
+            if hasattr(self.drift_report, 'items'):
+                summary = self.get_drift_summary()
+                if summary:
+                    html_content = self._generate_html_report(summary)
+                    with open(output_path, 'w', encoding='utf-8') as f:
+                        f.write(html_content)
+                    logger.info(f"Rapport de drift HTML généré: {output_path}")
+                    return output_path
+            else:
+                # Fallback pour l'ancienne API
+                self.drift_report.save_html(output_path)
+                logger.info(f"Rapport de drift sauvegardé: {output_path}")
+                return output_path
 
         except Exception as e:
             logger.error(f"Erreur lors de la sauvegarde: {e}")
             return None
+
+    def _generate_html_report(self, summary: Dict[str, Any]) -> str:
+        """Génère un rapport HTML simple pour Evidently 0.7+"""
+        html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Data Drift Report</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 20px; }}
+                .header {{ background-color: #f0f0f0; padding: 10px; border-radius: 5px; }}
+                .drift-detected {{ color: #d32f2f; font-weight: bold; }}
+                .no-drift {{ color: #388e3c; font-weight: bold; }}
+                .feature {{ margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }}
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>Data Drift Analysis Report</h1>
+                <p>Generated with Evidently 0.7+</p>
+            </div>
+
+            <h2>Summary</h2>
+            <p><strong>Dataset Drift:</strong>
+                <span class="{'drift-detected' if summary['dataset_drift_detected'] else 'no-drift'}">
+                    {'DETECTED' if summary['dataset_drift_detected'] else 'NOT DETECTED'}
+                </span>
+            </p>
+            <p><strong>Drift Share:</strong> {summary['drift_share']:.2%}</p>
+            <p><strong>Drifted Columns:</strong> {summary['number_of_drifted_columns']} / {summary['total_columns']}</p>
+
+            <h2>Drifted Features</h2>
+            {''.join([f'<div class="feature"><strong>{feature}</strong>: {details}</div>' for feature, details in summary['drift_details'].items()]) if summary['drifted_features'] else '<p>No drifted features detected.</p>'}
+        </body>
+        </html>
+        """
+        return html
 
     def get_drift_summary(self) -> Optional[Dict[str, Any]]:
         """
@@ -178,42 +273,45 @@ class DataDriftDetector:
             return None
 
         try:
-            # Extraire les métriques de drift
-            drift_results = self.drift_report.as_dict()
-
             summary = {
                 "dataset_drift_detected": False,
                 "drifted_features": [],
                 "drift_details": {},
+                "drift_share": 0.0,
+                "number_of_drifted_columns": 0,
+                "total_columns": 0
             }
 
-            # Analyser les résultats
-            for metric in drift_results.get("metrics", []):
-                if metric.get("metric") == "DatasetDriftMetric":
-                    summary["dataset_drift_detected"] = metric.get("result", {}).get(
-                        "dataset_drift", False
-                    )
-                    summary["drift_share"] = metric.get("result", {}).get(
-                        "drift_share", 0
-                    )
-                    summary["number_of_drifted_columns"] = metric.get("result", {}).get(
-                        "number_of_drifted_columns", 0
-                    )
+            # Si c'est un rapport Evidently
+            if hasattr(self.drift_report, 'items'):
+                # Extraire les résultats d'Evidently
+                items = self.drift_report.items
+                if callable(items):
+                    items = items()  # Appeler la méthode si c'est un callable
 
-                elif metric.get("metric") == "DataDriftPreset":
-                    # Analyser les features individuelles
-                    for feature_name, feature_data in metric.get("result", {}).items():
-                        if isinstance(feature_data, dict) and feature_data.get(
-                            "drift_detected", False
-                        ):
-                            summary["drifted_features"].append(feature_name)
-                            summary["drift_details"][feature_name] = {
-                                "drift_score": feature_data.get("drift_score", 0),
-                                "threshold": feature_data.get("threshold", 0),
-                                "stattest_name": feature_data.get(
-                                    "stattest_name", "unknown"
-                                ),
-                            }
+                for item in items:  # type: ignore
+                    if hasattr(item, 'result') and hasattr(item.result, 'drifted_columns_count'):
+                        summary["number_of_drifted_columns"] = item.result.drifted_columns_count
+                        summary["total_columns"] = item.result.total_columns
+                        summary["drift_share"] = item.result.drift_share
+                        summary["dataset_drift_detected"] = item.result.dataset_drift
+
+                        # Extraire les détails des colonnes avec drift
+                        if hasattr(item.result, 'drifted_columns'):
+                            for col_name, col_data in item.result.drifted_columns.items():
+                                if hasattr(col_data, 'drift_detected') and col_data.drift_detected:
+                                    summary["drifted_features"].append(col_name)
+                                    summary["drift_details"][col_name] = {
+                                        "drift_score": getattr(col_data, 'drift_score', 0),
+                                        "threshold": getattr(col_data, 'threshold', 0),
+                                        "stattest_name": getattr(col_data, 'stattest_name', 'unknown')
+                                    }
+                        break
+
+            # Si c'est un rapport natif
+            elif hasattr(self, 'native_detector'):
+                native_result = self.native_detector.analyze_all_features()
+                summary.update(native_result)
 
             return summary
 

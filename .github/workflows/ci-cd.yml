@@ -67,6 +67,10 @@ jobs:
           poetry run bandit -r src/ api/ streamlit_app/
           poetry run safety check
 
+      - name: Run performance tests
+        run: |
+          poetry run pytest tests/performance/ -v --tb=short
+
       - name: Upload coverage to Codecov
         if: github.event_name == 'push'
         uses: codecov/codecov-action@v3
@@ -176,7 +180,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
-    environment: 
+    environment:
       name: production
       url: https://huggingface.co/spaces/kodezar/opcmne7p-api
 
