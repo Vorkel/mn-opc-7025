@@ -150,7 +150,7 @@ sample_indices = [0, 100, 500]  # Exemples à analyser
 for idx in sample_indices:
     if idx < len(X_shap):
         # Prédiction du modèle
-        prediction = model.predict_proba(X_shap.iloc[[idx]])[0]
+        prediction = model.predict_proba(X_shap.iloc[[idx]])[0]  # type: ignore
 
         # Graphique SHAP local (version compatible)
         try:

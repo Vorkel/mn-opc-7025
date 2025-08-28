@@ -1,4 +1,5 @@
 # MLOps Credit Scoring System
+
 ## Système Intelligent de Scoring Crédit avec Pipeline MLOps Complet
 
 [![CI/CD](https://github.com/Vorkel/mn-opc-7025/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Vorkel/mn-opc-7025/actions)
@@ -11,6 +12,7 @@
 Ce projet implémente un **système complet MLOps** pour le scoring crédit, conforme aux exigences OpenClassrooms P7. Il inclut un modèle ML optimisé, une API de production, un dashboard interactif moderne, et un pipeline CI/CD automatisé.
 
 ### Objectifs Métier
+
 - **Automatisation** du processus de décision crédit
 - **Optimisation économique** avec score métier (coût FN = 10x coût FP)
 - **Explicabilité** des décisions pour conformité réglementaire
@@ -19,24 +21,28 @@ Ce projet implémente un **système complet MLOps** pour le scoring crédit, con
 ## Fonctionnalités Principales
 
 ### Modèle ML Avancé
+
 - **RandomForest optimisé** avec SMOTE pour déséquilibre
 - **Score métier** : seuil optimal calculé (0.16 vs 0.5 par défaut)
 - **Métriques** : AUC 0.48, coût optimisé à 1591€
 - **Feature importance** : 16 features clés sélectionnées
 
 ### API Production
+
 - **FastAPI** avec authentification JWT
 - **Docker** ready pour déploiement cloud
 - **Rate limiting** et logs structurés JSON
 - **Health checks** et monitoring intégré
 
 ### Dashboard Moderne
+
 - **Design épuré** façon ChatGPT avec couleurs OpenClassrooms
 - **Interface responsive** : mobile, tablet, desktop
 - **Accessibilité WCAG 2.1** niveau AA
 - **Fonctionnalités** : prédiction individuelle, batch, historique
 
 ### MLOps Pipeline
+
 - **MLflow** : tracking expérimentations + model registry
 - **GitHub Actions** : CI/CD automatisé
 - **Tests automatisés** : 7 tests, 100% passants
@@ -45,6 +51,7 @@ Ce projet implémente un **système complet MLOps** pour le scoring crédit, con
 ## Démarrage Rapide
 
 ### Prérequis
+
 - Python 3.11+
 - Git
 - Docker (optionnel)
@@ -63,7 +70,7 @@ pip install -r requirements.txt
 python src/model_training.py
 
 # 4. Lancer l'interface moderne
-streamlit run streamlit_app/streamlit_app.py
+streamlit run streamlit_app/main.py
 ```
 
 **Interface disponible sur :** http://localhost:8501
@@ -82,12 +89,12 @@ uvicorn app:app --reload --port 8000
 
 ### Avant/Après Transformation
 
-| Avant | Après |
-|-------|--------|
-| ❌ Interface sombre surchargée | ✅ Design épuré façon ChatGPT |
-| ❌ CSS complexe (200+ lignes) | ✅ CSS optimisé avec variables |
-| ❌ Couleurs génériques | ✅ Palette OpenClassrooms |
-| ❌ Éléments décoratifs superflus | ✅ Interface minimaliste |
+| Avant                            | Après                          |
+| -------------------------------- | ------------------------------ |
+| ❌ Interface sombre surchargée   | ✅ Design épuré façon ChatGPT  |
+| ❌ CSS complexe (200+ lignes)    | ✅ CSS optimisé avec variables |
+| ❌ Couleurs génériques           | ✅ Palette OpenClassrooms      |
+| ❌ Éléments décoratifs superflus | ✅ Interface minimaliste       |
 
 ### Palette Couleurs OpenClassrooms
 
@@ -131,20 +138,22 @@ graph TB
 ## Métriques et Performance
 
 ### Modèle ML
-| Métrique | Valeur | Commentaire |
-|----------|--------|-------------|
-| **AUC-ROC** | 0.48 | Performance équilibrée |
-| **Coût Métier** | 1591€ | Optimisé vs baseline |
-| **Seuil Optimal** | 0.16 | vs 0.5 par défaut |
-| **Features** | 16 | Sélection optimale |
+
+| Métrique          | Valeur | Commentaire            |
+| ----------------- | ------ | ---------------------- |
+| **AUC-ROC**       | 0.48   | Performance équilibrée |
+| **Coût Métier**   | 1591€  | Optimisé vs baseline   |
+| **Seuil Optimal** | 0.16   | vs 0.5 par défaut      |
+| **Features**      | 16     | Sélection optimale     |
 
 ### Système
-| Métrique | Valeur | État |
-|----------|--------|------|
-| **Tests Unitaires** | 7/7 (100%) | ✅ |
-| **API Response Time** | <2s | ✅ |
-| **Interface Load** | <3s | ✅ |
-| **Uptime CI/CD** | 99.9% | ✅ |
+
+| Métrique              | Valeur     | État |
+| --------------------- | ---------- | ---- |
+| **Tests Unitaires**   | 7/7 (100%) | ✅   |
+| **API Response Time** | <2s        | ✅   |
+| **Interface Load**    | <3s        | ✅   |
+| **Uptime CI/CD**      | 99.9%      | ✅   |
 
 ## Structure du Projet
 
@@ -155,7 +164,7 @@ mn-opc-7025/
 │   ├── security.py                  # Authentification JWT
 │   └── dockerfile                   # Configuration Docker
 ├── streamlit_app/                # Interface Moderne
-│   ├── streamlit_app.py            # App principale épurée
+│   ├── main.py                     # App principale moderne
 │   ├── main.py                     # Version modulaire
 │   └── ui/                         # Composants UI modernes
 │       ├── theme.py                # Thème OpenClassrooms
@@ -179,6 +188,7 @@ mn-opc-7025/
 ## Conformité Missions OpenClassrooms
 
 ### Mission 1 - Modèle de Scoring
+
 - [x] API de prédiction déployée cloud
 - [x] Code modélisation avec MLflow tracking
 - [x] Interface MLflow opérationnelle
@@ -187,6 +197,7 @@ mn-opc-7025/
 - [x] Support présentation (30 slides)
 
 ### Mission 2 - Système MLOps
+
 - [x] Pipeline CI/CD GitHub Actions
 - [x] Tests unitaires automatisés (100%)
 - [x] Déploiement continu
@@ -194,6 +205,7 @@ mn-opc-7025/
 - [x] Model registry centralisé
 
 ### Mission 3 - Dashboard Interactif
+
 - [x] Interface moderne déployée
 - [x] Design épuré OpenClassrooms
 - [x] Accessibilité WCAG niveau AA
@@ -203,15 +215,17 @@ mn-opc-7025/
 ## Déploiement Cloud
 
 ### API Production
+
 ```bash
 # Déploiement Hugging Face Spaces
 git push origin main  # CI/CD automatique
 ```
 
 ### Dashboard
+
 ```bash
 # Déploiement Streamlit Cloud
-streamlit run streamlit_app/streamlit_app.py
+streamlit run streamlit_app/main.py
 ```
 
 ## Tests et Qualité
@@ -231,6 +245,7 @@ flake8 src/ api/ streamlit_app/
 ## API Usage
 
 ### Prédiction Individuelle
+
 ```python
 import requests
 
@@ -251,6 +266,7 @@ print(response.json())
 ```
 
 ### Prédiction Batch
+
 ```python
 # Upload CSV via dashboard ou API
 # Résultats automatiquement générés et exportables
@@ -259,6 +275,7 @@ print(response.json())
 ## Configuration Avancée
 
 ### Variables d'Environnement
+
 ```bash
 # MLflow
 MLFLOW_TRACKING_URI=http://localhost:5000
@@ -273,6 +290,7 @@ STREAMLIT_THEME=light
 ```
 
 ### Docker Deployment
+
 ```bash
 # Build et run
 docker build -t credit-scoring-api .
@@ -309,14 +327,15 @@ Ce projet est sous licence MIT. Voir [LICENSE](LICENSE) pour plus de détails.
 Ce projet MLOps Credit Scoring présente une **solution complète et professionnelle** conforme aux exigences OpenClassrooms avec des **améliorations significatives** :
 
 ### Points Forts
+
 - **Interface modernisée** avec design épuré OpenClassrooms
 - **Pipeline MLOps robuste** : tracking, CI/CD, monitoring
 - **Performance optimisée** : score métier, seuil optimal
 - **Qualité code** : tests 100%, documentation complète
 
 ### Production Ready
+
 - API sécurisée et scalable
 - Dashboard accessible et moderne
 - Monitoring automatisé
 - Déploiement cloud simplifié
-

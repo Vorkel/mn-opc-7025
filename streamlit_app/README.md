@@ -16,10 +16,10 @@ Cette application Streamlit locale permet d'effectuer des prédictions de scorin
 
 ```bash
 # Depuis la racine du projet
-streamlit run streamlit_app/streamlit_app.py
+streamlit run streamlit_app/main.py
 
 # Ou avec un port spécifique
-streamlit run streamlit_app/streamlit_app.py --server.port 8501
+streamlit run streamlit_app/main.py --server.port 8501
 ```
 
 L'application sera accessible à l'adresse : `http://localhost:8502`
@@ -27,28 +27,33 @@ L'application sera accessible à l'adresse : `http://localhost:8502`
 ## Fonctionnalités
 
 ### 1. Prédiction Individuelle
+
 - **Saisie manuelle** des données client
 - **Prédiction en temps réel** du risque de défaut
 - **Visualisation** du score avec graphique en jauge
 - **Décision automatique** (Accordé/Refusé) basée sur le seuil optimal
 
 ### 2. Analyse en Lot
+
 - **Upload de fichiers CSV** avec données clients
 - **Traitement par lot** de plusieurs clients
 - **Statistiques globales** et visualisations
 - **Export des résultats** en CSV
 
 ### 3. Historique des Prédictions
+
 - **Sauvegarde automatique** des prédictions effectuées
 - **Consultation** des résultats précédents
 - **Gestion** de l'historique (suppression)
 
 ### 4. Analyse des Features
+
 - **Importance des features** avec graphiques interactifs
 - **Visualisations SHAP** (si disponibles)
 - **Tableaux détaillés** d'importance
 
 ### 5. Rapports et Visualisations
+
 - **Graphiques d'analyse** générés par les scripts
 - **Rapports JSON** d'exploration des données
 - **Matrices de corrélation** et distributions
@@ -85,7 +90,7 @@ Aucune variable d'environnement requise - l'application fonctionne entièrement 
 
 ### Chemins personnalisés
 
-Les chemins sont automatiquement détectés depuis la structure du projet. Si vous modifiez la structure, ajustez les variables dans `streamlit_app.py` :
+Les chemins sont automatiquement détectés depuis la structure du projet. Si vous modifiez la structure, ajustez les variables dans `main.py` :
 
 ```python
 BASE_DIR = Path(__file__).parent.parent
@@ -101,6 +106,7 @@ REPORTS_DIR = BASE_DIR / "reports"
 L'application accepte les champs suivants :
 
 **Informations personnelles :**
+
 - `CODE_GENDER` : "M" ou "F"
 - `FLAG_OWN_CAR` : "Y" ou "N"
 - `FLAG_OWN_REALTY` : "Y" ou "N"
@@ -108,12 +114,14 @@ L'application accepte les champs suivants :
 - `CNT_FAM_MEMBERS` : Nombre de membres de la famille
 
 **Informations financières :**
+
 - `AMT_INCOME_TOTAL` : Revenu total annuel
 - `AMT_CREDIT` : Montant du crédit demandé
 - `AMT_ANNUITY` : Montant de l'annuité
 - `AMT_GOODS_PRICE` : Prix des biens
 
 **Informations temporelles :**
+
 - `DAYS_BIRTH` : Âge en jours (négatif)
 - `DAYS_EMPLOYED` : Expérience en jours (négatif)
 - `DAYS_REGISTRATION` : Jours depuis l'enregistrement
@@ -125,11 +133,13 @@ Utilisez le template fourni dans l'application ou respectez le format des colonn
 ## Interprétation des Résultats
 
 ### Score de risque
+
 - **🟢 FAIBLE** : Probabilité < 30%
 - **🟡 MOYEN** : Probabilité entre 30% et 60%
 - **🔴 ÉLEVÉ** : Probabilité > 60%
 
 ### Décision
+
 - **ACCORDÉ** : Probabilité < seuil optimal
 - **REFUSÉ** : Probabilité ≥ seuil optimal
 
@@ -138,10 +148,12 @@ Utilisez le template fourni dans l'application ou respectez le format des colonn
 ### Erreurs courantes
 
 1. **"Aucun modèle trouvé"**
+
    - Vérifiez que les scripts d'entraînement ont été exécutés
    - Vérifiez la présence de fichiers `.pkl` dans `models/`
 
 2. **"Données non disponibles"**
+
    - Exécutez les scripts d'analyse dans `src/`
    - Vérifiez la présence des fichiers dans `data/processed/` et `reports/`
 
@@ -159,7 +171,7 @@ Pour mettre à jour l'application :
 
 1. **Arrêtez** l'application (Ctrl+C)
 2. **Modifiez** le code si nécessaire
-3. **Relancez** avec `streamlit run streamlit_app/streamlit_app.py`
+3. **Relancez** avec `streamlit run streamlit_app/main.py`
 
 ## Support
 
@@ -169,4 +181,4 @@ Pour mettre à jour l'application :
 
 ---
 
-*Application développée pour le projet MLOps - Système de scoring crédit*
+_Application développée pour le projet MLOps - Système de scoring crédit_

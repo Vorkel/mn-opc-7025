@@ -185,7 +185,7 @@ missing_df = pd.DataFrame(
 )
 
 # Filtrer et trier
-missing_df = missing_df[missing_df["Manquantes"] > 0].sort_values(
+missing_df = missing_df[missing_df["Manquantes"] > 0].sort_values( # type: ignore
     "Pourcentage", ascending=False
 )
 
@@ -322,7 +322,7 @@ for feature in existing_categorical[:6]:  # Limiter à 6 pour l'affichage
             df_train.groupby(feature)["TARGET"].agg(["count", "mean"]).round(4)
         )
         target_analysis.columns = ["Count", "Default_Rate"]
-        target_analysis = target_analysis.sort_values("Default_Rate", ascending=False)
+        target_analysis = target_analysis.sort_values("Default_Rate", ascending=False) # type: ignore
 
         print(f"\nTaux de défaut par catégorie:")
         print(target_analysis)
@@ -365,7 +365,7 @@ numeric_features = [col for col in numeric_features if col != "SK_ID_CURR"]
 numeric_features = numeric_features[:20]
 
 # Matrice de corrélation
-corr_matrix = df_train[numeric_features].corr()
+corr_matrix = df_train[numeric_features].corr() # type: ignore
 
 # Visualisation avec seaborn
 plt.figure(figsize=(16, 12))
@@ -388,10 +388,10 @@ print("Graphique matplotlib généré et sauvegardé")
 # Corrélations les plus fortes avec TARGET
 if "TARGET" in corr_matrix.columns:
     target_corr = (
-        corr_matrix["TARGET"].abs().sort_values(ascending=False)[1:11]
+        corr_matrix["TARGET"].abs().sort_values(ascending=False)[1:11] # type: ignore
     )  # Top 10
     print(f"\nTop 10 corrélations avec TARGET:")
-    for feature, corr in target_corr.items():
+    for feature, corr in target_corr.items(): # type: ignore
         print(f"  {feature}: {corr:.4f}")
 
 # =============================================================================
@@ -562,19 +562,19 @@ summary = {
     "categorical_features_count": len(existing_categorical),
     "outliers_detected": {k: v["count"] for k, v in outliers_info.items()},
     "age_statistics": {
-        "mean": float(age_stats["mean"]),
-        "median": float(age_stats["50%"]),
-        "min": float(age_stats["min"]),
-        "max": float(age_stats["max"]),
+        "mean": float(age_stats["mean"]), # type: ignore
+        "median": float(age_stats["50%"]), # type: ignore
+        "min": float(age_stats["min"]), # type: ignore
+        "max": float(age_stats["max"]), # type: ignore
     },
     "employment_statistics": {
-        "mean": float(emp_stats["mean"]),
-        "median": float(emp_stats["50%"]),
-        "min": float(emp_stats["min"]),
-        "max": float(emp_stats["max"]),
+        "mean": float(emp_stats["mean"]), # type: ignore
+        "median": float(emp_stats["50%"]), # type: ignore
+        "min": float(emp_stats["min"]), # type: ignore
+        "max": float(emp_stats["max"]), # type: ignore
     },
     "top_correlations_with_target": (
-        target_corr.to_dict() if "TARGET" in corr_matrix.columns else {}
+        target_corr.to_dict() if "TARGET" in corr_matrix.columns else {} # type: ignore
     ),
     "recommendations": [
         "Gérer le déséquilibre des classes",

@@ -80,7 +80,7 @@ api/
 
 streamlit_app/
 ├── main.py                     # Application principale
-├── streamlit_app.py            # Interface utilisateur
+├── main.py                     # Interface utilisateur
 ├── ui/                         # Composants UI
 └── dockerfile                  # Containerisation
 ```
