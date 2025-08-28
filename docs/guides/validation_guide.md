@@ -77,9 +77,9 @@ poetry run pytest tests/security/ -v
 
 ### Tests
 
-- **Tests unitaires** : 41 tests passés
+- **Tests unitaires** : 37 tests passés
 - **Tests d'intégration** : 6 tests passés
-- **Tests API** : 10 tests passés
+- **Tests API** : 12 tests passés
 - **Tests performance** : 4 tests passés
 - **Tests sécurité** : 4 tests passés
 
@@ -106,10 +106,10 @@ poetry run pytest tests/security/ -v
 
 ### Éléments manquants identifiés
 
-- [ ] **Evidently Data Drift** : ✅ Migration 0.7+ complétée
-- [ ] **Tests unitaires** : ✅ Structure complète créée
-- [ ] **MLflow UI** : ✅ Interface documentée et accessible
-- [ ] **CI/CD** : ✅ Tests sécurité et performance ajoutés
+- [ ] **Evidently Data Drift** : Migration 0.7+ complétée
+- [ ] **Tests unitaires** : Structure complète créée
+- [ ] **MLflow UI** : Interface documentée et accessible
+- [ ] **CI/CD** : Tests sécurité et performance ajoutés
 
 ## Validation rapide
 
@@ -167,12 +167,12 @@ python -c "import evidently; print(f'Evidently {evidently.__version__}')"
 
 Le projet est **prêt pour la soutenance** si :
 
-- ✅ Tous les tests passent
-- ✅ MLflow UI accessible
-- ✅ API fonctionnelle
-- ✅ Evidently 0.7+ opérationnel
-- ✅ Documentation complète
-- ✅ Déploiement Hugging Face fonctionnel
+- Tous les tests passent
+- MLflow UI accessible
+- API fonctionnelle
+- Evidently 0.7+ opérationnel
+- Documentation complète
+- Déploiement Hugging Face fonctionnel
 
 ## Prochaines étapes
 

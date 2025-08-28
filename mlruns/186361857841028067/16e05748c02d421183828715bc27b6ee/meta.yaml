@@ -1,0 +1,15 @@
+artifact_uri: file:///Users/maximenejad/Developer/OPC/P7-8/mlruns/186361857841028067/16e05748c02d421183828715bc27b6ee/artifacts
+end_time: 1756393542112
+entry_point_name: ''
+experiment_id: '186361857841028067'
+lifecycle_stage: active
+run_id: 16e05748c02d421183828715bc27b6ee
+run_name: test_integration
+run_uuid: 16e05748c02d421183828715bc27b6ee
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1756393542104
+status: 3
+tags: []
+user_id: maximenejad
