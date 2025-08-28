@@ -498,9 +498,13 @@
 
 2. **Tests unitaires** :
 
-   - ❌ Dossier `tests/` manquant
-   - ✅ CI/CD configuré pour les tests
-   - 🔧 **Action** : Créer les tests unitaires
+   - ✅ Dossier `tests/` créé avec structure complète
+   - ✅ Tests unitaires pour BusinessScorer, feature engineering, validation données
+   - ✅ Tests d'intégration pour pipeline complet et API
+   - ✅ Tests de performance pour API et modèles
+   - ✅ Configuration pytest avec coverage (26%)
+   - ✅ 41 tests passés, 32 skipped
+   - 🔧 **Action** : Améliorer la couverture de code
 
 3. **MLflow UI** :
 
