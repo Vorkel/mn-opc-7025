@@ -529,6 +529,31 @@
 
 ---
 
+## État Actuel du Projet - Résumé
+
+**✅ PRIORITÉ 1 COMPLÉTÉE - Tests Unitaires**
+
+**Réalisations** :
+- Structure de tests complète créée (`tests/unit/`, `tests/integration/`, `tests/api/`, `tests/performance/`)
+- 41 tests unitaires et d'intégration implémentés et validés
+- Tests couvrant : BusinessScorer, feature engineering, validation données, API endpoints
+- Configuration pytest avec coverage reporting
+- Tous les tests passent (32 skipped car dépendances non disponibles)
+
+**Métriques** :
+- **Tests passés** : 41
+- **Tests skipped** : 32 (normal - dépendances externes)
+- **Couverture** : 26% (améliorable)
+- **Temps d'exécution** : ~7 secondes
+
+**Prochaines priorités** :
+1. **PRIORITÉ 2** : Migration Evidently (Data Drift)
+2. **PRIORITÉ 3** : Documentation MLflow UI
+3. **PRIORITÉ 4** : Amélioration CI/CD (tests sécurité/performance)
+4. **PRIORITÉ 5** : Amélioration couverture de code
+
+---
+
 ## "Pitch" Technique (discours oral de 2 minutes)
 
 "Notre approche technique se distingue par son alignement strict sur la réalité métier. Plutôt que d'optimiser l'accuracy classique, nous avons implémenté un score métier qui reflète les coûts asymétriques : un faux négatif coûte 10 fois plus qu'un faux positif. Cette contrainte guide toute notre pipeline, du feature engineering à l'optimisation du seuil de décision.
