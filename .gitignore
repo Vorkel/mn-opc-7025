@@ -1,16 +1,31 @@
 # Rules - Confidential
+.github/copilot-instructions.md
+.github/workflows/rules-ci.yml
+.mypy.cache/
+/rules.local.yaml
 /docs/rules/
+/docs/scripts/
 .rules
 .cursor/
 .claude/
 .windsurf/
+.vscode/tasks.json
+.vscode/keybindings.json
+.githooks/
+/tools/
 AGENTS.md
-.github/copilot-instructions.md
-.github/workflows/rules-ci.yml
-tools/
+Makefile
 
 # Python
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz
+.mypy.cache/
+.pytest_cache/
+.ruff_cache/
 *.py[cod]
 *$py.class
 *.so

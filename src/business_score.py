@@ -77,7 +77,7 @@ class BusinessScorer:
             cost = self.calculate_business_cost(y_true, y_pred)
             costs.append(cost)
 
-        costs = np.array(costs)
+        costs = np.array(costs)  # type: ignore
 
         # Trouver le seuil qui minimise le coût
         optimal_idx = np.argmin(costs)
@@ -86,7 +86,7 @@ class BusinessScorer:
 
         if plot:
             self.plot_threshold_analysis(
-                thresholds, costs, optimal_threshold, optimal_cost
+                thresholds, costs, optimal_threshold, optimal_cost  # type: ignore
             )
 
         return optimal_threshold, optimal_cost

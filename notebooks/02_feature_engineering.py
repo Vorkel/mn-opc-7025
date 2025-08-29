@@ -264,7 +264,7 @@ if external_features:
     df_engineered["EXT_SOURCES_MAX"] = df_engineered[external_features].max(axis=1)
     df_engineered["EXT_SOURCES_MIN"] = df_engineered[external_features].min(axis=1)
     df_engineered["EXT_SOURCES_STD"] = df_engineered[external_features].std(axis=1)
-    df_engineered["EXT_SOURCES_COUNT"] = df_engineered[external_features].count(axis=1) # type: ignore
+    df_engineered["EXT_SOURCES_COUNT"] = df_engineered[external_features].count(axis=1)
 
     # Interactions
     df_engineered["AGE_EXT_SOURCES_INTERACTION"] = (
@@ -326,7 +326,7 @@ for col in categorical_cols:
     if df_engineered[col].isnull().sum() > 0:
         mode_val = df_engineered[col].mode()
         if len(mode_val) > 0:
-            df_engineered[col] = df_engineered[col].fillna(mode_val[0]) # type: ignore
+            df_engineered[col] = df_engineered[col].fillna(mode_val[0])
         else:
             df_engineered[col] = df_engineered[col].fillna("Unknown")
 
@@ -365,7 +365,7 @@ ordinal_mappings = {
 
 for feature, mapping in ordinal_mappings.items():
     if feature in df_engineered.columns:
-        df_engineered[feature] = df_engineered[feature].map(mapping).fillna(0) # type: ignore
+        df_engineered[feature] = df_engineered[feature].map(mapping).fillna(0)
 
 # Variables catégorielles standard
 categorical_features = [
@@ -435,7 +435,7 @@ if existing_features:
                 p99 = data.quantile(0.99)
                 data_filtered = data[data <= p99]
 
-                data_filtered.hist(bins=50, ax=axes[i]) # type: ignore
+                data_filtered.hist(bins=50, ax=axes[i])
                 axes[i].set_title(f"Distribution de {feature}")
                 axes[i].set_xlabel(feature)
                 axes[i].set_ylabel("Fréquence")
@@ -476,7 +476,7 @@ rf = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1, max_de
 rf.fit(X_train, y_train)
 
 # Évaluer
-y_pred = rf.predict_proba(X_val)[:, 1]  # type: ignore
+y_pred = rf.predict_proba(X_val)[:, 1]
 auc_score = roc_auc_score(y_val, y_pred)
 
 # Importance des features
