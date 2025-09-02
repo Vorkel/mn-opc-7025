@@ -11,10 +11,10 @@
 
 ### **2. `requirements_render.txt` (racine)**
 
-- **Usage** : Render.com (API FastAPI)
+- **Usage** : Template pour Render.com (API FastAPI)
 - **Python** : 3.11
 - **Contenu** : Dépendances minimales API (sans conflits)
-- **Déploiement** : Spécifiquement pour Render.com
+- **Déploiement** : Copié dans requirements.txt pour Render.com
 
 ### **3. `streamlit_app/requirements.txt`**
 
@@ -23,19 +23,18 @@
 - **Contenu** : Dépendances minimales UI
 - **Déploiement** : Automatique sur Streamlit Cloud
 
-### **3. `streamlit_app/requirements.txt`**
+### **4. `streamlit_app/.streamlit/requirements.txt`**
 
-- **Usage** : Streamlit Cloud (interface utilisateur)
-- **Python** : 3.13.6 (détecté automatiquement)
-- **Contenu** : Dépendances minimales UI
-- **Déploiement** : Automatique sur Streamlit Cloud
+- **Usage** : Prioritaire pour Streamlit Cloud
+- **Python** : 3.13.6
+- **Contenu** : Même que streamlit_app/requirements.txt
 
 ## 🌐 Déploiement
 
 ### **Render.com (API)**
 
 ```bash
-# Le fichier requirements.txt est utilisé automatiquement
+# Le fichier requirements.txt (copie de requirements_render.txt) est utilisé
 # Python 3.11 forcé via runtime.txt
 ```
 
@@ -49,8 +48,8 @@
 ### **Développement Local**
 
 ```bash
-# Utiliser requirements_dev.txt
-pip install -r requirements_dev.txt
+# Utiliser requirements.txt (complet)
+pip install -r requirements.txt
 ```
 
 ## 🔧 Configuration
@@ -58,7 +57,7 @@ pip install -r requirements_dev.txt
 ### **Render.com**
 
 - **Runtime** : Python 3.11
-- **Requirements** : `requirements.txt`
+- **Requirements** : `requirements.txt` (copie de requirements_render.txt)
 - **Health Check** : `/health`
 
 ### **Streamlit Cloud**
