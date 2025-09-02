@@ -226,6 +226,12 @@ class CreditFeatureEngineer:
             else:
                 df_engineered["DOCUMENT_SCORE"] = 0
 
+            # S'assurer que toutes les features FLAG_DOCUMENT sont présentes
+            for i in range(1, 22):  # FLAG_DOCUMENT_1 à FLAG_DOCUMENT_21
+                doc_feature = f"FLAG_DOCUMENT_{i}"
+                if doc_feature not in df_engineered.columns:
+                    df_engineered[doc_feature] = 0
+
             # Score de région normalisé
             df_engineered["REGION_SCORE_NORMALIZED"] = (
                 4 - df_engineered["REGION_RATING_CLIENT"]
@@ -235,6 +241,23 @@ class CreditFeatureEngineer:
             df_engineered["EXT_SOURCE_1"] = df_engineered.get("EXT_SOURCE_1", 0.5)
             df_engineered["EXT_SOURCE_2"] = df_engineered.get("EXT_SOURCE_2", 0.5)
             df_engineered["EXT_SOURCE_3"] = df_engineered.get("EXT_SOURCE_3", 0.5)
+
+            # Features AMT_REQ_CREDIT_BUREAU - valeurs par défaut si non présentes
+            credit_bureau_features = [
+                "AMT_REQ_CREDIT_BUREAU_HOUR",
+                "AMT_REQ_CREDIT_BUREAU_DAY",
+                "AMT_REQ_CREDIT_BUREAU_WEEK",
+                "AMT_REQ_CREDIT_BUREAU_MON",
+                "AMT_REQ_CREDIT_BUREAU_QRT",
+                "AMT_REQ_CREDIT_BUREAU_YEAR"
+            ]
+
+            for feature in credit_bureau_features:
+                if feature not in df_engineered.columns:
+                    df_engineered[feature] = 0.0  # Valeur par défaut
+                else:
+                    # Remplacer les valeurs NaN par 0
+                    df_engineered[feature] = df_engineered[feature].fillna(0.0)
 
             # Calculer les agrégations EXT_SOURCE
             ext_sources = [
