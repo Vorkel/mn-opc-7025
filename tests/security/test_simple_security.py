@@ -8,7 +8,7 @@ import re
 import os
 import sys
 
-def test_no_hardcoded_secrets():
+def test_no_hardcoded_secrets() -> None:
     """Test qu'il n'y a pas de secrets en dur dans le code"""
     sensitive_patterns = [
         r'password\s*=\s*["\'][^"\']+["\']',
@@ -42,7 +42,7 @@ def test_no_hardcoded_secrets():
 
     print("✅ Aucun secret en dur détecté")
 
-def test_import_security():
+def test_import_security() -> None:
     """Test que les imports sont sécurisés"""
     dangerous_imports = [
         'subprocess',
@@ -83,7 +83,7 @@ def test_import_security():
 
     print("✅ Imports sécurisés vérifiés")
 
-def test_file_permissions():
+def test_file_permissions() -> None:
     """Test que les fichiers sensibles ont les bonnes permissions"""
     sensitive_files = [
         '.env',
@@ -100,7 +100,7 @@ def test_file_permissions():
 
     print("✅ Permissions des fichiers vérifiées")
 
-def test_dependency_security():
+def test_dependency_security() -> None:
     """Test simple de sécurité des dépendances"""
     try:
         import safety

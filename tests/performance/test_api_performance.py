@@ -25,7 +25,7 @@ class TestAPIPerformance:
     """Tests de performance pour l'API"""
 
     @pytest.mark.performance
-    def test_api_response_time(self):
+    def test_api_response_time(self) -> None:
         """Test que l'API répond en moins de 100ms"""
         try:
             client = TestClient(app)
@@ -43,7 +43,7 @@ class TestAPIPerformance:
             pytest.skip(f"API non disponible: {e}")
 
     @pytest.mark.performance
-    def test_predict_endpoint_performance(self):
+    def test_predict_endpoint_performance(self) -> None:
         """Test de performance de l'endpoint de prédiction"""
         try:
             client = TestClient(app)
@@ -84,7 +84,7 @@ class TestAPIPerformance:
             pytest.skip(f"API non disponible: {e}")
 
     @pytest.mark.performance
-    def test_batch_predict_performance(self):
+    def test_batch_predict_performance(self) -> None:
         """Test de performance de l'endpoint de prédiction par lot"""
         try:
             client = TestClient(app)
@@ -148,7 +148,7 @@ class TestAPIPerformance:
             pytest.skip(f"API non disponible: {e}")
 
     @pytest.mark.performance
-    def test_concurrent_requests_performance(self):
+    def test_concurrent_requests_performance(self) -> None:
         """Test de performance avec des requêtes concurrentes"""
         try:
             client = TestClient(app)
@@ -200,7 +200,7 @@ class TestModelPerformance:
     """Tests de performance pour les modèles"""
 
     @pytest.mark.performance
-    def test_model_prediction_speed(self):
+    def test_model_prediction_speed(self) -> None:
         """Test de la vitesse de prédiction du modèle"""
         try:
             # Créer des données de test
@@ -236,7 +236,7 @@ class TestModelPerformance:
             pytest.skip(f"Modèle non disponible: {e}")
 
     @pytest.mark.performance
-    def test_model_training_speed(self):
+    def test_model_training_speed(self) -> None:
         """Test de la vitesse d'entraînement du modèle"""
         try:
             # Créer des données de test
@@ -268,7 +268,7 @@ class TestModelPerformance:
             pytest.skip(f"Modèle non disponible: {e}")
 
     @pytest.mark.performance
-    def test_feature_importance_calculation_speed(self):
+    def test_feature_importance_calculation_speed(self) -> None:
         """Test de la vitesse de calcul de l'importance des features"""
         try:
             # Créer des données de test
@@ -307,7 +307,7 @@ class TestDataProcessingPerformance:
     """Tests de performance pour le traitement des données"""
 
     @pytest.mark.performance
-    def test_data_loading_speed(self):
+    def test_data_loading_speed(self) -> None:
         """Test de la vitesse de chargement des données"""
         # Vérifier que les données existent
         train_path = "data/raw/application_train.csv"
@@ -327,7 +327,7 @@ class TestDataProcessingPerformance:
             pytest.skip("Données non disponibles")
 
     @pytest.mark.performance
-    def test_data_preprocessing_speed(self):
+    def test_data_preprocessing_speed(self) -> None:
         """Test de la vitesse de prétraitement des données"""
         try:
             # Créer des données de test
@@ -363,7 +363,7 @@ class TestDataProcessingPerformance:
             pytest.skip(f"Prétraitement non disponible: {e}")
 
     @pytest.mark.performance
-    def test_business_score_calculation_speed(self):
+    def test_business_score_calculation_speed(self) -> None:
         """Test de la vitesse de calcul du score métier"""
         try:
             from business_score import BusinessScorer
@@ -397,7 +397,7 @@ class TestMemoryUsage:
     """Tests d'utilisation mémoire"""
 
     @pytest.mark.performance
-    def test_memory_usage_model_training(self):
+    def test_memory_usage_model_training(self) -> None:
         """Test de l'utilisation mémoire lors de l'entraînement"""
         try:
             import psutil
@@ -435,7 +435,7 @@ class TestMemoryUsage:
             pytest.skip(f"Test mémoire non disponible: {e}")
 
     @pytest.mark.performance
-    def test_memory_usage_data_processing(self):
+    def test_memory_usage_data_processing(self) -> None:
         """Test de l'utilisation mémoire lors du traitement des données"""
         try:
             import psutil

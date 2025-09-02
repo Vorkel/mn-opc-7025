@@ -22,7 +22,7 @@ except ImportError:
 class TestFeatureEngineering:
     """Tests pour le feature engineering"""
 
-    def test_analyze_feature_importance_basic(self):
+    def test_analyze_feature_importance_basic(self) -> None:
         """Test basique de l'analyse d'importance des features"""
         # Données de test
         X = pd.DataFrame({
@@ -40,7 +40,7 @@ class TestFeatureEngineering:
             # Si la fonction n'est pas implémentée, on passe le test
             pytest.skip(f"Fonction analyze_feature_importance non implémentée: {e}")
 
-    def test_feature_importance_with_categorical_data(self):
+    def test_feature_importance_with_categorical_data(self) -> None:
         """Test avec des données catégorielles"""
         X = pd.DataFrame({
             'numeric_feature': [1, 2, 3, 4, 5],
@@ -54,7 +54,7 @@ class TestFeatureEngineering:
         except Exception as e:
             pytest.skip(f"Fonction analyze_feature_importance non implémentée: {e}")
 
-    def test_feature_importance_with_missing_values(self):
+    def test_feature_importance_with_missing_values(self) -> None:
         """Test avec des valeurs manquantes"""
         X = pd.DataFrame({
             'feature_1': [1, 2, np.nan, 4, 5],
@@ -68,7 +68,7 @@ class TestFeatureEngineering:
         except Exception as e:
             pytest.skip(f"Fonction analyze_feature_importance non implémentée: {e}")
 
-    def test_feature_importance_edge_cases(self):
+    def test_feature_importance_edge_cases(self) -> None:
         """Test des cas limites"""
         # Test avec une seule feature
         X = pd.DataFrame({'feature_1': [1, 2, 3, 4, 5]})
@@ -92,7 +92,7 @@ class TestFeatureEngineering:
             # Si elle lève une exception, c'est aussi OK
             pass
 
-    def test_feature_importance_with_high_cardinality(self):
+    def test_feature_importance_with_high_cardinality(self) -> None:
         """Test avec des features à haute cardinalité"""
         # Créer des données avec haute cardinalité mais longueurs compatibles
         X = pd.DataFrame({
@@ -111,7 +111,7 @@ class TestFeatureEngineering:
 class TestDataPreprocessing:
     """Tests pour le prétraitement des données"""
 
-    def test_handle_missing_values(self):
+    def test_handle_missing_values(self) -> None:
         """Test de la gestion des valeurs manquantes"""
         # Créer des données avec des valeurs manquantes
         data = pd.DataFrame({
@@ -130,7 +130,7 @@ class TestDataPreprocessing:
         assert not data_filled.isnull().any().any()  # type: ignore
         assert len(data_filled) == len(data)
 
-    def test_outlier_detection(self):
+    def test_outlier_detection(self) -> None:
         """Test de la détection d'outliers"""
         # Créer des données avec des outliers
         data = pd.Series([1, 2, 3, 4, 5, 100, 200])  # 100 et 200 sont des outliers
@@ -148,7 +148,7 @@ class TestDataPreprocessing:
         assert len(outliers) >= 1
         assert 200 in outliers.values  # type: ignore  # 200 est clairement un outlier
 
-    def test_categorical_encoding(self):
+    def test_categorical_encoding(self) -> None:
         """Test de l'encodage catégoriel"""
         # Données catégorielles
         categorical_data = pd.Series(['A', 'B', 'A', 'C', 'B'])
@@ -163,7 +163,7 @@ class TestDataPreprocessing:
         # LabelEncoder retourne des numpy.int64, pas des int Python
         assert all(isinstance(x, (int, np.integer)) for x in encoded)
 
-    def test_feature_scaling(self):
+    def test_feature_scaling(self) -> None:
         """Test de la normalisation des features"""
         # Données numériques
         data = pd.DataFrame({
@@ -184,7 +184,7 @@ class TestDataPreprocessing:
 class TestFeatureCreation:
     """Tests pour la création de nouvelles features"""
 
-    def test_temporal_features(self):
+    def test_temporal_features(self) -> None:
         """Test de la création de features temporelles"""
         # Simuler des données temporelles
         dates = pd.date_range('2020-01-01', periods=100, freq='D')
@@ -204,7 +204,7 @@ class TestFeatureCreation:
         assert data['year'].iloc[0] == 2020
         assert data['month'].iloc[0] == 1
 
-    def test_interaction_features(self):
+    def test_interaction_features(self) -> None:
         """Test de la création de features d'interaction"""
         data = pd.DataFrame({
             'feature_1': [1, 2, 3, 4, 5],
@@ -220,7 +220,7 @@ class TestFeatureCreation:
         assert data['interaction'].iloc[0] == 2  # 1 * 2
         assert data['ratio'].iloc[0] == 0.5  # 1 / 2
 
-    def test_aggregation_features(self):
+    def test_aggregation_features(self) -> None:
         """Test de la création de features d'agrégation"""
         data = pd.DataFrame({
             'group': ['A', 'A', 'B', 'B', 'A'],

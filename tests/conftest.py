@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'streamlit_app'
 
 
 @pytest.fixture(scope="session")
-def temp_dir():
+def temp_dir() -> Generator[str, None, None]:
     """Fixture pour créer un répertoire temporaire pour les tests"""
     temp_dir = tempfile.mkdtemp()
     yield temp_dir
@@ -23,7 +23,7 @@ def temp_dir():
 
 
 @pytest.fixture(scope="session")
-def sample_data():
+def sample_data() -> pd.DataFrame:
     """Fixture pour créer des données de test"""
     import pandas as pd
     import numpy as np
@@ -58,7 +58,7 @@ def sample_data():
 
 
 @pytest.fixture(scope="session")
-def sample_target():
+def sample_target() -> np.ndarray:
     """Fixture pour créer la variable cible de test"""
     import numpy as np
 
@@ -72,17 +72,17 @@ def sample_target():
 
 
 @pytest.fixture(scope="session")
-def mock_model():
+def mock_model() -> MagicMock:
     """Fixture pour créer un modèle mock"""
     model = MagicMock()
 
     # Simuler les prédictions
-    def predict_proba(X):
+    def predict_proba(X) -> np.ndarray: # type: ignore
         import numpy as np
         n_samples = X.shape[0] if hasattr(X, 'shape') else len(X)
         return np.random.uniform(0, 1, (n_samples, 2))
 
-    def predict(X):
+    def predict(X) -> np.ndarray: # type: ignore
         import numpy as np
         n_samples = X.shape[0] if hasattr(X, 'shape') else len(X)
         return np.random.binomial(1, 0.3, n_samples)
@@ -95,14 +95,14 @@ def mock_model():
 
 
 @pytest.fixture(scope="session")
-def mock_api_client():
+def mock_api_client() -> MagicMock:
     """Fixture pour créer un client API mock"""
     from unittest.mock import MagicMock
 
     client = MagicMock()
 
     # Simuler les réponses de l'API
-    def mock_get(url):
+    def mock_get(url) -> MagicMock:
         response = MagicMock()
         if url == "/health":
             response.status_code = 200
@@ -114,7 +114,7 @@ def mock_api_client():
             response.status_code = 404
         return response
 
-    def mock_post(url, json=None):
+    def mock_post(url, json=None) -> MagicMock:
         response = MagicMock()
         if url == "/predict":
             response.status_code = 200
@@ -147,7 +147,7 @@ def mock_api_client():
 
 
 @pytest.fixture(autouse=True)
-def setup_test_environment():
+def setup_test_environment() -> Generator[None, None, None]:
     """Setup automatique de l'environnement de test"""
     # Sauvegarder les variables d'environnement originales
     original_env = os.environ.copy()
@@ -164,7 +164,7 @@ def setup_test_environment():
 
 
 @pytest.fixture(scope="function")
-def clean_logs():
+def clean_logs() -> Generator[None, None, None]:
     """Fixture pour nettoyer les logs avant chaque test"""
     log_files = ['logs/api.log', 'logs/security.log']
 
@@ -184,7 +184,7 @@ def clean_logs():
 
 
 # Configuration pour les tests de performance
-def pytest_configure(config):
+def pytest_configure(config) -> None:
     """Configuration pytest pour les marqueurs personnalisés"""
     config.addinivalue_line(
         "markers", "unit: Tests unitaires"
@@ -204,7 +204,7 @@ def pytest_configure(config):
 
 
 # Gestion des erreurs de test
-def pytest_runtest_setup(item):
+def pytest_runtest_setup(item) -> None:
     """Setup avant chaque test"""
     # Vérifier les dépendances
     if "api" in item.keywords:
@@ -220,7 +220,7 @@ def pytest_runtest_setup(item):
             pytest.skip("Locust non installé pour les tests de performance")
 
 
-def pytest_runtest_teardown(item, nextitem):
+def pytest_runtest_teardown(item, nextitem) -> None:
     """Teardown après chaque test"""
     # Nettoyer les fichiers temporaires créés pendant les tests
     temp_files = [

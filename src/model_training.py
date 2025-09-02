@@ -32,10 +32,10 @@ warnings.filterwarnings("ignore")
 
 # Import des classes personnalisées avec fallback
 try:
-    from .business_score import BusinessScorer
+    from src.business_score import BusinessScorer
 except ImportError:
     try:
-        from business_score import BusinessScorer
+        from src.business_score import BusinessScorer
     except ImportError:
         logger.warning(
             "BusinessScorer non disponible, certaines fonctionnalités seront limitées"

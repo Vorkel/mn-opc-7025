@@ -11,7 +11,7 @@ import os
 # Ajouter le répertoire api au path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'api'))
 
-def test_api_import_performance():
+def test_api_import_performance() -> None:
     """Test que l'import de l'API est rapide"""
     start_time = time.time()
 
@@ -33,7 +33,7 @@ def test_api_import_performance():
         print(f"⚠️ API non disponible - test ignoré: {e}")
         return
 
-def test_model_loading_performance():
+def test_model_loading_performance() -> None:
     """Test que le chargement du modèle est rapide (si disponible)"""
     try:
         # Configurer le PYTHONPATH
@@ -57,7 +57,7 @@ def test_model_loading_performance():
         print(f"⚠️ Test API non disponible: {e}")
         return
 
-def test_memory_usage():
+def test_memory_usage() -> None:
     """Test simple de l'utilisation mémoire"""
     import psutil
     import os
@@ -76,7 +76,7 @@ def test_memory_usage():
     assert memory_increase < 100, f"Utilisation mémoire excessive: {memory_increase:.1f}MB"
     print(f"✅ Utilisation mémoire: {memory_increase:.1f}MB")
 
-def test_calculation_performance():
+def test_calculation_performance() -> None:
     """Test de performance des calculs"""
     import numpy as np
     import pandas as pd

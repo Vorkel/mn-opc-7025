@@ -13,9 +13,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'api'))
 
 try:
-    from business_score import BusinessScorer
-    from model_training import ModelTrainer
-    from data_drift_detection import DataDriftDetector
+    from src.business_score import BusinessScorer
+    from src.model_training import ModelTrainer
+    from src.data_drift_detection import DataDriftDetector
 except ImportError as e:
     print(f"Modules non disponibles: {e}")
 
@@ -24,7 +24,7 @@ class TestPipelineIntegration:
     """Tests d'intégration pour le pipeline complet"""
 
     @pytest.mark.integration
-    def test_end_to_end_pipeline(self):
+    def test_end_to_end_pipeline(self) -> None:
         """Test du pipeline complet de bout en bout"""
         # Créer des données de test
         np.random.seed(42)
@@ -77,7 +77,7 @@ class TestPipelineIntegration:
             pytest.skip(f"Pipeline non disponible: {e}")
 
     @pytest.mark.integration
-    def test_model_training_integration(self):
+    def test_model_training_integration(self) -> None:
         """Test d'intégration de l'entraînement de modèle"""
         # Créer des données de test
         np.random.seed(42)
@@ -120,7 +120,7 @@ class TestPipelineIntegration:
             pytest.skip(f"ModelTrainer non disponible: {e}")
 
     @pytest.mark.integration
-    def test_data_drift_integration(self):
+    def test_data_drift_integration(self) -> None:
         """Test d'intégration de la détection de drift"""
         # Créer des données de référence
         np.random.seed(42)
@@ -161,7 +161,7 @@ class TestPipelineIntegration:
             pytest.skip(f"DataDriftDetector non disponible: {e}")
 
     @pytest.mark.integration
-    def test_feature_importance_integration(self):
+    def test_feature_importance_integration(self) -> None:
         """Test d'intégration de l'analyse d'importance des features"""
         # Créer des données de test
         np.random.seed(42)
@@ -201,7 +201,7 @@ class TestPipelineIntegration:
             pytest.skip(f"Feature importance non disponible: {e}")
 
     @pytest.mark.integration
-    def test_mlflow_integration(self):
+    def test_mlflow_integration(self) -> None:
         """Test d'intégration avec MLflow"""
         try:
             import mlflow
@@ -234,7 +234,7 @@ class TestPipelineIntegration:
             pytest.skip(f"MLflow non disponible: {e}")
 
     @pytest.mark.integration
-    def test_api_integration(self):
+    def test_api_integration(self) -> None:
         """Test d'intégration avec l'API"""
         try:
             from fastapi.testclient import TestClient
@@ -280,7 +280,7 @@ class TestDataFlowIntegration:
     """Tests d'intégration pour le flux de données"""
 
     @pytest.mark.integration
-    def test_data_loading_integration(self):
+    def test_data_loading_integration(self) -> None:
         """Test d'intégration du chargement des données"""
         # Vérifier que les données d'entraînement existent
         train_path = "data/raw/application_train.csv"
@@ -305,7 +305,7 @@ class TestDataFlowIntegration:
             pytest.skip("Données non disponibles")
 
     @pytest.mark.integration
-    def test_model_persistence_integration(self):
+    def test_model_persistence_integration(self) -> None:
         """Test d'intégration de la persistance du modèle"""
         try:
             import joblib
@@ -342,7 +342,7 @@ class TestDataFlowIntegration:
             pytest.skip(f"Model persistence non disponible: {e}")
 
     @pytest.mark.integration
-    def test_configuration_integration(self):
+    def test_configuration_integration(self) -> None:
         """Test d'intégration de la configuration"""
         # Vérifier les variables d'environnement
         required_env_vars = ['MODEL_PATH', 'LOG_LEVEL']

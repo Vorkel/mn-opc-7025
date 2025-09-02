@@ -11,25 +11,25 @@ import os
 # Ajouter le répertoire src au path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 
-from business_score import BusinessScorer
+from src.business_score import BusinessScorer
 
 
 class TestBusinessScorer:
     """Tests pour la classe BusinessScorer"""
 
-    def test_initialization_default_values(self):
+    def test_initialization_default_values(self) -> None:
         """Test l'initialisation avec les valeurs par défaut"""
         scorer = BusinessScorer()
         assert scorer.cost_fn == 10
         assert scorer.cost_fp == 1
 
-    def test_initialization_custom_values(self):
+    def test_initialization_custom_values(self) -> None:
         """Test l'initialisation avec des valeurs personnalisées"""
         scorer = BusinessScorer(cost_fn=5, cost_fp=2)
         assert scorer.cost_fn == 5
         assert scorer.cost_fp == 2
 
-    def test_calculate_business_cost_perfect_predictions(self):
+    def test_calculate_business_cost_perfect_predictions(self) -> None:
         """Test le calcul du coût métier avec des prédictions parfaites"""
         scorer = BusinessScorer()
         y_true = np.array([0, 1, 0, 1])
@@ -38,7 +38,7 @@ class TestBusinessScorer:
         cost = scorer.calculate_business_cost(y_true, y_pred)
         assert cost == 0  # Aucune erreur = coût 0
 
-    def test_calculate_business_cost_false_negatives(self):
+    def test_calculate_business_cost_false_negatives(self) -> None:
         """Test le calcul du coût métier avec des faux négatifs"""
         scorer = BusinessScorer(cost_fn=10, cost_fp=1)
         y_true = np.array([1, 1, 0, 0])
@@ -47,7 +47,7 @@ class TestBusinessScorer:
         cost = scorer.calculate_business_cost(y_true, y_pred)
         assert cost == 20  # 2 FN * 10 = 20
 
-    def test_calculate_business_cost_false_positives(self):
+    def test_calculate_business_cost_false_positives(self) -> None:
         """Test le calcul du coût métier avec des faux positifs"""
         scorer = BusinessScorer(cost_fn=10, cost_fp=1)
         y_true = np.array([0, 0, 0, 0])
@@ -56,7 +56,7 @@ class TestBusinessScorer:
         cost = scorer.calculate_business_cost(y_true, y_pred)
         assert cost == 2  # 2 FP * 1 = 2
 
-    def test_calculate_business_cost_mixed_errors(self):
+    def test_calculate_business_cost_mixed_errors(self) -> None:
         """Test le calcul du coût métier avec des erreurs mixtes"""
         scorer = BusinessScorer(cost_fn=10, cost_fp=1)
         y_true = np.array([1, 0, 1, 0])
@@ -65,7 +65,7 @@ class TestBusinessScorer:
         cost = scorer.calculate_business_cost(y_true, y_pred)
         assert cost == 11  # 1 FN * 10 + 1 FP * 1 = 11
 
-    def test_find_optimal_threshold(self):
+    def test_find_optimal_threshold(self) -> None:
         """Test la recherche du seuil optimal"""
         scorer = BusinessScorer()
 
@@ -80,7 +80,7 @@ class TestBusinessScorer:
         assert 0 <= optimal_threshold <= 1
         assert optimal_cost >= 0
 
-    def test_find_optimal_threshold_with_roc_curve(self):
+    def test_find_optimal_threshold_with_roc_curve(self) -> None:
         """Test la recherche du seuil optimal avec courbe ROC"""
         scorer = BusinessScorer()
 
@@ -95,7 +95,7 @@ class TestBusinessScorer:
         assert isinstance(optimal_cost, float)
         assert 0 <= optimal_threshold <= 1
 
-    def test_plot_threshold_analysis(self):
+    def test_plot_threshold_analysis(self) -> None:
         """Test la génération du graphique d'analyse des seuils"""
         scorer = BusinessScorer()
 
@@ -116,7 +116,7 @@ class TestBusinessScorer:
         except Exception as e:
             pytest.fail(f"plot_threshold_analysis a levé une exception: {e}")
 
-    def test_invalid_inputs(self):
+    def test_invalid_inputs(self) -> None:
         """Test la gestion des entrées invalides"""
         scorer = BusinessScorer()
 
@@ -132,7 +132,7 @@ class TestBusinessScorer:
         with pytest.raises(ValueError):
             scorer.calculate_business_cost(np.array([0, 1, 2]), np.array([0, 1, 0]))
 
-    def test_edge_cases(self):
+    def test_edge_cases(self) -> None:
         """Test des cas limites"""
         scorer = BusinessScorer()
 

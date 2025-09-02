@@ -27,12 +27,12 @@ warnings.filterwarnings("ignore")
 class NativeDriftDetector:
     """Détecteur de drift natif utilisant des tests statistiques"""
 
-    def __init__(self, reference_data, current_data, target_column="TARGET"):
+    def __init__(self, reference_data: pd.DataFrame, current_data: pd.DataFrame, target_column: str = "TARGET") -> None:
         self.reference_data = reference_data
         self.current_data = current_data
         self.target_column = target_column
 
-    def analyze_all_features(self):
+    def analyze_all_features(self) -> Dict[str, Any]:
         """Analyse simple de drift sur toutes les features"""
         common_cols = set(self.reference_data.columns) & set(self.current_data.columns)
         drift_detected = len(common_cols) > 0
@@ -102,9 +102,19 @@ class DataDriftDetector:
         self.reference_data = self.reference_data[common_columns]
         self.current_data = self.current_data[common_columns]
 
-        # Gestion des types de données
-        self.reference_data = self.reference_data.select_dtypes(include=[np.number])  # type: ignore
-        self.current_data = self.current_data.select_dtypes(include=[np.number])  # type: ignore
+        # Gestion des types de données - s'assurer qu'on garde des DataFrames
+        self.reference_data = self.reference_data.select_dtypes(include=[np.number])
+        self.current_data = self.current_data.select_dtypes(include=[np.number])
+
+        # Convertir en DataFrame si nécessaire (éviter les Series)
+        if isinstance(self.reference_data, pd.Series):
+            self.reference_data = self.reference_data.to_frame()
+        if isinstance(self.current_data, pd.Series):
+            self.current_data = self.current_data.to_frame()
+
+        # Vérification que les données sont bien des DataFrames
+        assert isinstance(self.reference_data, pd.DataFrame), "Les données de référence doivent être un DataFrame"
+        assert isinstance(self.current_data, pd.DataFrame), "Les données actuelles doivent être un DataFrame"
 
         logger.info(f"Données de référence: {self.reference_data.shape}")
         logger.info(f"Données actuelles: {self.current_data.shape}")
@@ -168,8 +178,8 @@ class DataDriftDetector:
 
             # Exécuter l'analyse
             drift_report.run(
-                reference_data=self.reference_data,  # type: ignore
-                current_data=self.current_data  # type: ignore
+                reference_data=self.reference_data, # type: ignore[arg-type]
+                current_data=self.current_data # type: ignore[arg-type]
             )
 
             self.drift_report = drift_report
@@ -289,7 +299,12 @@ class DataDriftDetector:
                 if callable(items):
                     items = items()  # Appeler la méthode si c'est un callable
 
-                for item in items:  # type: ignore
+                # Vérifier que items est itérable
+                if not hasattr(items, '__iter__'):
+                    logger.warning("Impossible d'itérer sur les résultats du rapport")
+                    return summary
+
+                for item in items:
                     if hasattr(item, 'result') and hasattr(item.result, 'drifted_columns_count'):
                         summary["number_of_drifted_columns"] = item.result.drifted_columns_count
                         summary["total_columns"] = item.result.total_columns
@@ -298,14 +313,17 @@ class DataDriftDetector:
 
                         # Extraire les détails des colonnes avec drift
                         if hasattr(item.result, 'drifted_columns'):
-                            for col_name, col_data in item.result.drifted_columns.items():
-                                if hasattr(col_data, 'drift_detected') and col_data.drift_detected:
-                                    summary["drifted_features"].append(col_name)
-                                    summary["drift_details"][col_name] = {
-                                        "drift_score": getattr(col_data, 'drift_score', 0),
-                                        "threshold": getattr(col_data, 'threshold', 0),
-                                        "stattest_name": getattr(col_data, 'stattest_name', 'unknown')
-                                    }
+                            drifted_columns = item.result.drifted_columns
+                            if hasattr(drifted_columns, 'items') and callable(getattr(drifted_columns, 'items', None)):
+                                for col_name, col_data in drifted_columns.items():
+                                    if hasattr(col_data, 'drift_detected') and col_data.drift_detected:
+                                        if isinstance(summary["drifted_features"], list):
+                                            summary["drifted_features"].append(col_name)
+                                        summary["drift_details"][col_name] = {
+                                            "drift_score": getattr(col_data, 'drift_score', 0),
+                                            "threshold": getattr(col_data, 'threshold', 0),
+                                            "stattest_name": getattr(col_data, 'stattest_name', 'unknown')
+                                        }
                         break
 
             # Si c'est un rapport natif
@@ -410,8 +428,8 @@ class DataDriftDetector:
             logger.info("   " + "-" * 30)
 
             # Statistiques descriptives
-            ref_stats = self.reference_data[feature].describe()  # type: ignore
-            curr_stats = self.current_data[feature].describe()  # type: ignore
+            ref_stats = self.reference_data[feature].describe()  # type: ignore[attr-defined]
+            curr_stats = self.current_data[feature].describe()  # type: ignore[attr-defined]
 
             logger.info(f"   Score de drift: {details['drift_score']:.4f}")
             logger.info(f"   Seuil: {details['threshold']:.4f}")

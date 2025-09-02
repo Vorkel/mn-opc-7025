@@ -22,7 +22,7 @@ except ImportError:
 class TestDataDriftDetector:
     """Tests pour la détection de drift des données"""
 
-    def test_initialization(self):
+def test_initialization(self) -> None:
         """Test de l'initialisation du détecteur de drift"""
         # Données de test
         ref_data = pd.DataFrame({
@@ -41,7 +41,7 @@ class TestDataDriftDetector:
         except Exception as e:
             pytest.skip(f"Classe DataDriftDetector non implémentée: {e}")
 
-    def test_prepare_data(self):
+    def test_prepare_data(self) -> None:
         """Test de la préparation des données"""
         ref_data = pd.DataFrame({
             'feature_1': [1, 2, 3, 4, 5],
@@ -63,7 +63,7 @@ class TestDataDriftDetector:
         except Exception as e:
             pytest.skip(f"Méthode prepare_data non implémentée: {e}")
 
-    def test_detect_data_drift_no_drift(self):
+    def test_detect_data_drift_no_drift(self) -> None:
         """Test de détection de drift quand il n'y en a pas"""
         ref_data = pd.DataFrame({
             'feature_1': [1, 2, 3, 4, 5],
@@ -84,7 +84,7 @@ class TestDataDriftDetector:
         except Exception as e:
             pytest.skip(f"Méthode detect_data_drift non implémentée: {e}")
 
-    def test_detect_data_drift_with_drift(self):
+    def test_detect_data_drift_with_drift(self) -> None:
         """Test de détection de drift quand il y en a"""
         ref_data = pd.DataFrame({
             'feature_1': [1, 2, 3, 4, 5],
@@ -105,7 +105,7 @@ class TestDataDriftDetector:
         except Exception as e:
             pytest.skip(f"Méthode detect_data_drift non implémentée: {e}")
 
-    def test_save_drift_report(self):
+    def test_save_drift_report(self) -> None:
         """Test de la sauvegarde du rapport de drift"""
         ref_data = pd.DataFrame({
             'feature_1': [1, 2, 3, 4, 5],
@@ -134,7 +134,7 @@ class TestDataDriftDetector:
         except Exception as e:
             pytest.skip(f"Méthode save_drift_report non implémentée: {e}")
 
-    def test_get_drift_summary(self):
+    def test_get_drift_summary(self) -> None:
         """Test de l'obtention du résumé de drift"""
         ref_data = pd.DataFrame({
             'feature_1': [1, 2, 3, 4, 5],
@@ -162,7 +162,7 @@ class TestDataDriftDetector:
 class TestDataValidation:
     """Tests pour la validation des données"""
 
-    def test_data_quality_checks(self):
+    def test_data_quality_checks(self) -> None:
         """Test des vérifications de qualité des données"""
         # Données de test avec différents problèmes
         data = pd.DataFrame({
@@ -186,7 +186,7 @@ class TestDataValidation:
         assert unique_counts['duplicate_col'] == 1  # Valeur constante
         assert unique_counts['categorical_col'] == 2  # 2 valeurs uniques
 
-    def test_data_type_validation(self):
+    def test_data_type_validation(self) -> None:
         """Test de la validation des types de données"""
         data = pd.DataFrame({
             'int_col': [1, 2, 3, 4, 5],
@@ -201,7 +201,7 @@ class TestDataValidation:
         assert data['string_col'].dtype == 'object'
         assert data['bool_col'].dtype == 'bool'
 
-    def test_data_range_validation(self):
+    def test_data_range_validation(self) -> None:
         """Test de la validation des plages de valeurs"""
         data = pd.DataFrame({
             'age': [25, 30, 35, 40, 45],
@@ -216,7 +216,7 @@ class TestDataValidation:
         assert data['score'].min() >= 0
         assert data['score'].max() <= 1
 
-    def test_outlier_detection(self):
+    def test_outlier_detection(self) -> None:
         """Test de la détection d'outliers"""
         # Données avec outliers
         data = pd.Series([1, 2, 3, 4, 5, 100, 200])
@@ -234,7 +234,7 @@ class TestDataValidation:
         assert len(outliers) >= 1
         assert 200 in outliers.values.tolist()  # type: ignore  # 200 est clairement un outlier
 
-    def test_correlation_analysis(self):
+    def test_correlation_analysis(self) -> None:
         """Test de l'analyse de corrélation"""
         # Données corrélées
         np.random.seed(42)
@@ -247,7 +247,7 @@ class TestDataValidation:
         # Vérifier que la corrélation est élevée
         assert abs(correlation.loc['x', 'y']) > 0.8
 
-    def test_distribution_comparison(self):
+    def test_distribution_comparison(self) -> None:
         """Test de la comparaison de distributions"""
         # Deux distributions différentes
         np.random.seed(42)
@@ -261,7 +261,7 @@ class TestDataValidation:
         # Les distributions sont différentes
         assert p_value < 0.05  # type: ignore
 
-    def test_categorical_distribution_comparison(self):
+    def test_categorical_distribution_comparison(self) -> None :
         """Test de la comparaison de distributions catégorielles"""
         # Deux distributions catégorielles
         from scipy import stats
@@ -284,7 +284,7 @@ class TestDataValidation:
 class TestDataPreprocessing:
     """Tests pour le prétraitement des données"""
 
-    def test_missing_value_imputation(self):
+    def test_missing_value_imputation(self) -> None:
         """Test de l'imputation des valeurs manquantes"""
         data = pd.DataFrame({
             'numeric_col': [1, 2, np.nan, 4, 5],
@@ -300,7 +300,7 @@ class TestDataPreprocessing:
         data['categorical_col'].fillna(mode_value, inplace=True)  # type: ignore
         assert not data['categorical_col'].isnull().any()  # type: ignore
 
-    def test_outlier_capping(self):
+    def test_outlier_capping(self) -> None:
         """Test du capping des outliers"""
         data = pd.Series([1, 2, 3, 4, 5, 100, 200])
 
@@ -311,7 +311,7 @@ class TestDataPreprocessing:
         # Vérifier que les valeurs extrêmes ont été capées (avec tolérance pour les erreurs de précision)
         assert data_capped.max() <= percentile_99 + 1e-10
 
-    def test_feature_scaling(self):
+    def test_feature_scaling(self) -> None:
         """Test de la normalisation des features"""
         from sklearn.preprocessing import StandardScaler
 
@@ -327,7 +327,7 @@ class TestDataPreprocessing:
         assert abs(scaled_data.mean()) < 1e-10
         assert abs(scaled_data.std() - 1) < 1e-10
 
-    def test_categorical_encoding(self):
+    def test_categorical_encoding(self) -> None:
         """Test de l'encodage catégoriel"""
         from sklearn.preprocessing import LabelEncoder
 

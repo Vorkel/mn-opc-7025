@@ -25,7 +25,7 @@ client = None
 class TestAPIEndpoints:
     """Tests pour les endpoints de l'API"""
 
-    def test_health_endpoint(self):
+    def test_health_endpoint(self) -> None:
         """Test de l'endpoint de santé"""
         try:
             # Créer le client dans le test
@@ -38,7 +38,7 @@ class TestAPIEndpoints:
         except Exception as e:
             pytest.skip(f"Endpoint /health non disponible: {e}")
 
-    def test_predict_endpoint_valid_data(self):
+    def test_predict_endpoint_valid_data(self) -> None:
         """Test de l'endpoint de prédiction avec des données valides"""
         # Données de test basées sur le schéma de l'API
         test_data = {
@@ -75,7 +75,7 @@ class TestAPIEndpoints:
         except Exception as e:
             pytest.skip(f"Endpoint /predict non disponible: {e}")
 
-    def test_predict_endpoint_invalid_data(self):
+    def test_predict_endpoint_invalid_data(self) -> None:
         """Test de l'endpoint de prédiction avec des données invalides"""
         # Données invalides (champs manquants)
         invalid_data = {
@@ -90,7 +90,7 @@ class TestAPIEndpoints:
         except Exception as e:
             pytest.skip(f"Endpoint /predict non disponible: {e}")
 
-    def test_batch_predict_endpoint(self):
+    def test_batch_predict_endpoint(self) -> None:
         """Test de l'endpoint de prédiction par lot"""
         # Données de test pour le batch
         test_data = [
@@ -153,7 +153,7 @@ class TestAPIEndpoints:
         except Exception as e:
             pytest.skip(f"Endpoint /batch_predict non disponible: {e}")
 
-    def test_feature_importance_endpoint(self):
+    def test_feature_importance_endpoint(self) -> None:
         """Test de l'endpoint d'importance des features"""
         try:
             response = client.get("/feature_importance")  # type: ignore
@@ -164,7 +164,7 @@ class TestAPIEndpoints:
         except Exception as e:
             pytest.skip(f"Endpoint /feature_importance non disponible: {e}")
 
-    def test_explain_endpoint(self):
+    def test_explain_endpoint(self) -> None:
         """Test de l'endpoint d'explication SHAP"""
         test_data = {
             "CODE_GENDER": "M",
@@ -199,7 +199,7 @@ class TestAPIEndpoints:
         except Exception as e:
             pytest.skip(f"Endpoint /explain non disponible: {e}")
 
-    def test_api_response_time(self):
+    def test_api_response_time(self) -> None:
         """Test du temps de réponse de l'API"""
         import time
 
@@ -215,7 +215,7 @@ class TestAPIEndpoints:
         except Exception as e:
             pytest.skip(f"Test de performance non disponible: {e}")
 
-    def test_api_error_handling(self):
+    def test_api_error_handling(self) -> None:
         """Test de la gestion d'erreurs de l'API"""
         # Test avec une méthode HTTP non supportée
         try:
@@ -235,7 +235,7 @@ class TestAPIEndpoints:
 class TestAPISecurity:
     """Tests de sécurité pour l'API"""
 
-    def test_input_validation(self):
+    def test_input_validation(self) -> None:
         """Test de la validation des entrées"""
         # Test avec des valeurs extrêmes
         extreme_data = {
@@ -267,7 +267,7 @@ class TestAPISecurity:
         except Exception as e:
             pytest.skip(f"Test de validation des entrées non disponible: {e}")
 
-    def test_sql_injection_protection(self):
+    def test_sql_injection_protection(self) -> None:
         """Test de protection contre l'injection SQL"""
         # Test avec des caractères spéciaux
         malicious_data = {
@@ -303,7 +303,7 @@ class TestAPISecurity:
 class TestAPIModelLoading:
     """Tests pour le chargement du modèle"""
 
-    def test_model_loading_on_startup(self):
+    def test_model_loading_on_startup(self) -> None:
         """Test du chargement du modèle au démarrage"""
         try:
             # Tester que l'application démarre correctement
@@ -315,7 +315,7 @@ class TestAPIModelLoading:
         except Exception as e:
             pytest.skip(f"Test de chargement du modèle non disponible: {e}")
 
-    def test_model_prediction_consistency(self):
+    def test_model_prediction_consistency(self) -> None:
         """Test de la cohérence des prédictions"""
         test_data = {
             "CODE_GENDER": "M",

@@ -6,7 +6,7 @@ import subprocess
 import sys
 import os
 
-def run_tests():
+def run_tests() -> None:
     """Exécute les tests unitaires"""
     print("🧪 Exécution des tests unitaires...")
 

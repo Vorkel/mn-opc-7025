@@ -205,7 +205,7 @@ start_time: float = time.time()
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """
     Gestionnaire de cycle de vie pour charger le modèle au démarrage
     """
@@ -323,7 +323,7 @@ app.add_middleware(
 
 # Middleware pour logging des requêtes
 @app.middleware("http")
-async def log_requests(request: Request, call_next):
+async def log_requests(request: Request, call_next) -> Any:
     global request_count
     request_count += 1
 
