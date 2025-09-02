@@ -1506,6 +1506,39 @@ def render_prediction_tab(model_data):
                 key="organization_type",
             )
 
+        # CHAMPS OPTIONNELS SUPPLÉMENTAIRES
+        col1e, col1f = st.columns(2)
+        with col1e:
+            years_exploitation = st.number_input(
+                "Années moyennes d'exploitation",
+                min_value=0.0,
+                max_value=50.0,
+                value=1.0,
+                step=0.1,
+                key="years_exploitation",
+                help="Laissez vide si non applicable"
+            )
+            years_build = st.number_input(
+                "Années moyennes de construction",
+                min_value=0.0,
+                max_value=100.0,
+                value=1.0,
+                step=0.1,
+                key="years_build",
+                help="Laissez vide si non applicable"
+            )
+
+        with col1f:
+            car_age = st.number_input(
+                "Âge de la voiture (années)",
+                min_value=0.0,
+                max_value=50.0,
+                value=5.0,
+                step=0.5,
+                key="car_age",
+                help="Laissez 0 si pas de voiture"
+            )
+
         # 2. INFORMATIONS PROFESSIONNELLES ET REVENUS
         ui_subsection_title("2. Informations Professionnelles et Revenus")
         col1c, col1d = st.columns(2)
@@ -1851,6 +1884,23 @@ def render_prediction_tab(model_data):
                 "REGION_RATING_CLIENT_W_CITY": 2,
                 "ORGANIZATION_TYPE": organization_type,
                 "SECTOR_ACTIVITY": sector_activity,
+
+                # Champs optionnels avec valeurs par défaut
+                "YEARS_BEGINEXPLUATATION_AVG": years_exploitation if years_exploitation > 0 else None,
+                "YEARS_BUILD_AVG": years_build if years_build > 0 else None,
+                "OWN_CAR_AGE": car_age if car_age > 0 else None,
+
+                # Champs avec valeurs par défaut
+                "FLAG_MOBIL": 1,
+                "FLAG_EMP_PHONE": 0,
+                "FLAG_WORK_PHONE": 0,
+                "FLAG_CONT_MOBILE": 1,
+                "FLAG_PHONE": 1,
+                "FLAG_EMAIL": 0,
+                "FLAG_DOCUMENT_3": 0,
+                "FLAG_DOCUMENT_6": 0,
+                "FLAG_DOCUMENT_8": 0,
+                "NAME_TYPE_SUITE": "Unaccompanied",
             }
 
             result = predict_score(client_data, model_data)
