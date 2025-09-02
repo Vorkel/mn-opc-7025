@@ -376,63 +376,44 @@ def get_model() -> Any:
 
 def preprocess_input(data: CreditRequest) -> pd.DataFrame:
     """
-    Prétraite les données d'entrée pour le modèle
+    Prétraite les données d'entrée pour le modèle en utilisant le module src/
 
     Args:
         data (CreditRequest): Données d'entrée du client
 
     Returns:
-        pd.DataFrame: Données prétraitées
+        pd.DataFrame: Données prétraitées avec features calculées
     """
-    # Convertir en DataFrame
-    df = pd.DataFrame([data.dict()])
+    try:
+        # Convertir en DataFrame
+        df = pd.DataFrame([data.dict()])
 
-    # Encodage des variables catégorielles (exemple simplifié)
-    categorical_mappings = {
-        "CODE_GENDER": {"M": 1, "F": 0},
-        "FLAG_OWN_CAR": {"Y": 1, "N": 0},
-        "FLAG_OWN_REALTY": {"Y": 1, "N": 0},
-        "NAME_INCOME_TYPE": {
-            "Working": 0,
-            "Commercial associate": 1,
-            "Pensioner": 2,
-            "State servant": 3,
-            "Unemployed": 4,
-            "Student": 5,
-            "Businessman": 6,
-            "Maternity leave": 7,
-        },
-        "NAME_EDUCATION_TYPE": {
-            "Secondary / secondary special": 0,
-            "Higher education": 1,
-            "Incomplete higher": 2,
-            "Lower secondary": 3,
-            "Academic degree": 4,
-        },
-        "NAME_FAMILY_STATUS": {
-            "Single / not married": 0,
-            "Married": 1,
-            "Civil marriage": 2,
-            "Widow": 3,
-            "Separated": 4,
-            "Unknown": 5,
-        },
-        "NAME_HOUSING_TYPE": {
-            "House / apartment": 0,
-            "Rented apartment": 1,
-            "With parents": 2,
-            "Municipal apartment": 3,
-            "Office apartment": 4,
-            "Co-op apartment": 5,
-        },
-    }
+        # Importer et utiliser le module de feature engineering
+        from src.feature_engineering import create_features
 
-    # Appliquer les mappings
-    for col, mapping in categorical_mappings.items():
-        if col in df.columns:
-            df[col] = df[col].astype(str).map(lambda x: mapping.get(x, 0)).fillna(0)
+        # Appliquer le feature engineering complet
+        df_engineered = create_features(df)
 
-    # Traitement des variables catégorielles restantes (encodage simple)
+        logger.info(f"Feature engineering appliqué: {len(df_engineered.columns)} features créées")
+        return df_engineered
+
+    except ImportError as e:
+        logger.error(f"Impossible d'importer le module feature_engineering: {e}")
+        # Fallback sur le traitement de base
+        return _basic_preprocessing(df)
+    except Exception as e:
+        logger.error(f"Erreur lors du feature engineering: {e}")
+        # Fallback sur le traitement de base
+        return _basic_preprocessing(df)
+
+
+def _basic_preprocessing(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Traitement de base en cas d'échec du feature engineering avancé
+    """
+    logger.warning("Utilisation du traitement de base")
+
+    # Encodage simple des variables catégorielles
     for col in df.select_dtypes(include=["object"]).columns:
         df[col] = pd.Categorical(df[col]).codes
 
