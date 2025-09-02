@@ -602,17 +602,17 @@ jobs:
     steps:
       - name: Nettoyage des branches obsolètes
         run: |
-          echo "🧹 Nettoyage des branches obsolètes..."
+          echo "Nettoyage des branches obsolètes..."
           # Logique de nettoyage des branches
 
       - name: Vérification de l'espace disque
         run: |
-          echo "💾 Vérification de l'espace disque..."
+          echo "Vérification de l'espace disque..."
           df -h
 
       - name: Nettoyage du cache pip
         run: |
-          echo "🗑️ Nettoyage du cache pip..."
+          echo "Nettoyage du cache pip..."
           pip cache purge
 ```
 

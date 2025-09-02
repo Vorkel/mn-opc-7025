@@ -1,0 +1,49 @@
+name: Déploiement Automatique sur Render
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy-render:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Récupération du code
+        uses: actions/checkout@v4
+
+      - name: Configuration de Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Tests avant déploiement
+        run: |
+          pip install -r requirements_minimal.txt
+          pip install pytest pytest-asyncio httpx
+          python -m pytest tests/api/ -v
+
+      - name: Déploiement sur Render (via webhook)
+        env:
+          RENDER_WEBHOOK_URL: ${{ secrets.RENDER_WEBHOOK_URL }}
+        run: |
+          if [ -n "$RENDER_WEBHOOK_URL" ]; then
+            echo "🚀 Déclenchement du déploiement sur Render..."
+            curl -X POST "$RENDER_WEBHOOK_URL" \
+              -H "Content-Type: application/json" \
+              -d '{"ref": "'${{ github.ref }}'", "sha": "'${{ github.sha }}'"}'
+            echo "✅ Déploiement déclenché"
+          else
+            echo "⚠️ RENDER_WEBHOOK_URL non configuré, déploiement manuel requis"
+          fi
+
+      - name: Notification de déploiement
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Déploiement réussi sur Render"
+          else
+            echo "❌ Échec du déploiement sur Render"
+          fi

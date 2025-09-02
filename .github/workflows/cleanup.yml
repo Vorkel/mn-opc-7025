@@ -1,0 +1,26 @@
+name: Nettoyage et Optimisation
+
+on:
+  schedule:
+    - cron: "0 3 * * 0" # Tous les dimanches à 3h du matin
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Nettoyage des branches obsolètes
+        run: |
+          echo "Nettoyage des branches obsolètes..."
+          # Logique de nettoyage des branches
+
+      - name: Vérification de l'espace disque
+        run: |
+          echo "Vérification de l'espace disque..."
+          df -h
+
+      - name: Nettoyage du cache pip
+        run: |
+          echo "Nettoyage du cache pip..."
+          pip cache purge
