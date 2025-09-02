@@ -186,6 +186,8 @@ def init_session_state():
 @st.cache_resource
 def load_model(force_reload=False):
     """Charge le modèle entraîné (local ou distant)"""
+    global USE_REMOTE_API
+
     try:
         # Si on utilise l'API distante, on ne charge pas le modèle local
         if USE_REMOTE_API:
@@ -721,6 +723,8 @@ def call_api_prediction(client_data):
 
 def predict_score(client_data, model_data):
     """Effectue une prédiction de score (local ou distant)"""
+    global USE_REMOTE_API
+
     try:
         # Si on utilise l'API distante
         if USE_REMOTE_API and model_data.get("api_status") == "connected":
