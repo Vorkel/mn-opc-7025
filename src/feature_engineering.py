@@ -1,8 +1,6 @@
-# feature_engineering.py
-# typing: ignore
 """
-Module de feature engineering pour le scoring crédit
-Basé sur le notebook 02_feature_engineering.py
+Module de feature engineering COMPLET pour le scoring crédit
+Préserve TOUTES les features originales + ajoute les features dérivées
 """
 
 import pandas as pd
@@ -13,88 +11,63 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class CreditFeatureEngineer:
+class CreditFeatureEngineerComplete:
     """
-    Classe pour l'ingénierie des features de scoring crédit
+    Classe pour l'ingénierie des features de scoring crédit COMPLÈTE
     """
 
     def __init__(self) -> None:
-        """Initialise l'ingénierie des features"""
+        """Initialise l'ingénieur de features"""
         self.categorical_mappings = {
             "CODE_GENDER": {"M": 1, "F": 0},
             "FLAG_OWN_CAR": {"Y": 1, "N": 0},
             "FLAG_OWN_REALTY": {"Y": 1, "N": 0},
             "NAME_INCOME_TYPE": {
-                "Working": 0,
-                "Salarié CDI": 0,
-                "Salarié CDD": 0,
-                "Commercial associate": 1,
-                "Associé commercial": 1,
-                "Pensioner": 2,
-                "Retraité": 2,
-                "State servant": 3,
-                "Fonctionnaire": 3,
-                "Unemployed": 4,
-                "Chômeur": 4,
-                "Student": 5,
-                "Étudiant": 5,
-                "Businessman": 6,
-                "Indépendant": 6,
+                "Working": 0, "Salarié CDI": 0, "Salarié CDD": 0,
+                "Commercial associate": 1, "Associé commercial": 1,
+                "Pensioner": 2, "Retraité": 2,
+                "State servant": 3, "Fonctionnaire": 3,
+                "Unemployed": 4, "Chômeur": 4,
+                "Student": 5, "Étudiant": 5,
+                "Businessman": 6, "Indépendant": 6,
                 "Maternity leave": 7,
             },
             "NAME_EDUCATION_TYPE": {
-                "Secondary / secondary special": 0,
-                "Secondaire": 0,
-                "Higher education": 1,
-                "Supérieur": 1,
-                "Incomplete higher": 2,
-                "Supérieur incomplet": 2,
-                "Lower secondary": 3,
-                "Secondaire inférieur": 3,
-                "Academic degree": 4,
-                "Diplôme universitaire": 4,
+                "Secondary / secondary special": 0, "Secondaire": 0,
+                "Higher education": 1, "Supérieur": 1,
+                "Incomplete higher": 2, "Supérieur incomplet": 2,
+                "Lower secondary": 3, "Secondaire inférieur": 3,
+                "Academic degree": 4, "Diplôme universitaire": 4,
             },
             "NAME_FAMILY_STATUS": {
-                "Single / not married": 0,
-                "Célibataire": 0,
-                "Married": 1,
-                "Marié": 1,
-                "Civil marriage": 2,
-                "Union civile": 2,
-                "Widow": 3,
-                "Veuf/Veuve": 3,
-                "Separated": 4,
-                "Séparé": 4,
+                "Single / not married": 0, "Célibataire": 0,
+                "Married": 1, "Marié": 1,
+                "Civil marriage": 2, "Union civile": 2,
+                "Widow": 3, "Veuf/Veuve": 3,
+                "Separated": 4, "Séparé": 4,
                 "Unknown": 5,
             },
             "NAME_HOUSING_TYPE": {
-                "House / apartment": 0,
-                "Propriétaire": 0,
-                "Maison/Appartement": 0,
-                "Rented apartment": 1,
-                "Locataire": 1,
-                "With parents": 2,
-                "Chez les parents": 2,
-                "Municipal apartment": 3,
-                "Appartement municipal": 3,
-                "Office apartment": 4,
-                "Appartement de fonction": 4,
-                "Co-op apartment": 5,
-                "Appartement coopératif": 5,
+                "House / apartment": 0, "Propriétaire": 0, "Maison/Appartement": 0,
+                "Rented apartment": 1, "Locataire": 1,
+                "With parents": 2, "Chez les parents": 2,
+                "Municipal apartment": 3, "Appartement municipal": 3,
+                "Office apartment": 4, "Appartement de fonction": 4,
+                "Co-op apartment": 5, "Appartement coopératif": 5,
             },
         }
 
-def engineer_features(self, df: pd.DataFrame) -> pd.DataFrame:
-            """
-            Applique l'ingénierie des features complète
+    def engineer_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Applique l'ingénierie des features complète en préservant TOUTES les features originales
 
-            Args:
-                df: DataFrame avec les données brutes
+        Args:
+            df: DataFrame avec les données brutes
 
-            Returns:
-                DataFrame avec toutes les features calculées
-            """
-            try:
+        Returns:
+            DataFrame avec toutes les features calculées
+        """
+        try:
             # IMPORTANT: Préserver TOUTES les features originales
             df_engineered = df.copy()
 
@@ -145,18 +118,12 @@ def engineer_features(self, df: pd.DataFrame) -> pd.DataFrame:
             df_engineered["DAYS_EMPLOYED_ABNORMAL"] = (
                 df_engineered["DAYS_EMPLOYED"] == 365243
             ).astype(int)
-            df_engineered["DAYS_EMPLOYED"] = df_engineered["DAYS_EMPLOYED"].replace(
-                365243, np.nan
-            )
+            df_engineered["DAYS_EMPLOYED"] = df_engineered["DAYS_EMPLOYED"].replace(365243, np.nan)
             df_engineered["EMPLOYMENT_YEARS"] = -df_engineered["DAYS_EMPLOYED"] / 365.25
 
             # Variables temporelles supplémentaires
-            df_engineered["YEARS_SINCE_REGISTRATION"] = (
-                -df_engineered["DAYS_REGISTRATION"] / 365.25
-            )
-            df_engineered["YEARS_SINCE_ID_PUBLISH"] = (
-                -df_engineered["DAYS_ID_PUBLISH"] / 365.25
-            )
+            df_engineered["YEARS_SINCE_REGISTRATION"] = -df_engineered["DAYS_REGISTRATION"] / 365.25
+            df_engineered["YEARS_SINCE_ID_PUBLISH"] = -df_engineered["DAYS_ID_PUBLISH"] / 365.25
 
             # Groupes d'âge
             age_groups = pd.cut(
@@ -175,8 +142,8 @@ def engineer_features(self, df: pd.DataFrame) -> pd.DataFrame:
             df_engineered["EMPLOYMENT_GROUP"] = pd.Categorical(emp_groups).codes
 
             # Ratios temporels
-            df_engineered["AGE_EMPLOYMENT_RATIO"] = df_engineered["AGE_YEARS"] / (
-                df_engineered["EMPLOYMENT_YEARS"] + 1
+            df_engineered["AGE_EMPLOYMENT_RATIO"] = (
+                df_engineered["AGE_YEARS"] / (df_engineered["EMPLOYMENT_YEARS"] + 1)
             )
 
             # =============================================================================
@@ -228,12 +195,12 @@ def engineer_features(self, df: pd.DataFrame) -> pd.DataFrame:
 
             # Indicateurs de richesse
             df_engineered["OWNS_PROPERTY"] = (
-                (df_engineered["FLAG_OWN_CAR"] == "Y")
-                & (df_engineered["FLAG_OWN_REALTY"] == "Y")
+                (df_engineered["FLAG_OWN_CAR"] == "Y") &
+                (df_engineered["FLAG_OWN_REALTY"] == "Y")
             ).astype(int)
             df_engineered["OWNS_NEITHER"] = (
-                (df_engineered["FLAG_OWN_CAR"] == "N")
-                & (df_engineered["FLAG_OWN_REALTY"] == "N")
+                (df_engineered["FLAG_OWN_CAR"] == "N") &
+                (df_engineered["FLAG_OWN_REALTY"] == "N")
             ).astype(int)
 
             # =============================================================================
@@ -242,12 +209,8 @@ def engineer_features(self, df: pd.DataFrame) -> pd.DataFrame:
 
             # Scores de contact
             contact_features = [
-                "FLAG_MOBIL",
-                "FLAG_EMP_PHONE",
-                "FLAG_WORK_PHONE",
-                "FLAG_CONT_MOBILE",
-                "FLAG_PHONE",
-                "FLAG_EMAIL",
+                "FLAG_MOBIL", "FLAG_EMP_PHONE", "FLAG_WORK_PHONE",
+                "FLAG_CONT_MOBILE", "FLAG_PHONE", "FLAG_EMAIL"
             ]
             df_engineered["CONTACT_SCORE"] = df_engineered[contact_features].sum(axis=1)
 
@@ -256,50 +219,23 @@ def engineer_features(self, df: pd.DataFrame) -> pd.DataFrame:
                 col for col in df_engineered.columns if col.startswith("FLAG_DOCUMENT_")
             ]
             if doc_features:
-                df_engineered["DOCUMENT_SCORE"] = df_engineered[doc_features].sum(
-                    axis=1
-                )
+                df_engineered["DOCUMENT_SCORE"] = df_engineered[doc_features].sum(axis=1)
             else:
                 df_engineered["DOCUMENT_SCORE"] = 0
 
-            # S'assurer que toutes les features FLAG_DOCUMENT sont présentes
-            for i in range(1, 22):  # FLAG_DOCUMENT_1 à FLAG_DOCUMENT_21
-                doc_feature = f"FLAG_DOCUMENT_{i}"
-                if doc_feature not in df_engineered.columns:
-                    df_engineered[doc_feature] = 0
-
             # Score de région normalisé
-            df_engineered["REGION_SCORE_NORMALIZED"] = (
-                4 - df_engineered["REGION_RATING_CLIENT"]
-            )
+            df_engineered["REGION_SCORE_NORMALIZED"] = 4 - df_engineered["REGION_RATING_CLIENT"]
 
             # Features externes (EXT_SOURCE) - valeurs par défaut si non présentes
             df_engineered["EXT_SOURCE_1"] = df_engineered.get("EXT_SOURCE_1", 0.5)
             df_engineered["EXT_SOURCE_2"] = df_engineered.get("EXT_SOURCE_2", 0.5)
             df_engineered["EXT_SOURCE_3"] = df_engineered.get("EXT_SOURCE_3", 0.5)
 
-            # Features AMT_REQ_CREDIT_BUREAU - valeurs par défaut si non présentes
-            credit_bureau_features = [
-                "AMT_REQ_CREDIT_BUREAU_HOUR",
-                "AMT_REQ_CREDIT_BUREAU_DAY",
-                "AMT_REQ_CREDIT_BUREAU_WEEK",
-                "AMT_REQ_CREDIT_BUREAU_MON",
-                "AMT_REQ_CREDIT_BUREAU_QRT",
-                "AMT_REQ_CREDIT_BUREAU_YEAR"
-            ]
-
-            for feature in credit_bureau_features:
-                if feature not in df_engineered.columns:
-                    df_engineered[feature] = 0.0  # Valeur par défaut
-                else:
-                    # Remplacer les valeurs NaN par 0
-                    df_engineered[feature] = df_engineered[feature].fillna(0.0)
-
             # Calculer les agrégations EXT_SOURCE
             ext_sources = [
                 df_engineered["EXT_SOURCE_1"],
                 df_engineered["EXT_SOURCE_2"],
-                df_engineered["EXT_SOURCE_3"],
+                df_engineered["EXT_SOURCE_3"]
             ]
             df_engineered["EXT_SOURCES_MEAN"] = np.mean(ext_sources, axis=0)
             df_engineered["EXT_SOURCES_MAX"] = np.max(ext_sources, axis=0)
@@ -318,18 +254,13 @@ def engineer_features(self, df: pd.DataFrame) -> pd.DataFrame:
 
             # Créer des indicateurs pour les features importantes
             important_features = [
-                "AMT_ANNUITY",
-                "AMT_GOODS_PRICE",
-                "DAYS_EMPLOYED",
-                "CNT_FAM_MEMBERS",
-                "DAYS_REGISTRATION",
+                "AMT_ANNUITY", "AMT_GOODS_PRICE", "DAYS_EMPLOYED",
+                "CNT_FAM_MEMBERS", "DAYS_REGISTRATION"
             ]
             for feature in important_features:
                 if feature in df_engineered.columns:
                     indicator_name = f"{feature}_MISSING"
-                    df_engineered[indicator_name] = (
-                        df_engineered[feature].isnull().astype(int)
-                    )
+                    df_engineered[indicator_name] = df_engineered[feature].isnull().astype(int)
 
             # Imputation par type
             numeric_cols = df_engineered.select_dtypes(include=[np.number]).columns
@@ -346,10 +277,7 @@ def engineer_features(self, df: pd.DataFrame) -> pd.DataFrame:
             for col, mapping in self.categorical_mappings.items():
                 if col in df_engineered.columns:
                     df_engineered[col] = (
-                        df_engineered[col]
-                        .astype(str)
-                        .map(lambda x: mapping.get(x, 0))
-                        .fillna(0)
+                        df_engineered[col].astype(str).map(lambda x: mapping.get(x, 0)).fillna(0)
                     )
 
             # Traitement des variables catégorielles restantes (encodage simple)
@@ -367,9 +295,7 @@ def engineer_features(self, df: pd.DataFrame) -> pd.DataFrame:
                         pd.to_numeric(df_engineered[col], errors="coerce")
                     ).fillna(0)
 
-            logger.info(
-                f"Feature engineering terminé: {len(df_engineered.columns)} features créées"
-            )
+            logger.info(f"Feature engineering terminé: {len(df_engineered.columns)} features créées")
             return df_engineered
 
         except Exception as e:
@@ -377,9 +303,9 @@ def engineer_features(self, df: pd.DataFrame) -> pd.DataFrame:
             raise
 
 
-def create_features(df: pd.DataFrame) -> pd.DataFrame:
+def create_features_complete(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Fonction utilitaire pour créer les features
+    Fonction utilitaire pour créer les features complètes
 
     Args:
         df: DataFrame avec les données brutes
@@ -387,5 +313,5 @@ def create_features(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame avec toutes les features calculées
     """
-    engineer = CreditFeatureEngineer()
+    engineer = CreditFeatureEngineerComplete()
     return engineer.engineer_features(df)
