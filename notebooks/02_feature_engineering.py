@@ -548,7 +548,7 @@ df_test_final.to_csv("data/processed/test_processed.csv", index=False)
 # Sauvegarder les encodeurs
 import joblib
 
-joblib.dump(encoders, "data/processed/label_encoders.pkl")
+joblib.dump(encoders, "models/label_encoders.pkl")
 
 # Sauvegarder l'importance des features
 feature_importance.to_csv("data/processed/feature_importance.csv", index=False)

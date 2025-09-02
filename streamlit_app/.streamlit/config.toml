@@ -1,0 +1,26 @@
+[global]
+# Configuration globale pour Streamlit Cloud
+developmentMode = false
+
+[server]
+# Configuration du serveur
+headless = true
+enableCORS = true
+enableXsrfProtection = true
+maxUploadSize = 200
+
+[browser]
+# Configuration du navigateur
+gatherUsageStats = false
+
+[theme]
+# Thème personnalisé
+primaryColor = "#007bff"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f8f9fa"
+textColor = "#262730"
+font = "sans serif"
+
+[client]
+# Configuration client
+showErrorDetails = false

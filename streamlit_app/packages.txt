@@ -1,0 +1,2 @@
+# Aucun package système requis
+# L'application utilise uniquement des packages Python

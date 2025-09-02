@@ -483,13 +483,34 @@ async def root() -> Dict[str, Any]:
 @app.get("/health")
 async def health_check() -> Dict[str, Any]:
     """
-    Endpoint de vérification de santé
+    Endpoint de vérification de santé pour Render.com
     """
-    return {
-        "status": "healthy",
-        "timestamp": datetime.now().isoformat(),
-        "model_loaded": model is not None,
-    }
+    try:
+        # Vérification du modèle
+        model_status = "loaded" if model is not None else "not_loaded"
+
+        # Vérification de la mémoire système
+        memory_info = psutil.virtual_memory()
+        memory_status = "healthy" if memory_info.percent < 90 else "warning"
+
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now().isoformat(),
+            "service": "mn-opc-7025-api",
+            "model_status": model_status,
+            "memory_usage_percent": round(memory_info.percent, 2),
+            "memory_status": memory_status,
+            "uptime_seconds": round(time.time() - start_time, 2),
+            "total_requests": request_count
+        }
+    except Exception as e:
+        logger.error(f"Erreur lors du health check: {e}")
+        return {
+            "status": "unhealthy",
+            "timestamp": datetime.now().isoformat(),
+            "error": str(e),
+            "service": "mn-opc-7025-api"
+        }
 
 
 @app.get("/model_info")
@@ -703,7 +724,7 @@ async def explain_prediction(
             "explanation": {
                 "decision_reason": (
                     f"Probabilité de défaut ({probability:.4f})"
-                    f" {'supérieure' if probability >= (threshold or 0.5) else 'inférieure'} au"
+                    f" {'supérieure' if probability >= (threshold or 0.5) else 'inférieure'} au"  # noqa: E501
                     f" seuil ({(threshold or 0.5):.4f})"
                 ),
                 "risk_factors": [

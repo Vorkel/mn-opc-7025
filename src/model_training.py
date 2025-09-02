@@ -201,7 +201,7 @@ class ModelTrainer:
                     # Sauvegarder le modèle
                     if MLFLOW_SKLEARN_AVAILABLE:
                         try:
-                            mlflow.sklearn.log_model(model, "model")  # type: ignore[attr-defined]
+                            mlflow.sklearn.log_model(model, "model")  # type: ignore[attr-defined]  # noqa: E501
                         except Exception as e:
                             logger.error(f"Erreur lors de la sauvegarde du modèle: {e}")
                     else:
@@ -309,7 +309,7 @@ class ModelTrainer:
             # Sauvegarder le modèle
             if MLFLOW_SKLEARN_AVAILABLE:
                 try:
-                    mlflow.sklearn.log_model(pipeline, "model")  # type: ignore[attr-defined]
+                    mlflow.sklearn.log_model(pipeline, "model")  # type: ignore[attr-defined]  # noqa: E501
                 except Exception as e:
                     logger.error(f"Erreur lors de la sauvegarde du modèle: {e}")
             else:
@@ -421,7 +421,7 @@ class ModelTrainer:
                 # Sauvegarder le modèle
                 if MLFLOW_SKLEARN_AVAILABLE:
                     try:
-                        mlflow.sklearn.log_model(best_model, "model")  # type: ignore[attr-defined]
+                        mlflow.sklearn.log_model(best_model, "model")  # type: ignore[attr-defined]  # noqa: E501
                     except Exception as e:
                         logger.error(f"Erreur lors de la sauvegarde du modèle: {e}")
                 else:

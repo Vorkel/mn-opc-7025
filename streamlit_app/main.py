@@ -4,6 +4,7 @@ Application principale MLOps Credit Scoring
 """
 
 import sys
+import requests
 from datetime import datetime
 from pathlib import Path
 
@@ -148,6 +149,11 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# Configuration de l'API distante
+API_BASE_URL = "https://mn-opc-7025.onrender.com"  # URL Render.com
+API_TIMEOUT = 30  # Timeout en secondes
+USE_REMOTE_API = True  # Basculement API locale/distante
+
 # Chemins des fichiers
 BASE_DIR = Path(__file__).parent.parent
 MODELS_DIR = BASE_DIR / "models"
@@ -165,25 +171,52 @@ def init_session_state():
 
 @st.cache_resource
 def load_model(force_reload=False):
-    """Charge le modèle entraîné"""
+    """Charge le modèle entraîné (local ou distant)"""
     try:
-        model_paths = [
-            MODELS_DIR / "best_credit_model.pkl",
-            MODELS_DIR / "best_model.pkl",
-            MODELS_DIR / "model.pkl",
-            BASE_DIR / "model.pkl",
-        ]
+        # Si on utilise l'API distante, on ne charge pas le modèle local
+        if USE_REMOTE_API:
+            # Test de connexion à l'API
+            try:
+                response = requests.get(f"{API_BASE_URL}/health", timeout=10)
+                if response.status_code == 200:
+                    health_data = response.json()
+                    return {
+                        "model": None,  # Pas de modèle local
+                        "threshold": 0.5,  # Seuil par défaut
+                        "scaler": None,
+                        "feature_names": [],
+                        "loaded_from": "API distante",
+                        "api_status": "connected",
+                        "api_health": health_data
+                    }
+                else:
+                    st.warning(f"API distante non disponible (status: {response.status_code})")
+                    USE_REMOTE_API = False
+            except Exception as e:
+                st.warning(f"Impossible de se connecter à l'API distante: {e}")
+                USE_REMOTE_API = False
 
-        for model_path in model_paths:
-            if model_path.exists():
-                model_data = joblib.load(model_path)
-                return {
-                    "model": model_data.get("model"),
-                    "threshold": model_data.get("threshold", 0.5),
-                    "scaler": model_data.get("scaler"),
-                    "feature_names": model_data.get("feature_names", []),
-                    "loaded_from": str(model_path),
-                }
+        # Fallback sur le modèle local
+        if not USE_REMOTE_API:
+            model_paths = [
+                MODELS_DIR / "best_credit_model.pkl",
+                MODELS_DIR / "best_model.pkl",
+                MODELS_DIR / "model.pkl",
+                BASE_DIR / "model.pkl",
+            ]
+
+            for model_path in model_paths:
+                if model_path.exists():
+                    model_data = joblib.load(model_path)
+                    return {
+                        "model": model_data.get("model"),
+                        "threshold": model_data.get("threshold", 0.5),
+                        "scaler": model_data.get("scaler"),
+                        "feature_names": model_data.get("feature_names", []),
+                        "loaded_from": str(model_path),
+                        "api_status": "local"
+                    }
+
         return None
     except Exception as e:
         st.error(f"Erreur lors du chargement du modèle: {e}")
@@ -640,9 +673,70 @@ def validate_business_rules(client_data):
         return {"valid": False, "message": f"Erreur de validation: {str(e)}"}
 
 
-def predict_score(client_data, model_data):
-    """Effectue une prédiction de score"""
+def call_api_prediction(client_data):
+    """Appelle l'API distante pour la prédiction"""
     try:
+        # Préparer les données pour l'API
+        api_data = {}
+        for key, value in client_data.items():
+            if isinstance(value, (int, float, str)):
+                api_data[key] = value
+
+        # Appel à l'API
+        response = requests.post(
+            f"{API_BASE_URL}/predict",
+            json=api_data,
+            timeout=API_TIMEOUT
+        )
+
+        if response.status_code == 200:
+            return response.json()
+        else:
+            st.error(f"Erreur API: {response.status_code} - {response.text}")
+            return None
+
+    except requests.exceptions.Timeout:
+        st.error("Timeout de l'API - La requête a pris trop de temps")
+        return None
+    except requests.exceptions.ConnectionError:
+        st.error("Impossible de se connecter à l'API distante")
+        return None
+    except Exception as e:
+        st.error(f"Erreur lors de l'appel API: {str(e)}")
+        return None
+
+def predict_score(client_data, model_data):
+    """Effectue une prédiction de score (local ou distant)"""
+    try:
+        # Si on utilise l'API distante
+        if USE_REMOTE_API and model_data.get("api_status") == "connected":
+            api_result = call_api_prediction(client_data)
+            if api_result:
+                # Convertir le format de l'API vers le format local
+                result = {
+                    "probability": api_result.get("probability", 0.5),
+                    "decision": api_result.get("decision", "REFUSÉ"),
+                    "risk_level": api_result.get("risk_level", "Élevé"),
+                    "threshold": api_result.get("threshold", 0.5),
+                }
+
+                # Sauvegarder dans l'historique
+                if "history" not in st.session_state:
+                    st.session_state.history = []
+
+                prediction_record = {
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "client_data": client_data,
+                    "result": result,
+                }
+                st.session_state.history.append(prediction_record)
+
+                return result
+            else:
+                st.warning("Échec de l'appel API, basculement sur le modèle local")
+                USE_REMOTE_API = False
+
+        # Modèle local (fallback)
         model = model_data["model"]
         threshold = model_data.get("threshold", 0.5)
         feature_names = model_data.get("feature_names", [])
@@ -699,8 +793,6 @@ def predict_score(client_data, model_data):
             st.session_state.history = []
 
         # Ajouter la prédiction à l'historique avec timestamp
-        from datetime import datetime
-
         prediction_record = {
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "client_data": client_data,
@@ -719,6 +811,29 @@ def predict_score(client_data, model_data):
         return None
 
 
+def test_api_connection():
+    """Teste la connexion à l'API distante"""
+    try:
+        response = requests.get(f"{API_BASE_URL}/health", timeout=10)
+        if response.status_code == 200:
+            health_data = response.json()
+            return {
+                "status": "connected",
+                "response_time": response.elapsed.total_seconds(),
+                "health_data": health_data
+            }
+        else:
+            return {
+                "status": "error",
+                "status_code": response.status_code,
+                "message": response.text
+            }
+    except Exception as e:
+        return {
+            "status": "disconnected",
+            "error": str(e)
+        }
+
 def render_dashboard_overview(model_data):
     """Tableau de bord principal avec métriques et aperçu"""
     st.markdown("## Tableau de Bord - Vue d'ensemble")
@@ -728,12 +843,24 @@ def render_dashboard_overview(model_data):
 
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric("Modèle Actif", model_data.get("model_name", "Random Forest"))
+        # Statut de l'API
+        api_status = test_api_connection()
+        if api_status["status"] == "connected":
+            st.metric("API Status", "🟢 Connectée", f"{api_status['response_time']:.2f}s")
+        elif api_status["status"] == "error":
+            st.metric("API Status", "🟡 Erreur", f"Code {api_status['status_code']}")
+        else:
+            st.metric("API Status", "🔴 Déconnectée", "Modèle local")
     with col2:
-        st.metric("Features Utilisées", len(model_data.get("feature_names", [])))
+        st.metric("Modèle Actif", model_data.get("model_name", "Random Forest"))
     with col3:
-        st.metric("Seuil Optimisé", f"{model_data.get('threshold', 0.5):.3f}")
+        st.metric("Features Utilisées", len(model_data.get("feature_names", [])))
     with col4:
+        st.metric("Seuil Optimisé", f"{model_data.get('threshold', 0.5):.3f}")
+
+    # Deuxième ligne de métriques
+    col5, col6, col7, col8 = st.columns(4)
+    with col5:
         total_predictions = len(st.session_state.history)
         if total_predictions > 0:
             approved_count = sum(
@@ -745,6 +872,26 @@ def render_dashboard_overview(model_data):
             st.metric("Taux d'Accord", f"{approval_rate:.1f}%")
         else:
             st.metric("Prédictions", "0")
+    with col6:
+        # Source du modèle
+        source = model_data.get("loaded_from", "Local")
+        if "API" in str(source):
+            st.metric("Source", "API Distante")
+        else:
+            st.metric("Source", "Modèle Local")
+    with col7:
+        # Mode de fonctionnement
+        if USE_REMOTE_API and model_data.get("api_status") == "connected":
+            st.metric("Mode", "API Distante")
+        else:
+            st.metric("Mode", "Modèle Local")
+    with col8:
+        # Dernière mise à jour
+        if st.session_state.history:
+            last_update = st.session_state.history[-1]["timestamp"]
+            st.metric("Dernière Prédiction", last_update.split(" ")[1][:5])  # Heure seulement
+        else:
+            st.metric("Dernière Prédiction", "Aucune")
 
     # Indicateur de mise à jour
     if st.session_state.history:
@@ -2200,6 +2347,24 @@ def main():
             st.metric("Modèle", model_data.get("model_name", "Random Forest"))
             st.metric("Features", len(model_data.get("feature_names", [])))
             st.metric("Seuil", f"{model_data.get('threshold', 0.5):.3f}")
+
+        st.markdown("---")
+        st.markdown("### Statut de l'API")
+
+        # Test de connexion en temps réel
+        api_status = test_api_connection()
+        if api_status["status"] == "connected":
+            st.success("🟢 API Connectée")
+            if "health_data" in api_status and isinstance(api_status["health_data"], dict):
+                health = api_status["health_data"]
+                st.write(f"**Modèle**: {health.get('model_status', 'N/A')}")
+                st.write(f"**Mémoire**: {health.get('memory_usage_percent', 'N/A')}%")
+                st.write(f"**Uptime**: {health.get('uptime_seconds', 'N/A')}s")
+        elif api_status["status"] == "error":
+            st.warning(f"🟡 Erreur API: {api_status['status_code']}")
+        else:
+            st.error("🔴 API Déconnectée")
+            st.info("Utilisation du modèle local")
 
         st.markdown("---")
         st.markdown("### Informations")
