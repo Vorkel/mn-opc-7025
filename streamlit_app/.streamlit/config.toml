@@ -29,3 +29,7 @@ showErrorDetails = false
 [runner]
 # Configuration du runner
 magicEnabled = false
+
+[watcher]
+# Désactiver le watchdog pour éviter les erreurs inotify
+enabled = false

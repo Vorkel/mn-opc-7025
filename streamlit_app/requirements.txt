@@ -5,8 +5,11 @@ plotly
 pandas
 numpy
 requests
+joblib
+scikit-learn
 
 # === NOTES ===
 # - Python 3.13.6 détecté automatiquement
 # - Versions compatibles choisies par uv/pip
 # - Évite les conflits de compilation
+# - joblib et scikit-learn pour charger le modèle ML
