@@ -4,17 +4,24 @@
 
 ### **1. `requirements.txt` (racine)**
 
-- **Usage** : Render.com (API FastAPI)
-- **Python** : 3.11
-- **Contenu** : Dépendances minimales API
-- **Déploiement** : Automatique sur Render.com
-
-### **2. `requirements_dev.txt` (racine)**
-
 - **Usage** : Développement local, tests, notebooks
 - **Python** : 3.11+
 - **Contenu** : Toutes les dépendances complètes
 - **Déploiement** : Local uniquement
+
+### **2. `requirements_render.txt` (racine)**
+
+- **Usage** : Render.com (API FastAPI)
+- **Python** : 3.11
+- **Contenu** : Dépendances minimales API (sans conflits)
+- **Déploiement** : Spécifiquement pour Render.com
+
+### **3. `streamlit_app/requirements.txt`**
+
+- **Usage** : Streamlit Cloud (interface utilisateur)
+- **Python** : 3.13.6 (détecté automatiquement)
+- **Contenu** : Dépendances minimales UI
+- **Déploiement** : Automatique sur Streamlit Cloud
 
 ### **3. `streamlit_app/requirements.txt`**
 

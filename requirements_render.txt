@@ -1,0 +1,29 @@
+# === RENDER.COM - REQUIREMENTS API UNIQUEMENT ===
+# Dépendances minimales pour l'API FastAPI sur Render.com
+# Python 3.11 - Pas de conflits de dépendances
+
+# === API CORE ===
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+python-multipart==0.0.6
+
+# === ML CORE ===
+scikit-learn==1.3.0
+pandas==2.1.3
+numpy==1.26.4
+joblib==1.3.2
+
+# === SÉCURITÉ ===
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# === UTILITAIRES ===
+python-dotenv==1.0.0
+psutil==5.9.0
+
+# === NOTES ===
+# - Versions fixes pour éviter les conflits
+# - Compatible Python 3.11
+# - Dépendances API uniquement (pas de MLflow/evidently)
+# - Ce fichier est utilisé par Render.com
