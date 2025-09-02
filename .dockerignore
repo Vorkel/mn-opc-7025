@@ -11,6 +11,12 @@ venv/
 pip-log.txt
 pip-delete-this-directory.txt
 
+# Requirements conflictuels (Render.com utilise requirements_render.txt)
+requirements.txt
+requirements_minimal.txt
+pyproject.toml
+poetry.lock
+
 # Fichiers de données volumineux
 data/raw/
 data/processed/

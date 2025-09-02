@@ -7,9 +7,12 @@ services:
     buildCommand: |
       python --version
       pip install --upgrade pip
-      pip install -r requirements_minimal.txt
+      echo "Installation des dépendances minimales..."
+      pip install -r requirements_render.txt
+      echo "Vérification des versions installées..."
       python -c "import pandas; print(f'Pandas version: {pandas.__version__}')"
       python -c "import numpy; print(f'NumPy version: {numpy.__version__}')"
+      python -c "import scikit-learn; print(f'Scikit-learn version: {scikit_learn.__version__}')"
     startCommand: uvicorn api.app:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
