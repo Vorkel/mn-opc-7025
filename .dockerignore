@@ -1,0 +1,48 @@
+# Fichiers de développement
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Fichiers de données volumineux
+data/raw/
+data/processed/
+*.csv
+*.pkl
+*.h5
+*.parquet
+
+# Logs et rapports
+logs/
+reports/
+*.log
+htmlcov/
+.coverage
+.pytest_cache/
+
+# Documentation et scripts
+docs/
+notebooks/
+scripts/
+tests/
+*.md
+*.txt
+
+# Git et IDE
+.git/
+.gitignore
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
