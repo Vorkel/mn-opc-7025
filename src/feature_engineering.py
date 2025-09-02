@@ -15,7 +15,7 @@ class CreditFeatureEngineerComplete:
     """
     Classe pour l'ingénierie des features de scoring crédit COMPLÈTE
     """
-    
+
     def __init__(self) -> None:
         """Initialise l'ingénieur de features"""
         self.categorical_mappings = {
@@ -56,67 +56,67 @@ class CreditFeatureEngineerComplete:
                 "Co-op apartment": 5, "Appartement coopératif": 5,
             },
         }
-    
+
     def engineer_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Applique l'ingénierie des features complète en préservant TOUTES les features originales
-        
+
         Args:
             df: DataFrame avec les données brutes
-            
+
         Returns:
             DataFrame avec toutes les features calculées
         """
         try:
             # IMPORTANT: Préserver TOUTES les features originales
             df_engineered = df.copy()
-            
+
             # Liste COMPLÈTE des features originales importantes à préserver
             original_features_to_preserve = [
                 # Features APARTMENTS
                 "APARTMENTS_AVG", "APARTMENTS_MEDI", "APARTMENTS_MODE",
                 "LIVINGAPARTMENTS_AVG", "LIVINGAPARTMENTS_MEDI", "LIVINGAPARTMENTS_MODE",
                 "NONLIVINGAPARTMENTS_AVG", "NONLIVINGAPARTMENTS_MEDI", "NONLIVINGAPARTMENTS_MODE",
-                
+
                 # Features BASEMENTAREA
                 "BASEMENTAREA_AVG", "BASEMENTAREA_MEDI", "BASEMENTAREA_MODE",
-                
+
                 # Features COMMONAREA
                 "COMMONAREA_AVG", "COMMONAREA_MEDI", "COMMONAREA_MODE",
-                
+
                 # Features ELEVATORS
                 "ELEVATORS_AVG", "ELEVATORS_MEDI", "ELEVATORS_MODE",
-                
+
                 # Features ENTRANCES
                 "ENTRANCES_AVG", "ENTRANCES_MEDI", "ENTRANCES_MODE",
-                
+
                 # Features FLOORSMAX
                 "FLOORSMAX_AVG", "FLOORSMAX_MEDI", "FLOORSMAX_MODE",
-                
+
                 # Features LANDAREA
                 "LANDAREA_AVG", "LANDAREA_MEDI", "LANDAREA_MODE",
-                
+
                 # Features LIVINGAREA
                 "LIVINGAREA_AVG", "LIVINGAREA_MEDI", "LIVINGAREA_MODE",
-                
+
                 # Features NONLIVINGAREA
                 "NONLIVINGAREA_AVG", "NONLIVINGAREA_MEDI", "NONLIVINGAREA_MODE",
-                
+
                 # Features TOTALAREA
                 "TOTALAREA_MODE",
-                
+
                 # Features WALLSMATERIAL
                 "WALLSMATERIAL_MODE",
-                
+
                 # Features EMERGENCYSTATE
                 "EMERGENCYSTATE_MODE",
-                
+
                 # Features FONDKAPITAL
                 "FONDKAPITAL_MODE",
-                
+
                 # Features HOUSETYPE
                 "HOUSETYPE_MODE",
-                
+
                 # Features FLAG_DOCUMENT (toutes)
                 "FLAG_DOCUMENT_1", "FLAG_DOCUMENT_2", "FLAG_DOCUMENT_3", "FLAG_DOCUMENT_4",
                 "FLAG_DOCUMENT_5", "FLAG_DOCUMENT_6", "FLAG_DOCUMENT_7", "FLAG_DOCUMENT_8",
@@ -124,44 +124,44 @@ class CreditFeatureEngineerComplete:
                 "FLAG_DOCUMENT_13", "FLAG_DOCUMENT_14", "FLAG_DOCUMENT_15", "FLAG_DOCUMENT_16",
                 "FLAG_DOCUMENT_17", "FLAG_DOCUMENT_18", "FLAG_DOCUMENT_19", "FLAG_DOCUMENT_20",
                 "FLAG_DOCUMENT_21",
-                
+
                 # Features AMT_REQ_CREDIT_BUREAU
                 "AMT_REQ_CREDIT_BUREAU_HOUR", "AMT_REQ_CREDIT_BUREAU_DAY",
                 "AMT_REQ_CREDIT_BUREAU_WEEK", "AMT_REQ_CREDIT_BUREAU_MON",
                 "AMT_REQ_CREDIT_BUREAU_QRT", "AMT_REQ_CREDIT_BUREAU_YEAR",
-                
+
                 # Features sociales et démographiques
                 "DEF_30_CNT_SOCIAL_CIRCLE", "DEF_60_CNT_SOCIAL_CIRCLE",
                 "OBS_30_CNT_SOCIAL_CIRCLE", "OBS_60_CNT_SOCIAL_CIRCLE",
-                
+
                 # Features temporelles spécifiques
                 "DAYS_LAST_PHONE_CHANGE",
-                
+
                 # Features d'organisation
                 "ORGANIZATION_TYPE",
-                
+
                 # Features de contact
-                "FLAG_MOBIL", "FLAG_EMP_PHONE", "FLAG_WORK_PHONE", 
+                "FLAG_MOBIL", "FLAG_EMP_PHONE", "FLAG_WORK_PHONE",
                 "FLAG_CONT_MOBILE", "FLAG_PHONE", "FLAG_EMAIL",
                 "FLAG_DOCUMENT_3", "FLAG_DOCUMENT_6", "FLAG_DOCUMENT_8",
-                
+
                 # Features de type de suite
                 "NAME_TYPE_SUITE",
-                
+
                 # Features de région
                 "REGION_RATING_CLIENT", "REGION_RATING_CLIENT_W_CITY",
                 "REGION_POPULATION_RELATIVE", "UNEMPLOYMENT_RATE", "REAL_ESTATE_TREND",
-                
+
                 # Features de secteur
                 "SECTOR_ACTIVITY",
-                
+
                 # Features d'exploitation et construction
                 "YEARS_BEGINEXPLUATATION_AVG", "YEARS_BUILD_AVG",
-                
+
                 # Features de voiture
                 "OWN_CAR_AGE"
             ]
-            
+
             # S'assurer que toutes les features importantes sont présentes
             for feature in original_features_to_preserve:
                 if feature not in df_engineered.columns:
@@ -178,26 +178,26 @@ class CreditFeatureEngineerComplete:
                         df_engineered[feature] = "Unknown"  # Types = "Unknown" par défaut
                     else:
                         df_engineered[feature] = 0  # Autre = 0 par défaut
-            
+
             # =============================================================================
             # FEATURE ENGINEERING - Variables temporelles
             # =============================================================================
-            
+
             # Convertir les jours en années
             df_engineered["AGE_YEARS"] = -df_engineered["DAYS_BIRTH"] / 365.25
             df_engineered["EMPLOYMENT_YEARS"] = -df_engineered["DAYS_EMPLOYED"] / 365.25
-            
+
             # Nettoyer les valeurs aberrantes DAYS_EMPLOYED
             df_engineered["DAYS_EMPLOYED_ABNORMAL"] = (
                 df_engineered["DAYS_EMPLOYED"] == 365243
             ).astype(int)
             df_engineered["DAYS_EMPLOYED"] = df_engineered["DAYS_EMPLOYED"].replace(365243, np.nan)
             df_engineered["EMPLOYMENT_YEARS"] = -df_engineered["DAYS_EMPLOYED"] / 365.25
-            
+
             # Variables temporelles supplémentaires
             df_engineered["YEARS_SINCE_REGISTRATION"] = -df_engineered["DAYS_REGISTRATION"] / 365.25
             df_engineered["YEARS_SINCE_ID_PUBLISH"] = -df_engineered["DAYS_ID_PUBLISH"] / 365.25
-            
+
             # Groupes d'âge
             age_groups = pd.cut(
                 df_engineered["AGE_YEARS"],
@@ -205,7 +205,7 @@ class CreditFeatureEngineerComplete:
                 labels=[0, 1, 2, 3, 4, 5],
             )
             df_engineered["AGE_GROUP"] = pd.Categorical(age_groups).codes
-            
+
             # Groupes d'expérience
             emp_groups = pd.cut(
                 df_engineered["EMPLOYMENT_YEARS"],
@@ -213,16 +213,16 @@ class CreditFeatureEngineerComplete:
                 labels=[0, 1, 2, 3, 4, 5],
             )
             df_engineered["EMPLOYMENT_GROUP"] = pd.Categorical(emp_groups).codes
-            
+
             # Ratios temporels
             df_engineered["AGE_EMPLOYMENT_RATIO"] = (
                 df_engineered["AGE_YEARS"] / (df_engineered["EMPLOYMENT_YEARS"] + 1)
             )
-            
+
             # =============================================================================
             # FEATURE ENGINEERING - Variables financières
             # =============================================================================
-            
+
             # Ratios principaux
             df_engineered["CREDIT_INCOME_RATIO"] = (
                 df_engineered["AMT_CREDIT"] / df_engineered["AMT_INCOME_TOTAL"]
@@ -236,12 +236,12 @@ class CreditFeatureEngineerComplete:
             df_engineered["ANNUITY_CREDIT_RATIO"] = (
                 df_engineered["AMT_ANNUITY"] / df_engineered["AMT_CREDIT"]
             )
-            
+
             # Durée estimée du crédit
             df_engineered["CREDIT_DURATION"] = (
                 df_engineered["AMT_CREDIT"] / df_engineered["AMT_ANNUITY"]
             )
-            
+
             # Revenus et crédits par personne
             df_engineered["INCOME_PER_PERSON"] = (
                 df_engineered["AMT_INCOME_TOTAL"] / df_engineered["CNT_FAM_MEMBERS"]
@@ -249,7 +249,7 @@ class CreditFeatureEngineerComplete:
             df_engineered["CREDIT_PER_PERSON"] = (
                 df_engineered["AMT_CREDIT"] / df_engineered["CNT_FAM_MEMBERS"]
             )
-            
+
             # Groupes de revenus
             income_groups = pd.cut(
                 df_engineered["AMT_INCOME_TOTAL"],
@@ -257,7 +257,7 @@ class CreditFeatureEngineerComplete:
                 labels=[0, 1, 2, 3, 4],
             )
             df_engineered["INCOME_GROUP"] = pd.Categorical(income_groups).codes
-            
+
             # Groupes de crédit
             credit_groups = pd.cut(
                 df_engineered["AMT_CREDIT"],
@@ -265,7 +265,7 @@ class CreditFeatureEngineerComplete:
                 labels=[0, 1, 2, 3, 4],
             )
             df_engineered["CREDIT_GROUP"] = pd.Categorical(credit_groups).codes
-            
+
             # Indicateurs de richesse
             df_engineered["OWNS_PROPERTY"] = (
                 (df_engineered["FLAG_OWN_CAR"] == "Y") &
@@ -275,18 +275,18 @@ class CreditFeatureEngineerComplete:
                 (df_engineered["FLAG_OWN_CAR"] == "N") &
                 (df_engineered["FLAG_OWN_REALTY"] == "N")
             ).astype(int)
-            
+
             # =============================================================================
             # FEATURE ENGINEERING - Variables d'agrégation
             # =============================================================================
-            
+
             # Scores de contact
             contact_features = [
-                "FLAG_MOBIL", "FLAG_EMP_PHONE", "FLAG_WORK_PHONE", 
+                "FLAG_MOBIL", "FLAG_EMP_PHONE", "FLAG_WORK_PHONE",
                 "FLAG_CONT_MOBILE", "FLAG_PHONE", "FLAG_EMAIL"
             ]
             df_engineered["CONTACT_SCORE"] = df_engineered[contact_features].sum(axis=1)
-            
+
             # Scores de documents
             doc_features = [
                 col for col in df_engineered.columns if col.startswith("FLAG_DOCUMENT_")
@@ -295,19 +295,19 @@ class CreditFeatureEngineerComplete:
                 df_engineered["DOCUMENT_SCORE"] = df_engineered[doc_features].sum(axis=1)
             else:
                 df_engineered["DOCUMENT_SCORE"] = 0
-                
+
             # Score de région normalisé
             df_engineered["REGION_SCORE_NORMALIZED"] = 4 - df_engineered["REGION_RATING_CLIENT"]
-            
+
             # Features externes (EXT_SOURCE) - valeurs par défaut si non présentes
             df_engineered["EXT_SOURCE_1"] = df_engineered.get("EXT_SOURCE_1", 0.5)
             df_engineered["EXT_SOURCE_2"] = df_engineered.get("EXT_SOURCE_2", 0.5)
             df_engineered["EXT_SOURCE_3"] = df_engineered.get("EXT_SOURCE_3", 0.5)
-            
+
             # Calculer les agrégations EXT_SOURCE
             ext_sources = [
-                df_engineered["EXT_SOURCE_1"], 
-                df_engineered["EXT_SOURCE_2"], 
+                df_engineered["EXT_SOURCE_1"],
+                df_engineered["EXT_SOURCE_2"],
                 df_engineered["EXT_SOURCE_3"]
             ]
             df_engineered["EXT_SOURCES_MEAN"] = np.mean(ext_sources, axis=0)
@@ -315,37 +315,37 @@ class CreditFeatureEngineerComplete:
             df_engineered["EXT_SOURCES_MIN"] = np.min(ext_sources, axis=0)
             df_engineered["EXT_SOURCES_STD"] = np.std(ext_sources, axis=0)
             df_engineered["EXT_SOURCES_COUNT"] = 3
-            
+
             # Interactions
             df_engineered["AGE_EXT_SOURCES_INTERACTION"] = (
                 df_engineered["AGE_YEARS"] * df_engineered["EXT_SOURCES_MEAN"]
             )
-            
+
             # =============================================================================
             # Gestion des valeurs manquantes
             # =============================================================================
-            
+
             # Créer des indicateurs pour les features importantes
             important_features = [
-                "AMT_ANNUITY", "AMT_GOODS_PRICE", "DAYS_EMPLOYED", 
+                "AMT_ANNUITY", "AMT_GOODS_PRICE", "DAYS_EMPLOYED",
                 "CNT_FAM_MEMBERS", "DAYS_REGISTRATION"
             ]
             for feature in important_features:
                 if feature in df_engineered.columns:
                     indicator_name = f"{feature}_MISSING"
                     df_engineered[indicator_name] = df_engineered[feature].isnull().astype(int)
-            
+
             # Imputation par type
             numeric_cols = df_engineered.select_dtypes(include=[np.number]).columns
             for col in numeric_cols:
                 if df_engineered[col].isnull().sum() > 0:
                     median_val = df_engineered[col].median()
                     df_engineered[col] = df_engineered[col].fillna(median_val)
-            
+
             # =============================================================================
             # Encodage des variables catégorielles
             # =============================================================================
-            
+
             # Appliquer les mappings
             for col, mapping in self.categorical_mappings.items():
                 if col in df_engineered.columns:
@@ -359,7 +359,7 @@ class CreditFeatureEngineerComplete:
 
             # Gestion des valeurs manquantes finales
             df_engineered = df_engineered.fillna(0)
-            
+
             # S'assurer que toutes les colonnes sont numériques
             for col in df_engineered.columns:
                 if df_engineered[col].dtype == "object":
@@ -367,10 +367,10 @@ class CreditFeatureEngineerComplete:
                     df_engineered[col] = pd.Series(
                         pd.to_numeric(df_engineered[col], errors="coerce")
                     ).fillna(0)
-            
+
             logger.info(f"Feature engineering terminé: {len(df_engineered.columns)} features créées")
             return df_engineered
-            
+
         except Exception as e:
             logger.error(f"Erreur lors du feature engineering: {e}")
             raise
@@ -379,10 +379,10 @@ class CreditFeatureEngineerComplete:
 def create_features_complete(df: pd.DataFrame) -> pd.DataFrame:
     """
     Fonction utilitaire pour créer les features complètes
-    
+
     Args:
         df: DataFrame avec les données brutes
-        
+
     Returns:
         DataFrame avec toutes les features calculées
     """
