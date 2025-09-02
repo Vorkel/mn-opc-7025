@@ -5,8 +5,8 @@ services:
     plan: free
     region: oregon
     buildCommand: |
-      chmod +x build.sh
-      ./build.sh
+      chmod +x scripts/build.sh
+      ./scripts/build.sh
     startCommand: uvicorn api.app:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
