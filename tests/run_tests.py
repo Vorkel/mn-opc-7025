@@ -2,9 +2,10 @@
 """
 Script simple pour exécuter les tests unitaires
 """
+import os
 import subprocess
 import sys
-import os
+
 
 def run_tests() -> None:
     """Exécute les tests unitaires"""
@@ -12,9 +13,11 @@ def run_tests() -> None:
 
     # Tests unitaires
     print("\n📋 Tests unitaires BusinessScorer:")
-    result = subprocess.run([
-        "poetry", "run", "pytest", "tests/unit/test_business_score.py", "-v"
-    ], capture_output=True, text=True)
+    result = subprocess.run(
+        ["poetry", "run", "pytest", "tests/unit/test_business_score.py", "-v"],
+        capture_output=True,
+        text=True,
+    )
 
     if result.returncode == 0:
         print("✅ Tests BusinessScorer: SUCCÈS")
@@ -25,9 +28,18 @@ def run_tests() -> None:
 
     # Tests de validation des données
     print("\n📋 Tests de validation des données:")
-    result = subprocess.run([
-        "poetry", "run", "pytest", "tests/unit/test_data_validation.py", "-v", "--tb=short"
-    ], capture_output=True, text=True)
+    result = subprocess.run(
+        [
+            "poetry",
+            "run",
+            "pytest",
+            "tests/unit/test_data_validation.py",
+            "-v",
+            "--tb=short",
+        ],
+        capture_output=True,
+        text=True,
+    )
 
     if result.returncode == 0:
         print("✅ Tests validation données: SUCCÈS")
@@ -38,9 +50,18 @@ def run_tests() -> None:
 
     # Tests feature engineering
     print("\n📋 Tests feature engineering:")
-    result = subprocess.run([
-        "poetry", "run", "pytest", "tests/unit/test_feature_engineering.py", "-v", "--tb=short"
-    ], capture_output=True, text=True)
+    result = subprocess.run(
+        [
+            "poetry",
+            "run",
+            "pytest",
+            "tests/unit/test_feature_engineering.py",
+            "-v",
+            "--tb=short",
+        ],
+        capture_output=True,
+        text=True,
+    )
 
     if result.returncode == 0:
         print("✅ Tests feature engineering: SUCCÈS")
@@ -50,6 +71,7 @@ def run_tests() -> None:
         print(result.stderr)
 
     print("\n🎯 Résumé des tests terminé!")
+
 
 if __name__ == "__main__":
     run_tests()

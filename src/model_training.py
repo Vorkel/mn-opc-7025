@@ -1,34 +1,42 @@
 # model_training.py
-import pandas as pd
-import numpy as np
-from pathlib import Path
-import os
-from typing import Dict, List, Tuple, Optional, Union, Any
-import mlflow
-import mlflow.sklearn
-from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
-from lightgbm import LGBMClassifier
-from sklearn.metrics import (
-    make_scorer,
-    confusion_matrix,
-    classification_report,
-    roc_auc_score,
-    accuracy_score,
-)
-from imblearn.over_sampling import SMOTE
-from imblearn.under_sampling import RandomUnderSampler
-from imblearn.pipeline import Pipeline as ImbPipeline
-import joblib
-import warnings
 import logging
+import os
+import warnings
 from contextlib import nullcontext
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+import joblib
+import mlflow
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 warnings.filterwarnings("ignore")
+
+try:
+    import mlflow.sklearn
+
+    MLFLOW_SKLEARN_AVAILABLE = True
+except ImportError:
+    MLFLOW_SKLEARN_AVAILABLE = False
+    logger.warning("mlflow.sklearn non disponible, sauvegarde des modèles désactivée")
+import numpy as np
+import pandas as pd
+from imblearn.over_sampling import SMOTE
+from imblearn.pipeline import Pipeline as ImbPipeline
+from imblearn.under_sampling import RandomUnderSampler
+from lightgbm import LGBMClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    confusion_matrix,
+    make_scorer,
+    roc_auc_score,
+)
+from sklearn.model_selection import GridSearchCV, cross_val_score, train_test_split
 
 # Import des classes personnalisées avec fallback
 try:
@@ -93,15 +101,22 @@ class ModelTrainer:
             random_state (int): Seed pour la reproductibilité
 
         Returns:
-            Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]: X_train, X_test, y_train, y_test
+            Tuple[Any, Any, Any, Any]:
+            X_train, X_test, y_train, y_test
         """
         # Division train/test
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=test_size, random_state=random_state, stratify=y
         )
 
-        logger.info(f"Taille des données d'entraînement: {X_train.shape}")  # type: ignore
-        logger.info(f"Taille des données de test: {X_test.shape}")  # type: ignore
+        # Convertir en numpy arrays pour accéder aux attributs
+        X_train_arr = (
+            np.array(X_train) if not isinstance(X_train, np.ndarray) else X_train
+        )
+        X_test_arr = np.array(X_test) if not isinstance(X_test, np.ndarray) else X_test
+
+        logger.info(f"Taille des données d'entraînement: {X_train_arr.shape}")
+        logger.info(f"Taille des données de test: {X_test_arr.shape}")
         # Distribution des classes avec numpy
         unique_train, counts_train = np.unique(y_train, return_counts=True)
         unique_test, counts_test = np.unique(y_test, return_counts=True)
@@ -112,7 +127,13 @@ class ModelTrainer:
             f"Distribution des classes (test): {dict(zip(unique_test, counts_test))}"
         )
 
-        return X_train, X_test, y_train, y_test  # type: ignore
+        # Convertir en pandas objects pour respecter le type de retour
+        X_train_df = pd.DataFrame(X_train)
+        X_test_df = pd.DataFrame(X_test)
+        y_train_series = pd.Series(y_train)
+        y_test_series = pd.Series(y_test)
+
+        return X_train_df, X_test_df, y_train_series, y_test_series
 
     def create_business_scorer(self) -> Any:
         """
@@ -164,7 +185,7 @@ class ModelTrainer:
 
         # Évaluation
         if self.scorer:
-            metrics = self.scorer.evaluate_model(np.array(y_test), y_proba)  # type: ignore
+            metrics = self.scorer.evaluate_model(np.array(y_test), y_proba)
         else:
             logger.error("Scorer non disponible pour l'évaluation")
             return model, {}
@@ -178,7 +199,15 @@ class ModelTrainer:
                     self.log_metrics(metrics)
 
                     # Sauvegarder le modèle
-                    mlflow.sklearn.log_model(model, "model")  # type: ignore
+                    if MLFLOW_SKLEARN_AVAILABLE:
+                        try:
+                            mlflow.sklearn.log_model(model, "model")  # type: ignore[attr-defined]
+                        except Exception as e:
+                            logger.error(f"Erreur lors de la sauvegarde du modèle: {e}")
+                    else:
+                        logger.warning(
+                            "mlflow.sklearn non disponible, modèle non sauvegardé"
+                        )
             except Exception as e:
                 logger.error(f"MLFlow logging échoué: {str(e)}")
 
@@ -243,12 +272,10 @@ class ModelTrainer:
 
         # Créer le pipeline
         if sampler:
-            pipeline = ImbPipeline(
-                [
-                    ("sampler", sampler),
-                    ("classifier", RandomForestClassifier(random_state=42, n_jobs=-1)),
-                ]
-            )
+            pipeline = ImbPipeline([
+                ("sampler", sampler),
+                ("classifier", RandomForestClassifier(random_state=42, n_jobs=-1)),
+            ])
         else:
             pipeline = RandomForestClassifier(random_state=42, n_jobs=-1)
 
@@ -257,13 +284,18 @@ class ModelTrainer:
 
         # Prédictions
         if pipeline is not None and hasattr(pipeline, "predict_proba"):
-            y_proba = pipeline.predict_proba(X_test)[:, 1]  # type: ignore
+            y_proba_raw = pipeline.predict_proba(X_test)
+            # S'assurer que c'est un numpy array
+            if isinstance(y_proba_raw, np.ndarray):
+                y_proba = y_proba_raw[:, 1]
+            else:
+                y_proba = np.array(y_proba_raw)[:, 1]
         else:
             raise ValueError("Le pipeline ne supporte pas predict_proba")
 
         # Évaluation
         if self.scorer:
-            metrics = self.scorer.evaluate_model(np.array(y_test), y_proba)  # type: ignore
+            metrics = self.scorer.evaluate_model(np.array(y_test), y_proba)
         else:
             logger.error("Scorer non disponible pour l'évaluation")
             return pipeline, {}
@@ -275,10 +307,13 @@ class ModelTrainer:
             self.log_metrics(metrics)
 
             # Sauvegarder le modèle
-            try:
-                mlflow.sklearn.log_model(pipeline, "model")  # type: ignore
-            except Exception as e:
-                logger.error(f"Erreur MLFlow log_model: {e}")
+            if MLFLOW_SKLEARN_AVAILABLE:
+                try:
+                    mlflow.sklearn.log_model(pipeline, "model")  # type: ignore[attr-defined]
+                except Exception as e:
+                    logger.error(f"Erreur lors de la sauvegarde du modèle: {e}")
+            else:
+                logger.warning("mlflow.sklearn non disponible, modèle non sauvegardé")
 
         self.models[f"rf_{sampling_strategy}"] = {
             "model": pipeline,
@@ -365,7 +400,7 @@ class ModelTrainer:
 
             # Évaluation
             if self.scorer:
-                metrics = self.scorer.evaluate_model(np.array(y_test), y_proba)  # type: ignore
+                metrics = self.scorer.evaluate_model(np.array(y_test), y_proba)
             else:
                 logger.error("Scorer non disponible pour l'évaluation")
                 return best_model, {}
@@ -384,7 +419,15 @@ class ModelTrainer:
                 self.log_metrics(metrics)
 
                 # Sauvegarder le modèle
-                mlflow.sklearn.log_model(best_model, "model")  # type: ignore
+                if MLFLOW_SKLEARN_AVAILABLE:
+                    try:
+                        mlflow.sklearn.log_model(best_model, "model")  # type: ignore[attr-defined]
+                    except Exception as e:
+                        logger.error(f"Erreur lors de la sauvegarde du modèle: {e}")
+                else:
+                    logger.warning(
+                        "mlflow.sklearn non disponible, modèle non sauvegardé"
+                    )
 
             self.models["lgbm_optimized"] = {
                 "model": best_model,
@@ -420,18 +463,16 @@ class ModelTrainer:
 
         for model_name, model_info in self.models.items():
             metrics = model_info["metrics"]
-            comparison_data.append(
-                {
-                    "Modèle": model_name,
-                    "Coût Métier": metrics["business_cost"],
-                    "AUC": metrics["auc_score"],
-                    "Accuracy": metrics["accuracy"],
-                    "Précision": metrics["precision"],
-                    "Rappel": metrics["recall"],
-                    "F1-Score": metrics["f1_score"],
-                    "Seuil Optimal": metrics["threshold"],
-                }
-            )
+            comparison_data.append({
+                "Modèle": model_name,
+                "Coût Métier": metrics["business_cost"],
+                "AUC": metrics["auc_score"],
+                "Accuracy": metrics["accuracy"],
+                "Précision": metrics["precision"],
+                "Rappel": metrics["recall"],
+                "F1-Score": metrics["f1_score"],
+                "Seuil Optimal": metrics["threshold"],
+            })
 
         comparison_df = pd.DataFrame(comparison_data)
         comparison_df = comparison_df.sort_values("Coût Métier")
@@ -590,9 +631,10 @@ if __name__ == "__main__":
     n_features = 20
 
     # Créer des données simulées
+    feature_names = [f"feature_{i}" for i in range(n_features)]
     X = pd.DataFrame(
         np.random.randn(n_samples, n_features),
-        columns=[f"feature_{i}" for i in range(n_features)],  # type: ignore
+        columns=pd.Index(feature_names),
     )
     y = pd.Series(np.random.binomial(1, 0.2, n_samples))  # 20% de défauts
 

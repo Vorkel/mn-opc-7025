@@ -85,7 +85,6 @@ pytest-xdist = "^3.5.0"
 black = "^23.11.0"
 flake8 = "^6.1.0"
 isort = "^5.12.0"
-mypy = "^1.7.0"
 pre-commit = "^3.5.0"
 autopep8 = "^2.0.0"
 
@@ -106,6 +105,9 @@ line-profiler = "^4.1.0"
 rich = "^13.6.0"
 pip-tools = "^7.3.0"
 pipdeptree = "^2.13.0"
+pyright = "^1.1.404"
+mypy = "^1.17.1"
+types-psutil = "^7.0.0.20250822"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "^7.2.0"
@@ -125,20 +127,11 @@ nbconvert = "^7.11.0"
 line-length = 88
 target-version = ['py311']
 include = '\.pyi?$'
-extend-exclude = '''
-/(
-# directories
-\.eggs
-| \.git
-| \.hg
-| \.mypy_cache
-| \.tox
-| \.venv
-| build
-| dist
-)/
-'''
-
+# Options valides pour forcer le reformatage
+skip-string-normalization = false
+skip-magic-trailing-comma = false
+preview = true
+ 
 [tool.isort]
 profile = "black"
 multi_line_output = 3
@@ -220,3 +213,31 @@ skips = ["B101", "B601"]
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = [
+    "E203",
+    "W503",
+    "F401",
+    "F841",
+    "E402",
+    "F541",
+    "F601"
+]
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv",
+    "build",
+    "dist",
+    "*.egg-info",
+    ".pytest_cache",
+    "htmlcov",
+    "mlruns"
+]
+per-file-ignores = [
+    "__init__.py:F401",  # Permettre imports non utilisés dans __init__.py
+    "tests/*:F401",      # Plus permissif pour les tests
+    "tests/*:F841",      # Plus permissif pour les tests
+]

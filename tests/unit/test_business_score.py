@@ -1,17 +1,19 @@
 """
 Tests unitaires pour le module business_score
 """
-import pytest
+
+import os
+import sys
+from unittest.mock import MagicMock, patch
+
 import numpy as np
 import pandas as pd
-from unittest.mock import patch, MagicMock
-import sys
-import os
-
-# Ajouter le répertoire src au path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
+import pytest
 
 from src.business_score import BusinessScorer
+
+# Ajouter le répertoire src au path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
 
 class TestBusinessScorer:
@@ -107,9 +109,12 @@ class TestBusinessScorer:
 
         # Test que la fonction ne lève pas d'exception
         try:
-            scorer.plot_threshold_analysis(thresholds, costs, optimal_threshold, optimal_cost)
+            scorer.plot_threshold_analysis(
+                thresholds, costs, optimal_threshold, optimal_cost
+            )
             # Vérifier que le fichier a été créé
             import os
+
             assert os.path.exists("reports/threshold_analysis.png")
             # Nettoyer
             os.remove("reports/threshold_analysis.png")
@@ -141,6 +146,7 @@ class TestBusinessScorer:
         y_pred = np.array([0])
         # Pour un seul échantillon, on doit spécifier les labels
         from sklearn.metrics import confusion_matrix
+
         tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
         cost = (fn * scorer.cost_fn) + (fp * scorer.cost_fp)
         assert cost == 10  # 1 FN * 10

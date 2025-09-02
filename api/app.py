@@ -1,28 +1,29 @@
 # app.py - API FastAPI pour le scoring crédit
-from fastapi import FastAPI, HTTPException, Depends, Request
+import json
+import logging
+import os
+import time
+from contextlib import asynccontextmanager
+from datetime import datetime
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
+from typing import Any, AsyncIterator, Dict, List, Optional, Union
+
+import joblib
+import numpy as np
+import pandas as pd
+import psutil
+import uvicorn
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from pydantic import BaseModel, Field
-from typing import List, Dict, Optional, Any, Union
-import pandas as pd
-import numpy as np
-import joblib
-import uvicorn
-from datetime import datetime
-import logging
-import json
-import os
-import time
-import psutil
-from contextlib import asynccontextmanager
-from logging.handlers import RotatingFileHandler
-from pathlib import Path
 
 from api.security import (
-    check_rate_limit_dependency,
-    validate_and_sanitize_input,
     SecurityMiddleware,
+    check_rate_limit_dependency,
     setup_security_logging,
+    validate_and_sanitize_input,
 )
 
 
@@ -297,7 +298,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 # Création de l'application FastAPI
 app = FastAPI(
     title="API de Scoring Crédit",
-    description="API pour calculer la probabilité de défaut d'un client et décider de l'octroi du crédit",
+    description=(
+        "API pour calculer la probabilité de défaut d'un client et décider de l'octroi"
+        " du crédit"
+    ),
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -323,10 +327,9 @@ app.add_middleware(
 
 # Middleware pour logging des requêtes
 @app.middleware("http")
-async def log_requests(request: Request, call_next) -> Any:
+async def log_requests(request: Request, call_next: Any) -> Any:
     global request_count
     request_count += 1
-
     start_time = time.time()
 
     # Logger la requête entrante
@@ -544,7 +547,8 @@ async def predict_credit(
         )
 
         logger.info(
-            f"Prédiction effectuée - Client: {client_id}, Probabilité: {probability:.4f}, Décision: {decision}"
+            f"Prédiction effectuée - Client: {client_id}, Probabilité:"
+            f" {probability:.4f}, Décision: {decision}"
         )
 
         return response
@@ -583,15 +587,13 @@ async def batch_predict(
             decision = "REFUSÉ" if probability >= (threshold or 0.5) else "ACCORDÉ"
             risk_level = determine_risk_level(probability)
 
-            results.append(
-                {
-                    "client_index": i,
-                    "probability": float(probability),
-                    "decision": decision,
-                    "risk_level": risk_level,
-                    "timestamp": datetime.now().isoformat(),
-                }
-            )
+            results.append({
+                "client_index": i,
+                "probability": float(probability),
+                "decision": decision,
+                "risk_level": risk_level,
+                "timestamp": datetime.now().isoformat(),
+            })
 
         logger.info(f"Prédiction en lot effectuée pour {len(requests)} clients")
 
@@ -632,25 +634,30 @@ async def get_feature_importance(
             # Créer des noms de features fictifs
             feature_names_list = [f"feature_{i}" for i in range(len(importances))]
 
-            feature_importance = [
-                {"feature": name, "importance": float(imp)}
+            feature_importance: List[Dict[str, Union[str, float]]] = [
+                {"feature": str(name), "importance": float(imp)}
                 for name, imp in zip(feature_names_list, importances)
             ]
 
             # Trier par importance
-            feature_importance.sort(key=lambda x: x["importance"], reverse=True)
+            feature_importance.sort(key=lambda x: float(x["importance"]), reverse=True)
 
             return FeatureImportanceResponse(
                 client_id=client_id,
-                feature_importance=feature_importance[:20],  # Top 20
+                feature_importance=feature_importance[:20],  # type: ignore # Top 20
                 top_factors=[
-                    {"feature": item["feature"], "importance": item["importance"]}
+                    {
+                        "feature": str(item["feature"]),
+                        "importance": float(item["importance"]),
+                    }
                     for item in feature_importance[:5]  # Top 5
                 ],
             )
         else:
             return {
-                "message": "Le modèle ne supporte pas l'analyse d'importance des features",
+                "message": (
+                    "Le modèle ne supporte pas l'analyse d'importance des features"
+                ),
                 "client_id": client_id,
             }
 
@@ -694,7 +701,11 @@ async def explain_prediction(
             "decision": decision,
             "threshold": threshold or 0.5,
             "explanation": {
-                "decision_reason": f"Probabilité de défaut ({probability:.4f}) {'supérieure' if probability >= (threshold or 0.5) else 'inférieure'} au seuil ({(threshold or 0.5):.4f})",
+                "decision_reason": (
+                    f"Probabilité de défaut ({probability:.4f})"
+                    f" {'supérieure' if probability >= (threshold or 0.5) else 'inférieure'} au"
+                    f" seuil ({(threshold or 0.5):.4f})"
+                ),
                 "risk_factors": [
                     "Analyse complète nécessite l'intégration de SHAP",
                     "Montant du crédit: impact moyen",

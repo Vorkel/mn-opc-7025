@@ -59,10 +59,10 @@ try:
     )
 
     print(f"Données préparées (échantillon 20%):")
-    print(f"  X_train: {X_train.shape if hasattr(X_train, 'shape') else 'Unknown'}") # type: ignore
-    print(f"  X_val: {X_val.shape if hasattr(X_val, 'shape') else 'Unknown'}") # type: ignore
-    print(f"  y_train: {y_train.shape if hasattr(y_train, 'shape') else 'Unknown'}") # type: ignore
-    print(f"  y_val: {y_val.shape if hasattr(y_val, 'shape') else 'Unknown'}") # type: ignore
+    print(f"  X_train: {X_train.shape if hasattr(X_train, 'shape') else len(X_train)}")  # type: ignore[attr-defined]
+    print(f"  X_val: {X_val.shape if hasattr(X_val, 'shape') else len(X_val)}")  # type: ignore[attr-defined]
+    print(f"  y_train: {y_train.shape if hasattr(y_train, 'shape') else len(y_train)}")  # type: ignore[attr-defined]
+    print(f"  y_val: {y_val.shape if hasattr(y_val, 'shape') else len(y_val)}")  # type: ignore[attr-defined]
 
 except Exception as e:
     print(f"Erreur lors du chargement: {e}")
@@ -117,7 +117,7 @@ print("Entraînement Logistic Regression...")
 lr = LogisticRegression(random_state=42, max_iter=1000, class_weight="balanced")
 lr.fit(X_train, y_train)
 
-y_pred_lr = lr.predict_proba(X_val)[:, 1]  # type: ignore
+y_pred_lr = lr.predict_proba(X_val)[:, 1]
 metrics_lr = scorer.evaluate_model(y_val, y_pred_lr)
 
 models_results["logistic_regression"] = {
@@ -140,7 +140,10 @@ rf = RandomForestClassifier(
 )
 rf.fit(X_train, y_train)
 
-y_pred_rf = rf.predict_proba(X_val)[:, 1]  # type: ignore
+# Convertir en numpy array pour l'indexation
+y_pred_rf_proba = rf.predict_proba(X_val)
+y_pred_rf_arr = np.array(y_pred_rf_proba)
+y_pred_rf = y_pred_rf_arr[:, 1]
 metrics_rf = scorer.evaluate_model(y_val, y_pred_rf)
 
 models_results["random_forest"] = {
@@ -160,7 +163,13 @@ print("=" * 40)
 
 print("Entraînement Random Forest + SMOTE...")
 smote = SMOTE(random_state=42, sampling_strategy='auto')  # Utiliser auto pour compatibilité
-X_train_smote, y_train_smote = smote.fit_resample(X_train, y_train) # type: ignore
+# SMOTE peut retourner 2 ou 3 valeurs, s'assurer d'en avoir 2
+resampled_data = smote.fit_resample(X_train, y_train)
+if len(resampled_data) == 2:
+    X_train_smote, y_train_smote = resampled_data
+else:
+    # Si 3 valeurs, ignorer la troisième
+    X_train_smote, y_train_smote, _ = resampled_data
 
 rf_smote = RandomForestClassifier(
     n_estimators=50,
@@ -171,7 +180,10 @@ rf_smote = RandomForestClassifier(
 )
 rf_smote.fit(X_train_smote, y_train_smote)
 
-y_pred_smote = rf_smote.predict_proba(X_val)[:, 1]  # type: ignore
+# Convertir en numpy array pour l'indexation
+y_pred_smote_proba = rf_smote.predict_proba(X_val)
+y_pred_smote_arr = np.array(y_pred_smote_proba)
+y_pred_smote = y_pred_smote_arr[:, 1]
 metrics_smote = scorer.evaluate_model(y_val, y_pred_smote)
 
 models_results["random_forest_smote"] = {
@@ -225,7 +237,7 @@ Path("models").mkdir(exist_ok=True)
 model_data = {
     "model": best_model,
     "threshold": 0.5,
-    "feature_names": X_train.columns.tolist() if hasattr(X_train, 'columns') else [], # type: ignore
+    "feature_names": X_train.columns.tolist() if hasattr(X_train, 'columns') else [],  # type: ignore[attr-defined]
     "metrics": best_metrics,
     "model_name": best_model_name,
     "training_date": datetime.now().isoformat()
@@ -249,7 +261,7 @@ report = {
     "dataset_info": {
         "train_samples": len(df_train_sample),
         "validation_samples": len(X_val),
-        "features": len(X_train.columns) if hasattr(X_train, 'columns') else 0 # type: ignore
+        "features": len(X_train.columns) if hasattr(X_train, 'columns') else 0  # type: ignore[attr-defined]
     },
     "models_comparison": comparison,
     "best_model": {

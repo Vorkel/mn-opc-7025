@@ -1,21 +1,23 @@
 """
 Tests d'intégration pour le pipeline complet de scoring crédit
 """
-import pytest
+
+import os
+import sys
+from unittest.mock import MagicMock, patch
+
 import numpy as np
 import pandas as pd
-import sys
-import os
-from unittest.mock import patch, MagicMock
+import pytest
 
 # Ajouter les répertoires au path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'api'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "api"))
 
 try:
     from src.business_score import BusinessScorer
-    from src.model_training import ModelTrainer
     from src.data_drift_detection import DataDriftDetector
+    from src.model_training import ModelTrainer
 except ImportError as e:
     print(f"Modules non disponibles: {e}")
 
@@ -32,17 +34,17 @@ class TestPipelineIntegration:
 
         # Données d'entraînement
         X_train = pd.DataFrame({
-            'feature_1': np.random.normal(0, 1, n_samples),
-            'feature_2': np.random.normal(0, 1, n_samples),
-            'feature_3': np.random.normal(0, 1, n_samples)
+            "feature_1": np.random.normal(0, 1, n_samples),
+            "feature_2": np.random.normal(0, 1, n_samples),
+            "feature_3": np.random.normal(0, 1, n_samples),
         })
         y_train = np.random.binomial(1, 0.3, n_samples)
 
         # Données de test
         X_test = pd.DataFrame({
-            'feature_1': np.random.normal(0, 1, n_samples),
-            'feature_2': np.random.normal(0, 1, n_samples),
-            'feature_3': np.random.normal(0, 1, n_samples)
+            "feature_1": np.random.normal(0, 1, n_samples),
+            "feature_2": np.random.normal(0, 1, n_samples),
+            "feature_3": np.random.normal(0, 1, n_samples),
         })
         y_test = np.random.binomial(1, 0.3, n_samples)
 
@@ -52,6 +54,7 @@ class TestPipelineIntegration:
 
             # 2. Entraîner un modèle simple
             from sklearn.linear_model import LogisticRegression
+
             model = LogisticRegression(random_state=42)
             model.fit(X_train, y_train)
 
@@ -63,7 +66,9 @@ class TestPipelineIntegration:
             business_cost = scorer.calculate_business_cost(y_test, y_pred)
 
             # 5. Trouver le seuil optimal
-            optimal_threshold, optimal_cost = scorer.find_optimal_threshold(y_test, y_proba)
+            optimal_threshold, optimal_cost = scorer.find_optimal_threshold(
+                y_test, y_proba
+            )
 
             # Vérifications
             assert isinstance(business_cost, float)
@@ -84,9 +89,9 @@ class TestPipelineIntegration:
         n_samples = 50
 
         X = pd.DataFrame({
-            'feature_1': np.random.normal(0, 1, n_samples),
-            'feature_2': np.random.normal(0, 1, n_samples),
-            'feature_3': np.random.normal(0, 1, n_samples)
+            "feature_1": np.random.normal(0, 1, n_samples),
+            "feature_2": np.random.normal(0, 1, n_samples),
+            "feature_3": np.random.normal(0, 1, n_samples),
         })
         y = np.random.binomial(1, 0.3, n_samples)
 
@@ -95,13 +100,17 @@ class TestPipelineIntegration:
             trainer = ModelTrainer()
 
             # Préparer les données
-            X_train, X_test, y_train, y_test = trainer.prepare_data(X, y)  # type: ignore
+            X_train, X_test, y_train, y_test = trainer.prepare_data(
+                X, pd.Series(y)
+            )  # type: ignore
 
             # Créer le scorer métier
             business_scorer = trainer.create_business_scorer()
 
             # Entraîner un modèle baseline
-            baseline_model = trainer.train_baseline_model(X_train, y_train)  # type: ignore
+            baseline_model = trainer.train_baseline_model(
+                X_train, y_train
+            )  # type: ignore
 
             # Faire des prédictions
             y_pred = baseline_model.predict(X_test)
@@ -127,16 +136,16 @@ class TestPipelineIntegration:
         n_samples = 100
 
         reference_data = pd.DataFrame({
-            'feature_1': np.random.normal(0, 1, n_samples),
-            'feature_2': np.random.normal(0, 1, n_samples),
-            'feature_3': np.random.normal(0, 1, n_samples)
+            "feature_1": np.random.normal(0, 1, n_samples),
+            "feature_2": np.random.normal(0, 1, n_samples),
+            "feature_3": np.random.normal(0, 1, n_samples),
         })
 
         # Créer des données actuelles (avec drift)
         current_data = pd.DataFrame({
-            'feature_1': np.random.normal(2, 1, n_samples),  # Drift de distribution
-            'feature_2': np.random.normal(0, 1, n_samples),
-            'feature_3': np.random.normal(0, 1, n_samples)
+            "feature_1": np.random.normal(2, 1, n_samples),  # Drift de distribution
+            "feature_2": np.random.normal(0, 1, n_samples),
+            "feature_3": np.random.normal(0, 1, n_samples),
         })
 
         try:
@@ -168,17 +177,18 @@ class TestPipelineIntegration:
         n_samples = 100
 
         X = pd.DataFrame({
-            'important_feature': np.random.normal(0, 1, n_samples),
-            'less_important_feature': np.random.normal(0, 1, n_samples),
-            'noise_feature': np.random.normal(0, 1, n_samples)
+            "important_feature": np.random.normal(0, 1, n_samples),
+            "less_important_feature": np.random.normal(0, 1, n_samples),
+            "noise_feature": np.random.normal(0, 1, n_samples),
         })
 
         # Créer une target qui dépend principalement de la première feature
-        y = (X['important_feature'] > 0).astype(int)
+        y = (X["important_feature"] > 0).astype(int)
 
         try:
             # Entraîner un modèle
             from sklearn.ensemble import RandomForestClassifier
+
             model = RandomForestClassifier(n_estimators=10, random_state=42)
             model.fit(X, y)
 
@@ -191,8 +201,8 @@ class TestPipelineIntegration:
             assert sum(feature_importance) > 0
 
             # La feature importante devrait avoir une importance plus élevée
-            important_idx = X.columns.get_loc('important_feature')
-            noise_idx = X.columns.get_loc('noise_feature')
+            important_idx = X.columns.get_loc("important_feature")
+            noise_idx = X.columns.get_loc("noise_feature")
 
             # Vérifier que la feature importante a une importance > 0
             assert feature_importance[important_idx] > 0
@@ -218,12 +228,13 @@ class TestPipelineIntegration:
                 mlflow.log_metric("test_metric", 0.85)
 
                 # Log d'un artefact
-                test_data = pd.DataFrame({'test': [1, 2, 3]})
+                test_data = pd.DataFrame({"test": [1, 2, 3]})
                 test_data.to_csv("test_artifact.csv", index=False)
                 mlflow.log_artifact("test_artifact.csv")
 
                 # Nettoyer
                 import os
+
                 if os.path.exists("test_artifact.csv"):
                     os.remove("test_artifact.csv")
 
@@ -238,6 +249,7 @@ class TestPipelineIntegration:
         """Test d'intégration avec l'API"""
         try:
             from fastapi.testclient import TestClient
+
             from api.app import app
 
             client = TestClient(app)
@@ -266,7 +278,7 @@ class TestPipelineIntegration:
                 "CNT_FAM_MEMBERS": 2,
                 "EXT_SOURCE_1": 0.5,
                 "EXT_SOURCE_2": 0.5,
-                "EXT_SOURCE_3": 0.5
+                "EXT_SOURCE_3": 0.5,
             }
 
             response = client.post("/predict", json=test_data)
@@ -312,6 +324,7 @@ class TestDataFlowIntegration:
 
             # Créer un modèle simple
             from sklearn.linear_model import LogisticRegression
+
             model = LogisticRegression(random_state=42)
 
             # Données de test
@@ -345,17 +358,17 @@ class TestDataFlowIntegration:
     def test_configuration_integration(self) -> None:
         """Test d'intégration de la configuration"""
         # Vérifier les variables d'environnement
-        required_env_vars = ['MODEL_PATH', 'LOG_LEVEL']
+        required_env_vars = ["MODEL_PATH", "LOG_LEVEL"]
 
         for var in required_env_vars:
             if var not in os.environ:
                 # Définir des valeurs par défaut pour les tests
-                if var == 'MODEL_PATH':
-                    os.environ[var] = 'models/test_model.pkl'
-                elif var == 'LOG_LEVEL':
-                    os.environ[var] = 'DEBUG'
+                if var == "MODEL_PATH":
+                    os.environ[var] = "models/test_model.pkl"
+                elif var == "LOG_LEVEL":
+                    os.environ[var] = "DEBUG"
 
         # Vérifications
-        assert 'MODEL_PATH' in os.environ
-        assert 'LOG_LEVEL' in os.environ
-        assert os.environ['LOG_LEVEL'] in ['DEBUG', 'INFO', 'WARNING', 'ERROR']
+        assert "MODEL_PATH" in os.environ
+        assert "LOG_LEVEL" in os.environ
+        assert os.environ["LOG_LEVEL"] in ["DEBUG", "INFO", "WARNING", "ERROR"]

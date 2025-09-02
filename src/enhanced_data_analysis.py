@@ -1,10 +1,11 @@
 # enhanced_data_analysis.py
-import pandas as pd
-import numpy as np
-from typing import Dict, List, Optional, Any
-import matplotlib.pyplot as plt
-import seaborn as sns
 import warnings
+from typing import Any, Dict, List, Optional
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
 
 warnings.filterwarnings("ignore")
 
@@ -137,18 +138,21 @@ class HomeCreditDataAnalyzer:
         missing_train = self.main_train.isnull().sum()
         missing_pct_train = (missing_train / len(self.main_train)) * 100
 
-        missing_df = pd.DataFrame(
-            {
-                "Colonne": missing_train.index,
-                "Manquantes": missing_train.values,
-                "Pourcentage": missing_pct_train.values,
-            }
-        )
+        missing_df = pd.DataFrame({
+            "Colonne": missing_train.index,
+            "Manquantes": missing_train.values,
+            "Pourcentage": missing_pct_train.values,
+        })
 
         # Filtrer et trier
-        missing_df = missing_df[missing_df["Manquantes"] > 0].sort_values(  # type: ignore
-            "Pourcentage", ascending=False
-        )
+        filtered_df = missing_df[missing_df["Manquantes"] > 0]
+        if len(filtered_df) > 0:
+            # S'assurer que c'est un DataFrame
+            if isinstance(filtered_df, pd.Series):
+                filtered_df = filtered_df.to_frame().T
+            missing_df = filtered_df.sort_values("Pourcentage", ascending=False)
+        else:
+            missing_df = pd.DataFrame(columns=missing_df.columns)
 
         print(f"Colonnes avec valeurs manquantes: {len(missing_df)}")
         print("\nTop 15 colonnes avec le plus de valeurs manquantes:")
@@ -245,10 +249,15 @@ class HomeCreditDataAnalyzer:
                 target_analysis = self.main_train.groupby(col)["TARGET"].agg(
                     ["count", "mean"]
                 )
+                # S'assurer que c'est un DataFrame
+                if isinstance(target_analysis, pd.Series):
+                    target_analysis = target_analysis.to_frame().T
+                elif not isinstance(target_analysis, pd.DataFrame):
+                    target_analysis = pd.DataFrame(target_analysis)
                 target_analysis.columns = ["Count", "Default_Rate"]
-                target_analysis["Default_Rate"] = target_analysis["Default_Rate"] * 100  # type: ignore
+                target_analysis["Default_Rate"] = target_analysis["Default_Rate"] * 100
                 print(f"\nTaux de défaut par catégorie:")
-                print(target_analysis.sort_values("Default_Rate", ascending=False))  # type: ignore
+                print(target_analysis.sort_values("Default_Rate", ascending=False))
 
     def create_feature_engineering_suggestions(self) -> None:
         """
@@ -300,7 +309,8 @@ class HomeCreditDataAnalyzer:
         print(f"Nombre d'observations: {len(self.main_train):,}")
         print(f"Nombre de features: {len(self.main_train.columns):,}")
         print(
-            f"Taille mémoire: {self.main_train.memory_usage(deep=True).sum() / 1024**2:.1f} MB"
+            "Taille mémoire:"
+            f" {self.main_train.memory_usage(deep=True).sum() / 1024**2:.1f} MB"
         )
 
         # Types de données
@@ -324,7 +334,8 @@ class HomeCreditDataAnalyzer:
         print(f"\nRECOMMANDATIONS:")
         if missing_pct > 20:
             print(
-                "   Taux élevé de valeurs manquantes - Stratégie d'imputation nécessaire"
+                "   Taux élevé de valeurs manquantes - Stratégie d'imputation"
+                " nécessaire"
             )
         if duplicates > 0:
             print("   Doublons détectés - Nettoyage recommandé")

@@ -1,20 +1,23 @@
 """
 Tests de performance pour l'API FastAPI
 """
-import pytest
+
+import os
+import sys
 import time
-import requests
+from unittest.mock import MagicMock, patch
+
 import numpy as np
 import pandas as pd
-import sys
-import os
-from unittest.mock import patch, MagicMock
+import pytest
+import requests
 
 # Ajouter les répertoires au path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'api'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "api"))
 
 try:
     from fastapi.testclient import TestClient
+
     from api.app import app
 except ImportError as e:
     print(f"API non disponible: {e}")
@@ -68,7 +71,7 @@ class TestAPIPerformance:
                 "CNT_FAM_MEMBERS": 2,
                 "EXT_SOURCE_1": 0.5,
                 "EXT_SOURCE_2": 0.5,
-                "EXT_SOURCE_3": 0.5
+                "EXT_SOURCE_3": 0.5,
             }
 
             start_time = time.time()
@@ -110,7 +113,7 @@ class TestAPIPerformance:
                     "CNT_FAM_MEMBERS": 2,
                     "EXT_SOURCE_1": 0.5,
                     "EXT_SOURCE_2": 0.5,
-                    "EXT_SOURCE_3": 0.5
+                    "EXT_SOURCE_3": 0.5,
                 },
                 {
                     "CODE_GENDER": "F",
@@ -131,8 +134,8 @@ class TestAPIPerformance:
                     "CNT_FAM_MEMBERS": 2,
                     "EXT_SOURCE_1": 0.7,
                     "EXT_SOURCE_2": 0.6,
-                    "EXT_SOURCE_3": 0.8
-                }
+                    "EXT_SOURCE_3": 0.8,
+                },
             ]
 
             start_time = time.time()
@@ -173,7 +176,7 @@ class TestAPIPerformance:
                 "CNT_FAM_MEMBERS": 2,
                 "EXT_SOURCE_1": 0.5,
                 "EXT_SOURCE_2": 0.5,
-                "EXT_SOURCE_3": 0.5
+                "EXT_SOURCE_3": 0.5,
             }
 
             # Simuler des requêtes concurrentes
@@ -208,13 +211,14 @@ class TestModelPerformance:
             n_samples = 1000
 
             X = pd.DataFrame({
-                'feature_1': np.random.normal(0, 1, n_samples),
-                'feature_2': np.random.normal(0, 1, n_samples),
-                'feature_3': np.random.normal(0, 1, n_samples)
+                "feature_1": np.random.normal(0, 1, n_samples),
+                "feature_2": np.random.normal(0, 1, n_samples),
+                "feature_3": np.random.normal(0, 1, n_samples),
             })
 
             # Créer un modèle simple
             from sklearn.linear_model import LogisticRegression
+
             model = LogisticRegression(random_state=42)
 
             # Données d'entraînement
@@ -244,14 +248,15 @@ class TestModelPerformance:
             n_samples = 1000
 
             X = pd.DataFrame({
-                'feature_1': np.random.normal(0, 1, n_samples),
-                'feature_2': np.random.normal(0, 1, n_samples),
-                'feature_3': np.random.normal(0, 1, n_samples)
+                "feature_1": np.random.normal(0, 1, n_samples),
+                "feature_2": np.random.normal(0, 1, n_samples),
+                "feature_3": np.random.normal(0, 1, n_samples),
             })
             y = np.random.binomial(1, 0.3, n_samples)
 
             # Test de vitesse d'entraînement
             from sklearn.linear_model import LogisticRegression
+
             model = LogisticRegression(random_state=42)
 
             start_time = time.time()
@@ -261,7 +266,7 @@ class TestModelPerformance:
             training_time = (end_time - start_time) * 1000  # en millisecondes
 
             # Vérifications
-            assert hasattr(model, 'coef_')
+            assert hasattr(model, "coef_")
             assert training_time < 1000  # moins de 1 seconde pour l'entraînement
 
         except Exception as e:
@@ -276,16 +281,17 @@ class TestModelPerformance:
             n_samples = 1000
 
             X = pd.DataFrame({
-                'feature_1': np.random.normal(0, 1, n_samples),
-                'feature_2': np.random.normal(0, 1, n_samples),
-                'feature_3': np.random.normal(0, 1, n_samples),
-                'feature_4': np.random.normal(0, 1, n_samples),
-                'feature_5': np.random.normal(0, 1, n_samples)
+                "feature_1": np.random.normal(0, 1, n_samples),
+                "feature_2": np.random.normal(0, 1, n_samples),
+                "feature_3": np.random.normal(0, 1, n_samples),
+                "feature_4": np.random.normal(0, 1, n_samples),
+                "feature_5": np.random.normal(0, 1, n_samples),
             })
             y = np.random.binomial(1, 0.3, n_samples)
 
             # Test de vitesse de calcul d'importance
             from sklearn.ensemble import RandomForestClassifier
+
             model = RandomForestClassifier(n_estimators=10, random_state=42)
 
             start_time = time.time()
@@ -335,9 +341,9 @@ class TestDataProcessingPerformance:
             n_samples = 1000
 
             data = pd.DataFrame({
-                'numeric_col': np.random.normal(0, 1, n_samples),
-                'categorical_col': np.random.choice(['A', 'B', 'C'], n_samples),
-                'missing_col': np.random.choice([1, 2, np.nan], n_samples)
+                "numeric_col": np.random.normal(0, 1, n_samples),
+                "categorical_col": np.random.choice(["A", "B", "C"], n_samples),
+                "missing_col": np.random.choice([1, 2, np.nan], n_samples),
             })
 
             # Test de vitesse de prétraitement
@@ -348,8 +354,11 @@ class TestDataProcessingPerformance:
 
             # Encoder les variables catégorielles
             from sklearn.preprocessing import LabelEncoder
+
             le = LabelEncoder()
-            data_filled['categorical_col'] = le.fit_transform(data_filled['categorical_col'])
+            data_filled["categorical_col"] = le.fit_transform(
+                data_filled["categorical_col"]
+            )
 
             end_time = time.time()
 
@@ -400,8 +409,9 @@ class TestMemoryUsage:
     def test_memory_usage_model_training(self) -> None:
         """Test de l'utilisation mémoire lors de l'entraînement"""
         try:
-            import psutil
             import os
+
+            import psutil
 
             # Obtenir l'utilisation mémoire avant
             process = psutil.Process(os.getpid())
@@ -412,13 +422,14 @@ class TestMemoryUsage:
             n_samples = 10000
 
             X = pd.DataFrame({
-                'feature_1': np.random.normal(0, 1, n_samples),
-                'feature_2': np.random.normal(0, 1, n_samples),
-                'feature_3': np.random.normal(0, 1, n_samples)
+                "feature_1": np.random.normal(0, 1, n_samples),
+                "feature_2": np.random.normal(0, 1, n_samples),
+                "feature_3": np.random.normal(0, 1, n_samples),
             })
             y = np.random.binomial(1, 0.3, n_samples)
 
             from sklearn.ensemble import RandomForestClassifier
+
             model = RandomForestClassifier(n_estimators=100, random_state=42)
             model.fit(X, y)
 
@@ -438,8 +449,9 @@ class TestMemoryUsage:
     def test_memory_usage_data_processing(self) -> None:
         """Test de l'utilisation mémoire lors du traitement des données"""
         try:
-            import psutil
             import os
+
+            import psutil
 
             # Obtenir l'utilisation mémoire avant
             process = psutil.Process(os.getpid())
@@ -450,11 +462,11 @@ class TestMemoryUsage:
             n_samples = 50000
 
             data = pd.DataFrame({
-                'feature_1': np.random.normal(0, 1, n_samples),
-                'feature_2': np.random.normal(0, 1, n_samples),
-                'feature_3': np.random.normal(0, 1, n_samples),
-                'feature_4': np.random.normal(0, 1, n_samples),
-                'feature_5': np.random.normal(0, 1, n_samples)
+                "feature_1": np.random.normal(0, 1, n_samples),
+                "feature_2": np.random.normal(0, 1, n_samples),
+                "feature_3": np.random.normal(0, 1, n_samples),
+                "feature_4": np.random.normal(0, 1, n_samples),
+                "feature_5": np.random.normal(0, 1, n_samples),
             })
 
             # Traitement des données

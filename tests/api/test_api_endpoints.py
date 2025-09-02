@@ -1,15 +1,17 @@
 """
 Tests d'intégration pour l'API FastAPI
 """
-import pytest
+
 import json
-import sys
 import os
+import sys
+from unittest.mock import MagicMock, patch
+
+import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch, MagicMock
 
 # Ajouter le répertoire api au path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'api'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "api"))
 
 try:
     from app import app
@@ -60,7 +62,7 @@ class TestAPIEndpoints:
             "CNT_FAM_MEMBERS": 2,
             "EXT_SOURCE_1": 0.5,
             "EXT_SOURCE_2": 0.5,
-            "EXT_SOURCE_3": 0.5
+            "EXT_SOURCE_3": 0.5,
         }
 
         try:
@@ -113,7 +115,7 @@ class TestAPIEndpoints:
                 "CNT_FAM_MEMBERS": 2,
                 "EXT_SOURCE_1": 0.5,
                 "EXT_SOURCE_2": 0.5,
-                "EXT_SOURCE_3": 0.5
+                "EXT_SOURCE_3": 0.5,
             },
             {
                 "CODE_GENDER": "F",
@@ -134,8 +136,8 @@ class TestAPIEndpoints:
                 "CNT_FAM_MEMBERS": 2,
                 "EXT_SOURCE_1": 0.7,
                 "EXT_SOURCE_2": 0.6,
-                "EXT_SOURCE_3": 0.8
-            }
+                "EXT_SOURCE_3": 0.8,
+            },
         ]
 
         try:
@@ -185,7 +187,7 @@ class TestAPIEndpoints:
             "CNT_FAM_MEMBERS": 2,
             "EXT_SOURCE_1": 0.5,
             "EXT_SOURCE_2": 0.5,
-            "EXT_SOURCE_3": 0.5
+            "EXT_SOURCE_3": 0.5,
         }
 
         try:
@@ -257,7 +259,7 @@ class TestAPISecurity:
             "CNT_FAM_MEMBERS": 999,
             "EXT_SOURCE_1": 2.0,  # Valeur hors limites
             "EXT_SOURCE_2": -1.0,  # Valeur négative
-            "EXT_SOURCE_3": 1.5
+            "EXT_SOURCE_3": 1.5,
         }
 
         try:
@@ -289,7 +291,7 @@ class TestAPISecurity:
             "CNT_FAM_MEMBERS": 2,
             "EXT_SOURCE_1": 0.5,
             "EXT_SOURCE_2": 0.5,
-            "EXT_SOURCE_3": 0.5
+            "EXT_SOURCE_3": 0.5,
         }
 
         try:
@@ -336,7 +338,7 @@ class TestAPIModelLoading:
             "CNT_FAM_MEMBERS": 2,
             "EXT_SOURCE_1": 0.5,
             "EXT_SOURCE_2": 0.5,
-            "EXT_SOURCE_3": 0.5
+            "EXT_SOURCE_3": 0.5,
         }
 
         try:
@@ -349,6 +351,9 @@ class TestAPIModelLoading:
 
             # Les prédictions devraient être identiques
             if len(responses) > 1:
-                assert all(abs(responses[i] - responses[i-1]) < 1e-6 for i in range(1, len(responses)))
+                assert all(
+                    abs(responses[i] - responses[i - 1]) < 1e-6
+                    for i in range(1, len(responses))
+                )
         except Exception as e:
             pytest.skip(f"Test de cohérence des prédictions non disponible: {e}")

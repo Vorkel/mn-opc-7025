@@ -9,25 +9,28 @@ Module de sécurité pour l'API de scoring crédit
 
 import hashlib
 import hmac
+import json
+import logging
+import os
+import re
 import time
 from datetime import datetime, timedelta
-from typing import Dict, Optional, List
-import os
-import logging
-from fastapi import HTTPException, Request, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-import json
-import re
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
-def _load_api_keys_from_env() -> Dict[str, Dict[str, object]]:
+from fastapi import Depends, HTTPException, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+
+def _load_api_keys_from_env() -> Dict[str, Dict[str, Union[str, int]]]:
     """Charge les clés API depuis les variables d'environnement.
 
     Prend en charge:
     - API_KEYS_JSON: mapping JSON { "key": {"name": str, "rate_limit": int}, ... }
     - API_KEYS: liste CSV de triplets key:name:limit (ex: "k1:Demo:100,k2:Prod:1000")
 
-    Retourne un mapping prêt à l'emploi. Fournit un fallback de développement si non défini.
+    Retourne un mapping prêt à l'emploi.
+    Fournit un fallback de développement si non défini.
     """
     # JSON explicite prioritaire
     raw_json = os.getenv("API_KEYS_JSON")
@@ -35,21 +38,21 @@ def _load_api_keys_from_env() -> Dict[str, Dict[str, object]]:
         try:
             data = json.loads(raw_json)
             # Validation minimale de structure
-            valid: Dict[str, Dict[str, object]] = {}
+            valid_json: Dict[str, Dict[str, Union[str, int]]] = {}
             for k, v in data.items():
                 if isinstance(v, dict):
                     name = v.get("name", "Unknown")
                     limit = int(v.get("rate_limit", 100))
-                    valid[k] = {"name": str(name), "rate_limit": limit}
-            if valid:
-                return valid
+                    valid_json[k] = {"name": str(name), "rate_limit": limit}
+            if valid_json:
+                return valid_json
         except Exception:
             pass  # on retombera sur les autres méthodes
 
     # Format compact CSV
     raw_compact = os.getenv("API_KEYS")
     if raw_compact:
-        valid = {}
+        valid: Dict[str, Dict[str, Union[str, int]]] = {}
         try:
             parts = [p.strip() for p in raw_compact.split(",") if p.strip()]
             for p in parts:
@@ -73,10 +76,10 @@ def _load_api_keys_from_env() -> Dict[str, Dict[str, object]]:
 
 
 # Configuration sécurité (chargée depuis l'environnement si disponible)
-VALID_API_KEYS: Dict[str, Dict[str, object]] = _load_api_keys_from_env()
+VALID_API_KEYS: Dict[str, Dict[str, Union[str, int]]] = _load_api_keys_from_env()
 
 # Rate limiting storage (en production, utiliser Redis)
-rate_limit_storage = {}
+rate_limit_storage: Dict[str, int] = {}
 
 # Logger sécurité
 security_logger = logging.getLogger("security")
@@ -152,12 +155,14 @@ class SecurityValidator:
             "FLAG_OWN_CAR": lambda x: x in ["Y", "N"],
             "FLAG_OWN_REALTY": lambda x: x in ["Y", "N"],
             "CNT_CHILDREN": lambda x: isinstance(x, int) and 0 <= x <= 20,
-            "AMT_INCOME_TOTAL": lambda x: isinstance(x, (int, float))
-            and 0 < x <= 10000000,
+            "AMT_INCOME_TOTAL": (
+                lambda x: isinstance(x, (int, float)) and 0 < x <= 10000000
+            ),
             "AMT_CREDIT": lambda x: isinstance(x, (int, float)) and 0 < x <= 50000000,
             "AMT_ANNUITY": lambda x: isinstance(x, (int, float)) and 0 < x <= 5000000,
-            "AMT_GOODS_PRICE": lambda x: isinstance(x, (int, float))
-            and 0 < x <= 50000000,
+            "AMT_GOODS_PRICE": (
+                lambda x: isinstance(x, (int, float)) and 0 < x <= 50000000
+            ),
             "DAYS_BIRTH": lambda x: isinstance(x, int) and -30000 <= x < 0,
             "DAYS_EMPLOYED": lambda x: isinstance(x, int) and -20000 <= x <= 0,
             "FLAG_MOBIL": lambda x: x in [0, 1],
@@ -186,9 +191,9 @@ class SecurityValidator:
         return errors
 
     @staticmethod
-    def sanitize_input(data: Dict) -> Dict:
+    def sanitize_input(data: Dict) -> Dict[str, Union[str, int, float, None]]:
         """Nettoie et sécurise les inputs"""
-        cleaned_data = {}
+        cleaned_data: Dict[str, Union[str, int, float, None]] = {}
 
         for key, value in data.items():
             # Nettoyer les clés
@@ -197,13 +202,15 @@ class SecurityValidator:
             # Nettoyer les valeurs
             if isinstance(value, str):
                 # Supprimer les caractères dangereux
-                clean_value = re.sub(r'[<>"\']', "", value.strip())
+                str_value = re.sub(r'[<>"\']', "", value.strip())
                 # Limiter la longueur
-                clean_value = clean_value[:100]
+                clean_value: Union[str, int, float, None] = (
+                    str_value[:100] if str_value else ""
+                )
             elif isinstance(value, (int, float)):
                 clean_value = value
             else:
-                clean_value = str(value)[:100] if value is not None else None
+                clean_value = str(value)[:100] if value is not None else ""
 
             cleaned_data[clean_key] = clean_value
 
@@ -272,11 +279,11 @@ async def check_rate_limit_dependency(
     """Dépendance FastAPI pour vérifier le rate limiting"""
 
     key_info = VALID_API_KEYS[api_key]
-    limit = key_info["rate_limit"]
+    limit = int(key_info["rate_limit"])
 
     if not SecurityValidator.check_rate_limit(api_key, limit):
         security_logger.warning(
-            f"Rate limit dépassé pour {key_info['name']} (clé: {api_key[:8]}...)"
+            f"Rate limit dépassé pour {str(key_info['name'])} (clé: {api_key[:8]}...)"
         )
         raise HTTPException(
             status_code=429,
@@ -285,7 +292,8 @@ async def check_rate_limit_dependency(
 
     # Log de l'accès autorisé
     security_logger.info(
-        f"Accès autorisé: {key_info['name']} depuis {request.client.host if request.client else 'unknown'}"
+        f"Accès autorisé: {str(key_info['name'])} depuis"
+        f" {request.client.host if request.client else 'unknown'}"
     )
 
     return api_key
@@ -317,10 +325,10 @@ def validate_and_sanitize_input(data: Dict, request: Request) -> Dict:
 
 # Middleware de sécurité pour logging
 class SecurityMiddleware:
-    def __init__(self, app):
+    def __init__(self, app: Any) -> None:
         self.app = app
 
-    async def __call__(self, scope, receive, send):
+    async def __call__(self, scope: Any, receive: Any, send: Any) -> Any:
         if scope["type"] == "http":
             # Enrichir les logs de sécurité
             headers = dict(scope.get("headers", []))

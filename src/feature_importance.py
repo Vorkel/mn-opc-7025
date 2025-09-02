@@ -1,13 +1,14 @@
 # feature_importance.py
-import pandas as pd
-import numpy as np
-from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Union, Any
-import matplotlib.pyplot as plt
-import seaborn as sns
-import joblib
-import warnings
 import logging
+import warnings
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+import joblib
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)
@@ -99,7 +100,9 @@ class FeatureImportanceAnalyzer:
                 self.explainer = shap.TreeExplainer(self.model)  # type: ignore
             elif model_type == "linear":
                 # Pour les modèles linéaires
-                self.explainer = shap.LinearExplainer(self.model, X_train)  # type: ignore
+                self.explainer = shap.LinearExplainer(
+                    self.model, X_train
+                )  # type: ignore
             else:
                 # Explainer générique (plus lent)
                 if self.model is not None and hasattr(self.model, "predict_proba"):
@@ -117,7 +120,8 @@ class FeatureImportanceAnalyzer:
             try:
                 if self.model is not None and hasattr(self.model, "predict_proba"):
                     self.explainer = shap.KernelExplainer(  # type: ignore
-                        lambda x: self.model.predict_proba(x)[:, 1], X_train.sample(100)  # type: ignore
+                        lambda x: self.model.predict_proba(x)[:, 1],
+                        X_train.sample(100),  # type: ignore
                     )
                     logger.info("Fallback vers KernelExplainer")
                 else:
@@ -154,7 +158,8 @@ class FeatureImportanceAnalyzer:
             logger.info("Calcul des valeurs SHAP en cours...")
             self.shap_values = self.explainer.shap_values(X_sample)
 
-            # Pour les modèles de classification binaire, prendre les valeurs pour la classe positive
+            # Pour les modèles de classification binaire, prendre les valeurs pour la
+            # classe positive
             if isinstance(self.shap_values, list):
                 self.shap_values = self.shap_values[1]
 
@@ -528,8 +533,11 @@ if __name__ == "__main__":
 
     # Simuler des données (remplacez par vos vraies données)
     np.random.seed(42)
+    feature_names = [f"feature_{i}" for i in range(20)]
     X_test = pd.DataFrame(
-        np.random.randn(500, 20), columns=[f"feature_{i}" for i in range(20)]  # type: ignore
+        # type: ignore
+        np.random.randn(500, 20),
+        columns=pd.Index(feature_names),
     )
 
     # Créer l'explainer et calculer les valeurs SHAP

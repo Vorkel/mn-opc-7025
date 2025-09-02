@@ -1,9 +1,10 @@
 # mlflow_setup.py
-import mlflow
-import os
-from typing import Optional, Union
-from pathlib import Path
 import logging
+import os
+from pathlib import Path
+from typing import Optional, Union
+
+import mlflow
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)

@@ -185,7 +185,7 @@ missing_df = pd.DataFrame(
 )
 
 # Filtrer et trier
-missing_df = missing_df[missing_df["Manquantes"] > 0].sort_values( # type: ignore
+missing_df = missing_df[missing_df["Manquantes"] > 0].sort_values( # type: ignore[attr-defined]
     "Pourcentage", ascending=False
 )
 

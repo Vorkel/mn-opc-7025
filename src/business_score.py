@@ -1,17 +1,18 @@
 # business_score.py
+import logging
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+import matplotlib.pyplot as plt
+import mlflow
 import numpy as np
 import pandas as pd
-from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Union, Any
 from sklearn.metrics import (
-    confusion_matrix,
     classification_report,
+    confusion_matrix,
     roc_auc_score,
     roc_curve,
 )
-import matplotlib.pyplot as plt
-import mlflow
-import logging
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)

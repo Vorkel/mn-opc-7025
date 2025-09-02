@@ -260,11 +260,21 @@ df_engineered["REGION_SCORE_NORMALIZED"] = 4 - df_engineered["REGION_RATING_CLIE
 # Features externes (EXT_SOURCE)
 external_features = [col for col in df_engineered.columns if "EXT_SOURCE" in col]
 if external_features:
-    df_engineered["EXT_SOURCES_MEAN"] = df_engineered[external_features].mean(axis=1)
-    df_engineered["EXT_SOURCES_MAX"] = df_engineered[external_features].max(axis=1)
-    df_engineered["EXT_SOURCES_MIN"] = df_engineered[external_features].min(axis=1)
-    df_engineered["EXT_SOURCES_STD"] = df_engineered[external_features].std(axis=1)
-    df_engineered["EXT_SOURCES_COUNT"] = df_engineered[external_features].count(axis=1)
+    # S'assurer que external_features est un DataFrame
+    external_df = df_engineered[external_features]
+    if isinstance(external_df, pd.DataFrame):
+        df_engineered["EXT_SOURCES_MEAN"] = external_df.mean(axis=1)
+        df_engineered["EXT_SOURCES_MAX"] = external_df.max(axis=1)
+        df_engineered["EXT_SOURCES_MIN"] = external_df.min(axis=1)
+        df_engineered["EXT_SOURCES_STD"] = external_df.std(axis=1)
+        df_engineered["EXT_SOURCES_COUNT"] = external_df.count(axis=1)
+    else:
+        # Fallback si c'est une Series
+        df_engineered["EXT_SOURCES_MEAN"] = external_df.mean()
+        df_engineered["EXT_SOURCES_MAX"] = external_df.max()
+        df_engineered["EXT_SOURCES_MIN"] = external_df.min()
+        df_engineered["EXT_SOURCES_STD"] = external_df.std()
+        df_engineered["EXT_SOURCES_COUNT"] = external_df.count()
 
     # Interactions
     df_engineered["AGE_EXT_SOURCES_INTERACTION"] = (
@@ -326,7 +336,9 @@ for col in categorical_cols:
     if df_engineered[col].isnull().sum() > 0:
         mode_val = df_engineered[col].mode()
         if len(mode_val) > 0:
-            df_engineered[col] = df_engineered[col].fillna(mode_val[0])
+            # S'assurer que mode_val[0] est une valeur simple
+            mode_value = str(mode_val.iloc[0] if hasattr(mode_val, 'iloc') else mode_val[0])
+            df_engineered[col] = df_engineered[col].fillna(mode_value)
         else:
             df_engineered[col] = df_engineered[col].fillna("Unknown")
 
@@ -365,7 +377,8 @@ ordinal_mappings = {
 
 for feature, mapping in ordinal_mappings.items():
     if feature in df_engineered.columns:
-        df_engineered[feature] = df_engineered[feature].map(mapping).fillna(0)
+        # Utiliser replace au lieu de map pour éviter les problèmes de type
+        df_engineered[feature] = df_engineered[feature].replace(mapping).fillna(0)
 
 # Variables catégorielles standard
 categorical_features = [
@@ -435,7 +448,8 @@ if existing_features:
                 p99 = data.quantile(0.99)
                 data_filtered = data[data <= p99]
 
-                data_filtered.hist(bins=50, ax=axes[i])
+                # Utiliser matplotlib directement au lieu de .hist() sur pandas
+                axes[i].hist(data_filtered, bins=50, alpha=0.7)
                 axes[i].set_title(f"Distribution de {feature}")
                 axes[i].set_xlabel(feature)
                 axes[i].set_ylabel("Fréquence")
@@ -476,7 +490,10 @@ rf = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1, max_de
 rf.fit(X_train, y_train)
 
 # Évaluer
-y_pred = rf.predict_proba(X_val)[:, 1]
+y_pred_proba = rf.predict_proba(X_val)
+# Convertir en numpy array pour l'indexation
+y_pred_proba_arr = np.array(y_pred_proba)
+y_pred = y_pred_proba_arr[:, 1]
 auc_score = roc_auc_score(y_val, y_pred)
 
 # Importance des features
