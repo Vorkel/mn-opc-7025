@@ -579,6 +579,59 @@ async def predict_credit(
         raise HTTPException(status_code=500, detail=f"Erreur de prédiction: {str(e)}")
 
 
+@app.post("/predict_public", response_model=CreditResponse)
+async def predict_credit_public(
+    request: CreditRequest,
+    http_request: Request,
+    client_id: Optional[str] = None,
+    current_model: Any = Depends(get_model),
+) -> CreditResponse:
+    """
+    Prédiction du scoring crédit pour un client (endpoint public sans authentification)
+    """
+    try:
+        # Validation/sanitation sécurité
+        cleaned = validate_and_sanitize_input(request.model_dump(), http_request)
+        validated = CreditRequest(**cleaned)
+
+        # Prétraitement des données
+        df = preprocess_input(validated)
+
+        # Prédiction
+        if hasattr(current_model, "predict_proba"):
+            probability = current_model.predict_proba(df)[0, 1]
+        else:
+            raise HTTPException(
+                status_code=500, detail="Modèle ne supporte pas predict_proba"
+            )
+
+        # Décision
+        decision = "REFUSÉ" if probability >= threshold else "ACCORDÉ"
+
+        # Niveau de risque
+        risk_level = determine_risk_level(probability)
+
+        response = CreditResponse(
+            client_id=client_id,
+            probability=float(probability),
+            decision=decision,
+            threshold=threshold or 0.5,
+            risk_level=risk_level,
+            timestamp=datetime.now(),
+        )
+
+        logger.info(
+            f"Prédiction publique effectuée - Client: {client_id}, Probabilité:"
+            f" {probability:.4f}, Décision: {decision}"
+        )
+
+        return response
+
+    except Exception as e:
+        logger.error(f"Erreur lors de la prédiction publique: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur de prédiction: {str(e)}")
+
+
 @app.post("/batch_predict")
 async def batch_predict(
     requests: List[CreditRequest],

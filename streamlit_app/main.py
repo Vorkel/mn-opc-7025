@@ -193,7 +193,12 @@ def load_model(force_reload=False):
         if USE_REMOTE_API:
             # Test de connexion à l'API
             try:
-                response = requests.get(f"{API_BASE_URL}/health", timeout=10)
+                # Headers avec clé API pour le test de connexion
+                headers = {
+                    "Authorization": "Bearer demo_key_123"
+                }
+
+                response = requests.get(f"{API_BASE_URL}/health", timeout=10, headers=headers)
                 if response.status_code == 200:
                     health_data = response.json()
                     return {
@@ -698,9 +703,15 @@ def call_api_prediction(client_data):
             if isinstance(value, (int, float, str)):
                 api_data[key] = value
 
-        # Appel à l'API
+        # Headers avec clé API d'authentification
+        headers = {
+            "Authorization": "Bearer demo_key_123",
+            "Content-Type": "application/json"
+        }
+
+        # Appel à l'API (endpoint public sans authentification)
         response = requests.post(
-            f"{API_BASE_URL}/predict",
+            f"{API_BASE_URL}/predict_public",
             json=api_data,
             timeout=API_TIMEOUT
         )
@@ -832,7 +843,12 @@ def predict_score(client_data, model_data):
 def test_api_connection():
     """Teste la connexion à l'API distante"""
     try:
-        response = requests.get(f"{API_BASE_URL}/health", timeout=10)
+        # Headers avec clé API pour le test de connexion
+        headers = {
+            "Authorization": "Bearer demo_key_123"
+        }
+
+        response = requests.get(f"{API_BASE_URL}/health", timeout=10, headers=headers)
         if response.status_code == 200:
             health_data = response.json()
             return {
