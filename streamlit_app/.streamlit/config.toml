@@ -9,6 +9,7 @@ enableCORS = true
 enableXsrfProtection = true
 maxUploadSize = 200
 port = 8501
+fileWatcherType = "none"
 
 [browser]
 # Configuration du navigateur
@@ -29,7 +30,3 @@ showErrorDetails = false
 [runner]
 # Configuration du runner
 magicEnabled = false
-
-# Désactiver le watchdog pour éviter les erreurs inotify
-[server.fileWatcherType]
-enabled = false
