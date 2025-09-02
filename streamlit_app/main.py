@@ -220,6 +220,7 @@ def load_model(force_reload=False):
         # Fallback sur le modèle local
         if not USE_REMOTE_API:
             model_paths = [
+                BASE_DIR / "models" / "best_credit_model.pkl",
                 MODELS_DIR / "best_credit_model.pkl",
                 MODELS_DIR / "best_model.pkl",
                 MODELS_DIR / "model.pkl",
@@ -1451,6 +1452,60 @@ def render_prediction_tab(model_data):
                 key="housing_type",
             )
 
+        # NOUVEAUX CHAMPS REQUIS
+        col1c, col1d = st.columns(2)
+        with col1c:
+            owns_car = st.selectbox(
+                "Possède une voiture",
+                ["Oui", "Non"],
+                key="owns_car",
+            )
+            owns_realty = st.selectbox(
+                "Possède un bien immobilier",
+                ["Oui", "Non"],
+                key="owns_realty",
+            )
+            family_members = st.number_input(
+                "Nombre de membres de la famille",
+                min_value=1,
+                max_value=10,
+                value=2,
+                key="family_members",
+            )
+
+        with col1d:
+            goods_price = st.number_input(
+                "Prix des biens (€)",
+                min_value=0,
+                value=350000,
+                step=1000,
+                key="goods_price",
+                format="%d",
+            )
+            id_publish_years = st.number_input(
+                "Années depuis publication de l'ID",
+                min_value=0,
+                max_value=20,
+                value=5,
+                key="id_publish_years",
+            )
+            organization_type = st.selectbox(
+                "Type d'organisation",
+                [
+                    "Business Entity Type 3",
+                    "Self-employed",
+                    "Other",
+                    "Medicine",
+                    "Business Entity Type 2",
+                    "Government",
+                    "Education",
+                    "Business Entity Type 1",
+                    "Trade: type 7",
+                    "Transport: type 4",
+                ],
+                key="organization_type",
+            )
+
         # 2. INFORMATIONS PROFESSIONNELLES ET REVENUS
         ui_subsection_title("2. Informations Professionnelles et Revenus")
         col1c, col1d = st.columns(2)
@@ -1746,20 +1801,25 @@ def render_prediction_tab(model_data):
             client_data = {
                 # 1. Informations personnelles et socio-démographiques
                 "CODE_GENDER": {"Homme": "M", "Femme": "F"}[gender],
+                "FLAG_OWN_CAR": {"Oui": "Y", "Non": "N"}[owns_car],
+                "FLAG_OWN_REALTY": {"Oui": "Y", "Non": "N"}[owns_realty],
                 "CNT_CHILDREN": children,
+                "CNT_FAM_MEMBERS": float(family_members),
                 "NAME_EDUCATION_TYPE": education,
                 "NAME_FAMILY_STATUS": family_status,
                 "NAME_HOUSING_TYPE": housing_type,
-                "DAYS_BIRTH": -age_years * 365.25,
+                "DAYS_BIRTH": int(-age_years * 365.25),
                 "DAYS_REGISTRATION": -address_years * 365.25,
+                "DAYS_ID_PUBLISH": int(-id_publish_years * 365.25),
                 # 2. Informations professionnelles et revenus
                 "NAME_INCOME_TYPE": employment_status,
-                "DAYS_EMPLOYED": -employment_years * 365.25,
+                "DAYS_EMPLOYED": int(-employment_years * 365.25),
                 "AMT_INCOME_TOTAL": (
                     income_monthly * 12 + income_variable * 12 + other_income * 12
                 ),
                 # 3. Charges et endettement
                 "AMT_ANNUITY": rent_mortgage + other_credits,
+                "AMT_GOODS_PRICE": goods_price,
                 "DEBT_RATIO": debt_ratio / 100,
                 "DISPOSABLE_INCOME": disposable_income,
                 # 4. Historique financier et bancaire
@@ -1788,6 +1848,8 @@ def render_prediction_tab(model_data):
                 "REAL_ESTATE_TREND": real_estate_trend,
                 # Features calculées automatiquement
                 "REGION_RATING_CLIENT": 2,
+                "REGION_RATING_CLIENT_W_CITY": 2,
+                "ORGANIZATION_TYPE": organization_type,
                 "SECTOR_ACTIVITY": sector_activity,
             }
 
