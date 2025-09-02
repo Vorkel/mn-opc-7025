@@ -1,6 +1,6 @@
 """
-Module de feature engineering COMPLET pour le scoring crédit
-Préserve TOUTES les features originales + ajoute les features dérivées
+Module de feature engineering EXACT pour le scoring crédit
+Correspond EXACTEMENT aux features utilisées lors de l'entraînement
 """
 
 import pandas as pd
@@ -11,9 +11,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class CreditFeatureEngineerComplete:
+class CreditFeatureEngineerExact:
     """
-    Classe pour l'ingénierie des features de scoring crédit COMPLÈTE
+    Classe pour l'ingénierie des features de scoring crédit EXACTE
     """
 
     def __init__(self) -> None:
@@ -59,20 +59,23 @@ class CreditFeatureEngineerComplete:
 
     def engineer_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Applique l'ingénierie des features complète en préservant TOUTES les features originales
+        Applique l'ingénierie des features EXACTE correspondant aux données d'entraînement
 
         Args:
             df: DataFrame avec les données brutes
 
         Returns:
-            DataFrame avec toutes les features calculées
+            DataFrame avec EXACTEMENT les mêmes features que l'entraînement
         """
         try:
-            # IMPORTANT: Préserver TOUTES les features originales
+            # IMPORTANT: Préserver EXACTEMENT les features d'entraînement
             df_engineered = df.copy()
 
-            # Liste COMPLÈTE des features originales importantes à préserver
-            original_features_to_preserve = [
+            # Liste EXACTE des features d'entraînement (basée sur data/processed/train_processed.csv)
+            training_features = [
+                # Features de base (SK_ID_CURR, TARGET)
+                "SK_ID_CURR", "TARGET",
+
                 # Features APARTMENTS
                 "APARTMENTS_AVG", "APARTMENTS_MEDI", "APARTMENTS_MODE",
                 "LIVINGAPARTMENTS_AVG", "LIVINGAPARTMENTS_MEDI", "LIVINGAPARTMENTS_MODE",
@@ -93,6 +96,9 @@ class CreditFeatureEngineerComplete:
                 # Features FLOORSMAX
                 "FLOORSMAX_AVG", "FLOORSMAX_MEDI", "FLOORSMAX_MODE",
 
+                # Features FLOORSMIN (MANQUANTES dans notre module précédent !)
+                "FLOORSMIN_AVG", "FLOORSMIN_MEDI", "FLOORSMIN_MODE",
+
                 # Features LANDAREA
                 "LANDAREA_AVG", "LANDAREA_MEDI", "LANDAREA_MODE",
 
@@ -111,14 +117,17 @@ class CreditFeatureEngineerComplete:
                 # Features EMERGENCYSTATE
                 "EMERGENCYSTATE_MODE",
 
-                # Features FONDKAPITAL
-                "FONDKAPITAL_MODE",
+                # Features FONDKAPREMONT (MANQUANTE dans notre module précédent !)
+                "FONDKAPREMONT_MODE",
 
                 # Features HOUSETYPE
                 "HOUSETYPE_MODE",
 
-                # Features FLAG_DOCUMENT (toutes)
-                "FLAG_DOCUMENT_1", "FLAG_DOCUMENT_2", "FLAG_DOCUMENT_3", "FLAG_DOCUMENT_4",
+                # Features HOUR_APPR_PROCESS_START (MANQUANTE dans notre module précédent !)
+                "HOUR_APPR_PROCESS_START",
+
+                # Features FLAG_DOCUMENT (SEULEMENT celles d'entraînement, PAS FLAG_DOCUMENT_1)
+                "FLAG_DOCUMENT_2", "FLAG_DOCUMENT_3", "FLAG_DOCUMENT_4",
                 "FLAG_DOCUMENT_5", "FLAG_DOCUMENT_6", "FLAG_DOCUMENT_7", "FLAG_DOCUMENT_8",
                 "FLAG_DOCUMENT_9", "FLAG_DOCUMENT_10", "FLAG_DOCUMENT_11", "FLAG_DOCUMENT_12",
                 "FLAG_DOCUMENT_13", "FLAG_DOCUMENT_14", "FLAG_DOCUMENT_15", "FLAG_DOCUMENT_16",
@@ -140,7 +149,7 @@ class CreditFeatureEngineerComplete:
                 # Features d'organisation
                 "ORGANIZATION_TYPE",
 
-                # Features de contact
+                # Features de contact (SEULEMENT celles d'entraînement)
                 "FLAG_MOBIL", "FLAG_EMP_PHONE", "FLAG_WORK_PHONE",
                 "FLAG_CONT_MOBILE", "FLAG_PHONE", "FLAG_EMAIL",
                 "FLAG_DOCUMENT_3", "FLAG_DOCUMENT_6", "FLAG_DOCUMENT_8",
@@ -148,30 +157,37 @@ class CreditFeatureEngineerComplete:
                 # Features de type de suite
                 "NAME_TYPE_SUITE",
 
-                # Features de région
+                # Features de région (SEULEMENT celles d'entraînement)
                 "REGION_RATING_CLIENT", "REGION_RATING_CLIENT_W_CITY",
-                "REGION_POPULATION_RELATIVE", "UNEMPLOYMENT_RATE", "REAL_ESTATE_TREND",
-
-                # Features de secteur
-                "SECTOR_ACTIVITY",
 
                 # Features d'exploitation et construction
                 "YEARS_BEGINEXPLUATATION_AVG", "YEARS_BUILD_AVG",
 
                 # Features de voiture
-                "OWN_CAR_AGE"
+                "OWN_CAR_AGE",
+
+                # Features de base du client
+                "CODE_GENDER", "FLAG_OWN_CAR", "FLAG_OWN_REALTY", "CNT_CHILDREN",
+                "CNT_FAM_MEMBERS", "NAME_EDUCATION_TYPE", "NAME_FAMILY_STATUS",
+                "NAME_HOUSING_TYPE", "DAYS_BIRTH", "DAYS_REGISTRATION", "DAYS_ID_PUBLISH",
+                "NAME_INCOME_TYPE", "DAYS_EMPLOYED", "AMT_INCOME_TOTAL", "AMT_ANNUITY",
+                "AMT_GOODS_PRICE", "DEBT_RATIO", "DISPOSABLE_INCOME", "BANK_YEARS",
+                "PAYMENT_HISTORY", "OVERDRAFT_FREQUENCY", "SAVINGS_AMOUNT",
+                "CREDIT_BUREAU_SCORE", "AMT_CREDIT", "CREDIT_DURATION", "CREDIT_PURPOSE",
+                "PERSONAL_CONTRIBUTION", "GUARANTEE_TYPE", "SPENDING_HABITS",
+                "INCOME_STABILITY", "BALANCE_EVOLUTION"
             ]
 
-            # S'assurer que toutes les features importantes sont présentes
-            for feature in original_features_to_preserve:
+            # S'assurer que toutes les features d'entraînement sont présentes
+            for feature in training_features:
                 if feature not in df_engineered.columns:
                     # Valeur par défaut selon le type de feature
                     if "FLAG_" in feature:
                         df_engineered[feature] = 0  # Flag = 0 par défaut
                     elif "AMT_" in feature or "AVG" in feature or "MEDI" in feature or "MODE" in feature:
                         df_engineered[feature] = 0.0  # Valeur numérique = 0.0 par défaut
-                    elif "CNT_" in feature or "DAYS_" in feature:
-                        df_engineered[feature] = 0  # Compteurs et jours = 0 par défaut
+                    elif "CNT_" in feature or "DAYS_" in feature or "HOUR_" in feature:
+                        df_engineered[feature] = 0  # Compteurs, jours, heures = 0 par défaut
                     elif "RATE_" in feature or "RATING_" in feature:
                         df_engineered[feature] = 2  # Ratings = 2 (moyenne) par défaut
                     elif "TYPE" in feature or "STATUS" in feature or "SUITE" in feature:
@@ -368,7 +384,21 @@ class CreditFeatureEngineerComplete:
                         pd.to_numeric(df_engineered[col], errors="coerce")
                     ).fillna(0)
 
-            logger.info(f"Feature engineering terminé: {len(df_engineered.columns)} features créées")
+            # IMPORTANT: Supprimer les features qui ne sont PAS dans l'entraînement
+            features_to_remove = [
+                "FLAG_DOCUMENT_1",  # Non présente dans l'entraînement
+                "FONDKAPITAL_MODE",  # Non présente dans l'entraînement
+                "REAL_ESTATE_TREND",  # Non présente dans l'entraînement
+                "SECTOR_ACTIVITY",   # Non présente dans l'entraînement
+                "UNEMPLOYMENT_RATE"  # Non présente dans l'entraînement
+            ]
+
+            for feature in features_to_remove:
+                if feature in df_engineered.columns:
+                    df_engineered = df_engineered.drop(columns=[feature])
+                    logger.info(f"Feature supprimée (non présente à l'entraînement): {feature}")
+
+            logger.info(f"Feature engineering EXACT terminé: {len(df_engineered.columns)} features créées")
             return df_engineered
 
         except Exception as e:
@@ -378,13 +408,13 @@ class CreditFeatureEngineerComplete:
 
 def create_features_complete(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Fonction utilitaire pour créer les features complètes
+    Fonction utilitaire pour créer les features EXACTES
 
     Args:
         df: DataFrame avec les données brutes
 
     Returns:
-        DataFrame avec toutes les features calculées
+        DataFrame avec EXACTEMENT les mêmes features que l'entraînement
     """
-    engineer = CreditFeatureEngineerComplete()
+    engineer = CreditFeatureEngineerExact()
     return engineer.engineer_features(df)
