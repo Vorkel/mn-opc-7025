@@ -30,6 +30,6 @@ showErrorDetails = false
 # Configuration du runner
 magicEnabled = false
 
-[watcher]
 # Désactiver le watchdog pour éviter les erreurs inotify
+[server.fileWatcherType]
 enabled = false
