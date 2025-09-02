@@ -1,0 +1,7 @@
+# === STREAMLIT CLOUD SPECIFIC ===
+# Fichier prioritaire pour Streamlit Cloud
+streamlit
+plotly
+pandas
+numpy
+requests

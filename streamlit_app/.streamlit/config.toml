@@ -8,6 +8,7 @@ headless = true
 enableCORS = true
 enableXsrfProtection = true
 maxUploadSize = 200
+port = 8501
 
 [browser]
 # Configuration du navigateur
@@ -24,3 +25,7 @@ font = "sans serif"
 [client]
 # Configuration client
 showErrorDetails = false
+
+[runner]
+# Configuration du runner
+magicEnabled = false

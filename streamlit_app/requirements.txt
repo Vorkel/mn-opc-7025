@@ -1,10 +1,12 @@
-# === STREAMLIT MINIMAL ===
+# === STREAMLIT ULTRA-MINIMAL ===
+# Aucune version fixe - Streamlit Cloud choisit automatiquement
 streamlit
 plotly
 pandas
 numpy
 requests
 
-# === VERSIONS ULTRA-COMPATIBLES ===
-# Aucune version fixe pour éviter les conflits
-# Streamlit Cloud choisira automatiquement les versions compatibles Python 3.13
+# === NOTES ===
+# - Python 3.13.6 détecté automatiquement
+# - Versions compatibles choisies par uv/pip
+# - Évite les conflits de compilation
