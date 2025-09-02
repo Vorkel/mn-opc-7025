@@ -149,10 +149,24 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Configuration de l'API distante
-API_BASE_URL = "https://mn-opc-7025.onrender.com"  # URL Render.com
-API_TIMEOUT = 30  # Timeout en secondes
-USE_REMOTE_API = True  # Basculement API locale/distante
+# Configuration de l'API distante (avec fallback)
+try:
+    import streamlit as st
+    # Essayer de récupérer depuis les secrets Streamlit
+    if hasattr(st, 'secrets') and st.secrets:
+        API_BASE_URL = st.secrets.get("api", {}).get("base_url", "https://mn-opc-7025.onrender.com")
+        API_TIMEOUT = st.secrets.get("api", {}).get("timeout", 30)
+        USE_REMOTE_API = st.secrets.get("api", {}).get("use_remote_api", True)
+    else:
+        # Fallback sur les valeurs par défaut
+        API_BASE_URL = "https://mn-opc-7025.onrender.com"
+        API_TIMEOUT = 30
+        USE_REMOTE_API = True
+except:
+    # Configuration par défaut si Streamlit n'est pas disponible
+    API_BASE_URL = "https://mn-opc-7025.onrender.com"
+    API_TIMEOUT = 30
+    USE_REMOTE_API = True
 
 # Chemins des fichiers
 BASE_DIR = Path(__file__).parent.parent

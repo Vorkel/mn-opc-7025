@@ -7,4 +7,4 @@ requests
 
 # === VERSIONS ULTRA-COMPATIBLES ===
 # Aucune version fixe pour éviter les conflits
-# Streamlit Cloud choisira automatiquement les versions compatibles Python 3.13
+# Streamlit Cloud choisira automatiquement les versions compatibles
