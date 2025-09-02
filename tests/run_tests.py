@@ -9,10 +9,10 @@ import sys
 
 def run_tests() -> None:
     """Exécute les tests unitaires"""
-    print("🧪 Exécution des tests unitaires...")
+    print("Exécution des tests unitaires...")
 
     # Tests unitaires
-    print("\n📋 Tests unitaires BusinessScorer:")
+    print("\nTests unitaires BusinessScorer:")
     result = subprocess.run(
         ["poetry", "run", "pytest", "tests/unit/test_business_score.py", "-v"],
         capture_output=True,
@@ -20,14 +20,14 @@ def run_tests() -> None:
     )
 
     if result.returncode == 0:
-        print("✅ Tests BusinessScorer: SUCCÈS")
+        print("Tests BusinessScorer: SUCCÈS")
     else:
-        print("❌ Tests BusinessScorer: ÉCHEC")
+        print("Tests BusinessScorer: ÉCHEC")
         print(result.stdout)
         print(result.stderr)
 
     # Tests de validation des données
-    print("\n📋 Tests de validation des données:")
+    print("\nTests de validation des données:")
     result = subprocess.run(
         [
             "poetry",
@@ -42,14 +42,14 @@ def run_tests() -> None:
     )
 
     if result.returncode == 0:
-        print("✅ Tests validation données: SUCCÈS")
+        print("Tests validation données: SUCCÈS")
     else:
-        print("❌ Tests validation données: ÉCHEC")
+        print("Tests validation données: ÉCHEC")
         print(result.stdout)
         print(result.stderr)
 
     # Tests feature engineering
-    print("\n📋 Tests feature engineering:")
+    print("\nTests feature engineering:")
     result = subprocess.run(
         [
             "poetry",
@@ -64,13 +64,13 @@ def run_tests() -> None:
     )
 
     if result.returncode == 0:
-        print("✅ Tests feature engineering: SUCCÈS")
+        print("Tests feature engineering: SUCCÈS")
     else:
-        print("❌ Tests feature engineering: ÉCHEC")
+        print("Tests feature engineering: ÉCHEC")
         print(result.stdout)
         print(result.stderr)
 
-    print("\n🎯 Résumé des tests terminé!")
+    print("\nRésumé des tests terminé!")
 
 
 if __name__ == "__main__":
