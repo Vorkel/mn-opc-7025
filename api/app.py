@@ -388,11 +388,11 @@ def preprocess_input(data: CreditRequest) -> pd.DataFrame:
         # Convertir en DataFrame
         df = pd.DataFrame([data.dict()])
 
-        # Importer et utiliser le module de feature engineering
-        from src.feature_engineering import create_features
+        # Importer et utiliser le module de feature engineering COMPLET
+        from src.feature_engineering_complete import create_features_complete
 
         # Appliquer le feature engineering complet
-        df_engineered = create_features(df)
+        df_engineered = create_features_complete(df)
 
         logger.info(f"Feature engineering appliqué: {len(df_engineered.columns)} features créées")
         return df_engineered
