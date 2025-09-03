@@ -374,37 +374,42 @@ def get_model() -> Any:
     return model
 
 
-def preprocess_input(data: CreditRequest) -> pd.DataFrame:
+def preprocess_data(data: CreditRequest) -> pd.DataFrame:
     """
-    Prétraite les données d'entrée pour le modèle en utilisant le module src/
+    Prétraite les données d'entrée pour la prédiction
+    Utilise le MÊME feature engineering que l'entraînement
 
     Args:
-        data (CreditRequest): Données d'entrée du client
+        data: Données d'entrée validées
 
     Returns:
-        pd.DataFrame: Données prétraitées avec features calculées
+        pd.DataFrame: Données prétraitées avec feature engineering
     """
     try:
+        # Ajouter le chemin src pour import
+        import sys
+        from pathlib import Path
+        sys.path.append(str(Path(__file__).parent.parent / "src"))
+        
+        # Importer le feature engineer
+        from feature_engineering import CreditFeatureEngineer
+        
         # Convertir en DataFrame
         df = pd.DataFrame([data.dict()])
+        
+        # Appliquer le même feature engineering que l'entraînement
+        feature_engineer = CreditFeatureEngineer()
+        df_processed = feature_engineer.engineer_features(df)
 
-        # Importer et utiliser le module de feature engineering
-        from src.feature_engineering import create_features_complete
+        logger.info(f"Feature engineering appliqué: {len(df_processed.columns)} features générées")
+        logger.info(f"Features utilisées: {list(df_processed.columns)}")
 
-        # Appliquer le feature engineering complet
-        df_engineered = create_features_complete(df)
+        return df_processed
 
-        logger.info(f"Feature engineering appliqué: {len(df_engineered.columns)} features créées")
-        return df_engineered
-
-    except ImportError as e:
-        logger.error(f"Impossible d'importer le module feature_engineering: {e}")
-        # Fallback sur le traitement de base
-        return _basic_preprocessing(df)
     except Exception as e:
         logger.error(f"Erreur lors du feature engineering: {e}")
         # Fallback sur le traitement de base
-        return _basic_preprocessing(df)
+        return _basic_preprocessing(pd.DataFrame([data.dict()]))
 
 
 def _basic_preprocessing(df: pd.DataFrame) -> pd.DataFrame:
@@ -523,11 +528,37 @@ async def predict_credit(
         validated = CreditRequest(**cleaned)
 
         # Prétraitement des données
-        df = preprocess_input(validated)
+        df = preprocess_data(validated)
 
         # Prédiction
         if hasattr(current_model, "predict_proba"):
+            # DEBUG : Log détaillé pour identifier le problème
+            logger.info(f"DEBUG - Features utilisées: {list(df.columns)}")
+            logger.info(f"DEBUG - Valeurs des features: {df.iloc[0].to_dict()}")
+
+            # VÉRIFICATION CRITIQUE : Cohérence des features
+            if feature_names:
+                missing_features = [f for f in feature_names if f not in df.columns]
+                extra_features = [f for f in df.columns if f not in feature_names]
+
+                if missing_features:
+                    logger.warning(f"Features manquantes: {missing_features}")
+                    # Ajouter les features manquantes avec valeur 0
+                    for feature in missing_features:
+                        df[feature] = 0
+
+                if extra_features:
+                    logger.warning(f"Features en trop: {extra_features}")
+                    # Garder seulement les features attendues
+                    df = df[feature_names]
+
+                logger.info(f"Features finales après correction: {list(df.columns)}")
+
             probability = current_model.predict_proba(df)[0, 1]
+
+            # DEBUG : Log des probabilités
+            logger.info(f"DEBUG - Probabilités brutes: {current_model.predict_proba(df)[0]}")
+            logger.info(f"DEBUG - Probabilité de défaut: {probability}")
         else:
             raise HTTPException(
                 status_code=500, detail="Modèle ne supporte pas predict_proba"
@@ -576,11 +607,37 @@ async def predict_credit_public(
         validated = CreditRequest(**cleaned)
 
         # Prétraitement des données
-        df = preprocess_input(validated)
+        df = preprocess_data(validated)
 
         # Prédiction
         if hasattr(current_model, "predict_proba"):
+            # DEBUG : Log détaillé pour identifier le problème
+            logger.info(f"DEBUG PUBLIC - Features utilisées: {list(df.columns)}")
+            logger.info(f"DEBUG PUBLIC - Valeurs des features: {df.iloc[0].to_dict()}")
+
+            # VÉRIFICATION CRITIQUE : Cohérence des features
+            if feature_names:
+                missing_features = [f for f in feature_names if f not in df.columns]
+                extra_features = [f for f in df.columns if f not in feature_names]
+
+                if missing_features:
+                    logger.warning(f"Features manquantes (PUBLIC): {missing_features}")
+                    # Ajouter les features manquantes avec valeur 0
+                    for feature in missing_features:
+                        df[feature] = 0
+
+                if extra_features:
+                    logger.warning(f"Features en trop (PUBLIC): {extra_features}")
+                    # Garder seulement les features attendues
+                    df = df[feature_names]
+
+                logger.info(f"Features finales après correction (PUBLIC): {list(df.columns)}")
+
             probability = current_model.predict_proba(df)[0, 1]
+
+            # DEBUG : Log des probabilités
+            logger.info(f"DEBUG PUBLIC - Probabilités brutes: {current_model.predict_proba(df)[0]}")
+            logger.info(f"DEBUG PUBLIC - Probabilité de défaut: {probability}")
         else:
             raise HTTPException(
                 status_code=500, detail="Modèle ne supporte pas predict_proba"
@@ -630,7 +687,7 @@ async def batch_predict(
             # Prétraitement
             cleaned = validate_and_sanitize_input(request.model_dump(), http_request)
             validated = CreditRequest(**cleaned)
-            df = preprocess_input(validated)
+            df = preprocess_data(validated)
 
             # Prédiction
             if hasattr(current_model, "predict_proba"):
@@ -738,7 +795,7 @@ async def explain_prediction(
         validated = CreditRequest(**cleaned)
 
         # Prétraitement
-        df = preprocess_input(validated)
+        df = preprocess_data(validated)
 
         # Prédiction
         if hasattr(current_model, "predict_proba"):
