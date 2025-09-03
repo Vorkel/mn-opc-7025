@@ -73,11 +73,19 @@ print("Calcul des valeurs SHAP...")
 explainer = shap.TreeExplainer(model)
 shap_values = explainer.shap_values(X_shap)
 
-# Si shap_values est une liste (Random Forest), prendre le premier élément
+print(f"Type des valeurs SHAP: {type(shap_values)}")
 if isinstance(shap_values, list):
-    shap_values = shap_values[1]  # Probabilité de classe 1
+    print(f"Nombre de classes: {len(shap_values)}")
+    # Prendre les valeurs pour la classe positive (défaut)
+    shap_values = shap_values[1]
+else:
+    print(f"Forme initiale des valeurs SHAP: {shap_values.shape}")
+    # Si c'est un array 3D, prendre la dernière dimension (classe positive)
+    if len(shap_values.shape) == 3:
+        shap_values = shap_values[:, :, 1]
 
 print("Valeurs SHAP calculées!")
+print(f"Forme finale des valeurs SHAP: {shap_values.shape}")
 
 # =============================================================================
 # Importance globale des features
@@ -86,7 +94,7 @@ print("\nIMPORTANCE GLOBALE DES FEATURES")
 print("=" * 35)
 
 # Calculer l'importance moyenne
-feature_importance = np.abs(shap_values).mean(0)
+feature_importance = np.abs(shap_values).mean(axis=0)
 importance_df = pd.DataFrame({
     'feature': feature_names,
     'importance': feature_importance

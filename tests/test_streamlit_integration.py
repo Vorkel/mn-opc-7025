@@ -7,16 +7,16 @@ import pandas as pd
 import joblib
 
 # Ajouter le chemin pour les imports
-sys.path.append(str(Path(__file__).parent))
+sys.path.append(str(Path(__file__).parent.parent / "src"))
 
-from src.feature_engineering import create_complete_feature_set
+from feature_engineering import create_complete_feature_set
 
 
-def test_streamlit_integration():
+def test_streamlit_integration() -> None:
     """
     Test complet de l'intégration Streamlit avec données de formulaire
     """
-    print("🧪 TEST INTÉGRATION STREAMLIT")
+    print("TEST INTÉGRATION STREAMLIT")
     print("=" * 50)
 
     # Charger le modèle
@@ -137,15 +137,15 @@ def test_streamlit_integration():
 
         except Exception as e:
             print(f"❌ Erreur client {i}: {e}")
-            print(f"📊 Type erreur: {type(e)}")
+            print(f"Type erreur: {type(e)}")
             continue
 
-    print(f"\n📊 RÉSUMÉ FINAL")
+    print("\nRÉSUMÉ FINAL")
     print(f"✅ Clients testés avec succès: {success_count}/{len(client_data_examples)}")
 
     if success_count == len(client_data_examples):
-        print("🎉 TOUS LES TESTS RÉUSSIS !")
-        print("✨ L'intégration Streamlit est fonctionnelle")
+        print("TOUS LES TESTS RÉUSSIS !")
+        print("L'intégration Streamlit est fonctionnelle")
         return True
     else:
         print("❌ Certains tests ont échoué")
@@ -155,7 +155,7 @@ def test_streamlit_integration():
 if __name__ == "__main__":
     success = test_streamlit_integration()
     if success:
-        print("\n🚀 DÉPLOIEMENT RECOMMANDÉ")
+        print("\nDÉPLOIEMENT RECOMMANDÉ")
         print("L'application peut être déployée sur Streamlit Cloud")
     else:
         print("\n⚠️ CORRECTIONS NÉCESSAIRES")

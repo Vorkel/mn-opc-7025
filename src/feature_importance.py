@@ -419,9 +419,9 @@ FACTEURS PRINCIPAUX (TOP 10):
             report += f"\n{i+1}. {feature}:"
             report += f"\n   Valeur: {feature_val:.4f}"
             report += f"\n   Impact SHAP: {shap_val:.4f} ({impact} le risque)"
-            report += f"\n"
+            report += "\n"
 
-        report += f"""
+        report += """
 INTERPRÉTATION:
 - Les valeurs SHAP positives augmentent la probabilité de défaut
 - Les valeurs SHAP négatives diminuent la probabilité de défaut
@@ -435,12 +435,12 @@ RECOMMANDATIONS:
         top_positive = [x for x in feature_importance if x[1] > 0][:3]
 
         if top_positive:
-            report += f"\nFacteurs de risque identifiés:"
+            report += "\nFacteurs de risque identifiés:"
             for feature, shap_val, _ in top_positive:
                 report += f"\n- {feature} (impact: {shap_val:.4f})"
 
         if top_negative:
-            report += f"\nFacteurs protecteurs identifiés:"
+            report += "\nFacteurs protecteurs identifiés:"
             for feature, shap_val, _ in top_negative:
                 report += f"\n- {feature} (impact: {shap_val:.4f})"
 

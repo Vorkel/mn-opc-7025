@@ -6,7 +6,7 @@ import numpy as np
 from datetime import datetime
 
 
-def create_complete_feature_set(client_data: dict) -> pd.DataFrame:
+def create_complete_feature_set(client_data) -> pd.DataFrame:
     """
     Génère les 153 features complètes attendues par le modèle à partir des
     données de base du client.
@@ -16,16 +16,19 @@ def create_complete_feature_set(client_data: dict) -> pd.DataFrame:
     entraîné.
 
     Args:
-        client_data (dict): Données de base du client
+        client_data (dict ou pd.DataFrame): Données de base du client
 
     Returns:
         pd.DataFrame: DataFrame avec les 153 features dans l'ordre attendu
     """
 
     # Créer un DataFrame avec les données de base
-    df = pd.DataFrame([client_data])
+    if isinstance(client_data, dict):
+        df = pd.DataFrame([client_data])
+    else:
+        df = client_data.copy()
 
-    print(f"🔧 Données de base reçues: {len(client_data)} features")
+    print(f"🔧 Données de base reçues: {df.shape[1]} features")
 
     # ========================================================================================
     # 1. FEATURES DE BASE (39 features) - À partir du formulaire Streamlit
@@ -60,6 +63,32 @@ def create_complete_feature_set(client_data: dict) -> pd.DataFrame:
         "DAYS_LAST_PHONE_CHANGE",
     ]
 
+    # Variables temporelles requises
+    temporal_vars = [
+        "DAYS_BIRTH", "DAYS_EMPLOYED", "DAYS_REGISTRATION",
+        "DAYS_ID_PUBLISH", "OWN_CAR_AGE"
+    ]
+
+    # Variables numériques de base
+    numeric_vars = [
+        "CNT_CHILDREN", "AMT_INCOME_TOTAL", "AMT_CREDIT", "AMT_ANNUITY",
+        "AMT_GOODS_PRICE", "REGION_POPULATION_RELATIVE", "CNT_FAM_MEMBERS",
+        "REGION_RATING_CLIENT", "REGION_RATING_CLIENT_W_CITY",
+        "HOUR_APPR_PROCESS_START", "EXT_SOURCE_1", "EXT_SOURCE_2", "EXT_SOURCE_3"
+    ]
+
+    # Variables catégorielles de base
+    categorical_vars = [
+        "NAME_INCOME_TYPE", "NAME_EDUCATION_TYPE", "NAME_FAMILY_STATUS",
+        "NAME_HOUSING_TYPE", "OCCUPATION_TYPE", "ORGANIZATION_TYPE"
+    ]
+
+    # Variables de flag
+    flag_vars = [
+        "FLAG_OWN_CAR", "FLAG_OWN_REALTY", "FLAG_MOBIL", "FLAG_EMP_PHONE",
+        "FLAG_WORK_PHONE", "FLAG_CONT_MOBILE", "FLAG_PHONE", "FLAG_EMAIL"
+    ]
+
     # Ajouter les variables manquantes avec des valeurs par défaut
     for var in region_vars:
         if var not in df.columns:
@@ -75,7 +104,65 @@ def create_complete_feature_set(client_data: dict) -> pd.DataFrame:
             else:
                 df[var] = 0.0  # Moyenne
 
-    # ========================================================================================
+    for var in temporal_vars:
+        if var not in df.columns:
+            if var == "DAYS_BIRTH":
+                df[var] = -15000  # ~41 ans par défaut
+            elif var == "DAYS_EMPLOYED":
+                df[var] = -2000  # ~5.5 ans d'emploi
+            elif var == "DAYS_REGISTRATION":
+                df[var] = -5000  # ~13.7 ans depuis l'enregistrement
+            elif var == "DAYS_ID_PUBLISH":
+                df[var] = -3000  # ~8.2 ans depuis publication ID
+            elif var == "OWN_CAR_AGE":
+                df[var] = None  # Pas de voiture par défaut
+
+    for var in numeric_vars:
+        if var not in df.columns:
+            if var == "CNT_CHILDREN":
+                df[var] = 0
+            elif var == "AMT_INCOME_TOTAL":
+                df[var] = 180000  # Revenu médian
+            elif var == "AMT_CREDIT":
+                df[var] = 500000  # Crédit médian
+            elif var == "AMT_ANNUITY":
+                df[var] = 25000  # Annuité médiane
+            elif var == "AMT_GOODS_PRICE":
+                df[var] = 450000  # Prix médian
+            elif var == "REGION_POPULATION_RELATIVE":
+                df[var] = 0.02  # Population relative médiane
+            elif var == "CNT_FAM_MEMBERS":
+                df[var] = 2.0  # Famille médiane
+            elif var == "REGION_RATING_CLIENT":
+                df[var] = 2  # Rating médian
+            elif var == "REGION_RATING_CLIENT_W_CITY":
+                df[var] = 2  # Rating médian
+            elif var == "HOUR_APPR_PROCESS_START":
+                df[var] = 12  # Midi par défaut
+            elif var.startswith("EXT_SOURCE"):
+                df[var] = None  # Sources externes manquantes
+
+    for var in categorical_vars:
+        if var not in df.columns:
+            if var == "NAME_INCOME_TYPE":
+                df[var] = "Working"
+            elif var == "NAME_EDUCATION_TYPE":
+                df[var] = "Secondary / secondary special"
+            elif var == "NAME_FAMILY_STATUS":
+                df[var] = "Married"
+            elif var == "NAME_HOUSING_TYPE":
+                df[var] = "House / apartment"
+            elif var == "OCCUPATION_TYPE":
+                df[var] = "Laborers"
+            elif var == "ORGANIZATION_TYPE":
+                df[var] = "Business Entity Type 3"
+
+    for var in flag_vars:
+        if var not in df.columns:
+            if var in ["FLAG_MOBIL", "FLAG_CONT_MOBILE"]:
+                df[var] = 1  # La plupart ont un mobile
+            else:
+                df[var] = 0  # Par défaut pas de contact    # ========================================================================================
     # 2. EXTERNAL SOURCES (3 features)
     # ========================================================================================
 

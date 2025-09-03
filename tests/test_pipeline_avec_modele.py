@@ -9,14 +9,14 @@ from sklearn.ensemble import RandomForestClassifier
 
 # Ajouter le chemin vers src
 sys.path.append(str(Path(__file__).parent.parent / "src"))
-from feature_engineering import CreditFeatureEngineer
+from feature_engineering import create_complete_feature_set
 
 
-def test_avec_modele():
+def test_avec_modele() -> bool:
     """
     Test du pipeline complet avec prédiction du modèle
     """
-    print("🧪 TEST PIPELINE + MODÈLE")
+    print("TEST PIPELINE + MODÈLE")
     print("=" * 40)
 
     # Charger le modèle
@@ -30,7 +30,7 @@ def test_avec_modele():
             model = model_dict
             print("✅ Modèle chargé directement")
 
-        print(f"📊 Type de modèle: {type(model)}")
+        print(f"Type de modèle: {type(model)}")
 
         # Données d'exemple du formulaire Streamlit
         sample_data = {
@@ -70,12 +70,10 @@ def test_avec_modele():
 
         print("\n🔧 GÉNÉRATION DES FEATURES")
         # Générer les features avec le feature engineer
-        df = pd.DataFrame([sample_data])
-        feature_engineer = CreditFeatureEngineer()
-        df_features = feature_engineer.engineer_features(df)
+        df_features = create_complete_feature_set(sample_data)
         print(f"✅ Features générées: {df_features.shape}")
 
-        print("\n🎯 PRÉDICTION")
+        print("\nPRÉDICTION")
         # Faire la prédiction
         try:
             # Prédiction de probabilité
@@ -90,13 +88,13 @@ def test_avec_modele():
 
         except Exception as e:
             print(f"❌ Erreur prédiction: {e}")
-            print(f"📊 Shape des features: {df_features.shape}")
-            print(f"📊 Features attendues: {model.n_features_in_}")
-            print(f"📊 Colonnes avec NaN: {df_features.isnull().sum().sum()}")
-            print(f"📊 Dtypes: {df_features.dtypes.value_counts()}")
+            print(f"Shape des features: {df_features.shape}")
+            print(f"Features attendues: {model.n_features_in_}")
+            print(f"Colonnes avec NaN: {df_features.isnull().sum().sum()}")
+            print(f"Dtypes: {df_features.dtypes.value_counts()}")
 
             # Afficher les premières valeurs pour debug
-            print("\n📋 Premières valeurs:")
+            print("\nPremières valeurs:")
             print(df_features.iloc[0, :10].to_dict())
 
             return False
@@ -109,6 +107,6 @@ def test_avec_modele():
 if __name__ == "__main__":
     success = test_avec_modele()
     if success:
-        print("\n🎉 SUCCÈS - Pipeline complet fonctionnel !")
+        print("\nSUCCÈS - Pipeline complet fonctionnel !")
     else:
         print("\n❌ ÉCHEC - Corrections nécessaires")

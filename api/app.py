@@ -18,7 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from pydantic import BaseModel, Field
 
-from api.security import (
+from security import (
     SecurityMiddleware,
     check_rate_limit_dependency,
     setup_security_logging,
@@ -392,8 +392,7 @@ def preprocess_data(data: CreditRequest) -> pd.DataFrame:
         sys.path.append(str(Path(__file__).parent.parent / "src"))
 
         # Importer le feature engineer complet
-        # Importer le feature engineer complet
-        from src.feature_engineering import create_complete_feature_set
+        from feature_engineering import create_complete_feature_set
 
         # Convertir les données en dictionnaire
         client_data = data.dict()

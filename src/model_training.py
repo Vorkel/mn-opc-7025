@@ -8,19 +8,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import joblib
 import mlflow
-
-# Configuration du logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-warnings.filterwarnings("ignore")
-
-try:
-    import mlflow.sklearn
-
-    MLFLOW_SKLEARN_AVAILABLE = True
-except ImportError:
-    MLFLOW_SKLEARN_AVAILABLE = False
-    logger.warning("mlflow.sklearn non disponible, sauvegarde des modèles désactivée")
 import numpy as np
 import pandas as pd
 from imblearn.over_sampling import SMOTE
@@ -37,6 +24,19 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 from sklearn.model_selection import GridSearchCV, cross_val_score, train_test_split
+
+# Configuration du logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+warnings.filterwarnings("ignore")
+
+try:
+    import mlflow.sklearn
+
+    MLFLOW_SKLEARN_AVAILABLE = True
+except ImportError:
+    MLFLOW_SKLEARN_AVAILABLE = False
+    logger.warning("mlflow.sklearn non disponible, sauvegarde des modèles désactivée")
 
 # Import des classes personnalisées avec fallback
 try:
@@ -252,9 +252,10 @@ class ModelTrainer:
                 mlflow_context = mlflow.start_run(run_name=run_name)
             except Exception as e:
                 logger.error(f"MLFlow échoué: {str(e)}")
-                mlflow_context = None
+                # mlflow_context = None  # Non utilisé
         else:
-            mlflow_context = None
+            # mlflow_context = None  # Non utilisé
+            pass
 
         # Configuration du pipeline selon la stratégie
         if sampling_strategy == "smote":
