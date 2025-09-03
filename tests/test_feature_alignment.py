@@ -1,6 +1,7 @@
 """
 Test de l'alignement des features entre Streamlit et le modèle
 """
+
 import pandas as pd
 import numpy as np
 import joblib
@@ -9,6 +10,7 @@ import sys
 
 # Ajouter le répertoire racine au path
 sys.path.append(str(Path(__file__).parent))
+
 
 def test_feature_alignment():
     """Test l'alignement des features"""
@@ -79,11 +81,17 @@ def test_feature_alignment():
         df_raw = pd.DataFrame([client_data_raw])
         df_engineered = feature_engineer.engineer_features(df_raw)
 
-        print(f"🔧 Feature engineering appliqué: {len(df_engineered.columns)} features générées")
+        print(
+            f"🔧 Feature engineering appliqué: {len(df_engineered.columns)} features générées"
+        )
 
         # 4. Vérifier l'alignement
-        missing_features = [f for f in expected_features if f not in df_engineered.columns]
-        extra_features = [f for f in df_engineered.columns if f not in expected_features]
+        missing_features = [
+            f for f in expected_features if f not in df_engineered.columns
+        ]
+        extra_features = [
+            f for f in df_engineered.columns if f not in expected_features
+        ]
 
         print(f"\n📊 ANALYSE D'ALIGNEMENT:")
         print(f"   Features attendues: {len(expected_features)}")
@@ -157,6 +165,7 @@ def test_feature_alignment():
         print(f"❌ Erreur feature engineering: {e}")
         return False
 
+
 def test_streamlit_client_data():
     """Test avec les mêmes données que Streamlit génère"""
     print(f"\n🎯 TEST AVEC DONNÉES STREAMLIT")
@@ -228,6 +237,7 @@ def test_streamlit_client_data():
     except Exception as e:
         print(f"❌ Erreur test Streamlit: {e}")
         return False
+
 
 if __name__ == "__main__":
     print("🧪 TESTS D'ALIGNEMENT DES FEATURES")

@@ -44,16 +44,20 @@ class TestDataDriftDetector:
 
     def test_prepare_data(self) -> None:
         """Test de la préparation des données"""
-        ref_data = pd.DataFrame({
-            "feature_1": [1, 2, 3, 4, 5],
-            "feature_2": [10, 20, 30, 40, 50],
-            "categorical_feature": ["A", "B", "A", "B", "A"],
-        })
-        curr_data = pd.DataFrame({
-            "feature_1": [1, 2, 3, 4, 5],
-            "feature_2": [10, 20, 30, 40, 50],
-            "categorical_feature": ["A", "B", "A", "B", "A"],
-        })
+        ref_data = pd.DataFrame(
+            {
+                "feature_1": [1, 2, 3, 4, 5],
+                "feature_2": [10, 20, 30, 40, 50],
+                "categorical_feature": ["A", "B", "A", "B", "A"],
+            }
+        )
+        curr_data = pd.DataFrame(
+            {
+                "feature_1": [1, 2, 3, 4, 5],
+                "feature_2": [10, 20, 30, 40, 50],
+                "categorical_feature": ["A", "B", "A", "B", "A"],
+            }
+        )
 
         try:
             detector = DataDriftDetector(ref_data, curr_data)
@@ -90,10 +94,12 @@ class TestDataDriftDetector:
         ref_data = pd.DataFrame(
             {"feature_1": [1, 2, 3, 4, 5], "feature_2": [10, 20, 30, 40, 50]}
         )
-        curr_data = pd.DataFrame({
-            "feature_1": [10, 20, 30, 40, 50],  # Distribution très différente
-            "feature_2": [100, 200, 300, 400, 500],
-        })
+        curr_data = pd.DataFrame(
+            {
+                "feature_1": [10, 20, 30, 40, 50],  # Distribution très différente
+                "feature_2": [100, 200, 300, 400, 500],
+            }
+        )
 
         try:
             detector = DataDriftDetector(ref_data, curr_data)
@@ -162,12 +168,14 @@ class TestDataValidation:
     def test_data_quality_checks(self) -> None:
         """Test des vérifications de qualité des données"""
         # Données de test avec différents problèmes
-        data = pd.DataFrame({
-            "numeric_col": [1, 2, np.nan, 4, 5],
-            "categorical_col": ["A", "B", "A", "B", "A"],
-            "duplicate_col": [1, 1, 1, 1, 1],  # Valeur constante
-            "mixed_col": [1, "A", 3, "B", 5],  # Types mixtes
-        })
+        data = pd.DataFrame(
+            {
+                "numeric_col": [1, 2, np.nan, 4, 5],
+                "categorical_col": ["A", "B", "A", "B", "A"],
+                "duplicate_col": [1, 1, 1, 1, 1],  # Valeur constante
+                "mixed_col": [1, "A", 3, "B", 5],  # Types mixtes
+            }
+        )
 
         # Vérifications de base
         assert data.shape[0] == 5  # Nombre de lignes
@@ -185,12 +193,14 @@ class TestDataValidation:
 
     def test_data_type_validation(self) -> None:
         """Test de la validation des types de données"""
-        data = pd.DataFrame({
-            "int_col": [1, 2, 3, 4, 5],
-            "float_col": [1.1, 2.2, 3.3, 4.4, 5.5],
-            "string_col": ["A", "B", "C", "D", "E"],
-            "bool_col": [True, False, True, False, True],
-        })
+        data = pd.DataFrame(
+            {
+                "int_col": [1, 2, 3, 4, 5],
+                "float_col": [1.1, 2.2, 3.3, 4.4, 5.5],
+                "string_col": ["A", "B", "C", "D", "E"],
+                "bool_col": [True, False, True, False, True],
+            }
+        )
 
         # Vérification des types
         assert data["int_col"].dtype in ["int64", "int32"]
@@ -200,11 +210,13 @@ class TestDataValidation:
 
     def test_data_range_validation(self) -> None:
         """Test de la validation des plages de valeurs"""
-        data = pd.DataFrame({
-            "age": [25, 30, 35, 40, 45],
-            "income": [50000, 60000, 70000, 80000, 90000],
-            "score": [0.1, 0.5, 0.8, 0.9, 1.0],
-        })
+        data = pd.DataFrame(
+            {
+                "age": [25, 30, 35, 40, 45],
+                "income": [50000, 60000, 70000, 80000, 90000],
+                "score": [0.1, 0.5, 0.8, 0.9, 1.0],
+            }
+        )
 
         # Vérification des plages
         assert data["age"].min() >= 0
@@ -293,10 +305,12 @@ class TestDataPreprocessing:
 
     def test_missing_value_imputation(self) -> None:
         """Test de l'imputation des valeurs manquantes"""
-        data = pd.DataFrame({
-            "numeric_col": [1, 2, np.nan, 4, 5],
-            "categorical_col": ["A", "B", np.nan, "A", "B"],
-        })
+        data = pd.DataFrame(
+            {
+                "numeric_col": [1, 2, np.nan, 4, 5],
+                "categorical_col": ["A", "B", np.nan, "A", "B"],
+            }
+        )
 
         # Imputation numérique
         data["numeric_col"].fillna(data["numeric_col"].median(), inplace=True)

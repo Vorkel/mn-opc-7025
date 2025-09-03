@@ -33,19 +33,23 @@ class TestPipelineIntegration:
         n_samples = 100
 
         # Données d'entraînement
-        X_train = pd.DataFrame({
-            "feature_1": np.random.normal(0, 1, n_samples),
-            "feature_2": np.random.normal(0, 1, n_samples),
-            "feature_3": np.random.normal(0, 1, n_samples),
-        })
+        X_train = pd.DataFrame(
+            {
+                "feature_1": np.random.normal(0, 1, n_samples),
+                "feature_2": np.random.normal(0, 1, n_samples),
+                "feature_3": np.random.normal(0, 1, n_samples),
+            }
+        )
         y_train = np.random.binomial(1, 0.3, n_samples)
 
         # Données de test
-        X_test = pd.DataFrame({
-            "feature_1": np.random.normal(0, 1, n_samples),
-            "feature_2": np.random.normal(0, 1, n_samples),
-            "feature_3": np.random.normal(0, 1, n_samples),
-        })
+        X_test = pd.DataFrame(
+            {
+                "feature_1": np.random.normal(0, 1, n_samples),
+                "feature_2": np.random.normal(0, 1, n_samples),
+                "feature_3": np.random.normal(0, 1, n_samples),
+            }
+        )
         y_test = np.random.binomial(1, 0.3, n_samples)
 
         try:
@@ -88,11 +92,13 @@ class TestPipelineIntegration:
         np.random.seed(42)
         n_samples = 50
 
-        X = pd.DataFrame({
-            "feature_1": np.random.normal(0, 1, n_samples),
-            "feature_2": np.random.normal(0, 1, n_samples),
-            "feature_3": np.random.normal(0, 1, n_samples),
-        })
+        X = pd.DataFrame(
+            {
+                "feature_1": np.random.normal(0, 1, n_samples),
+                "feature_2": np.random.normal(0, 1, n_samples),
+                "feature_3": np.random.normal(0, 1, n_samples),
+            }
+        )
         y = np.random.binomial(1, 0.3, n_samples)
 
         try:
@@ -135,18 +141,22 @@ class TestPipelineIntegration:
         np.random.seed(42)
         n_samples = 100
 
-        reference_data = pd.DataFrame({
-            "feature_1": np.random.normal(0, 1, n_samples),
-            "feature_2": np.random.normal(0, 1, n_samples),
-            "feature_3": np.random.normal(0, 1, n_samples),
-        })
+        reference_data = pd.DataFrame(
+            {
+                "feature_1": np.random.normal(0, 1, n_samples),
+                "feature_2": np.random.normal(0, 1, n_samples),
+                "feature_3": np.random.normal(0, 1, n_samples),
+            }
+        )
 
         # Créer des données actuelles (avec drift)
-        current_data = pd.DataFrame({
-            "feature_1": np.random.normal(2, 1, n_samples),  # Drift de distribution
-            "feature_2": np.random.normal(0, 1, n_samples),
-            "feature_3": np.random.normal(0, 1, n_samples),
-        })
+        current_data = pd.DataFrame(
+            {
+                "feature_1": np.random.normal(2, 1, n_samples),  # Drift de distribution
+                "feature_2": np.random.normal(0, 1, n_samples),
+                "feature_3": np.random.normal(0, 1, n_samples),
+            }
+        )
 
         try:
             # Initialiser le détecteur
@@ -176,11 +186,13 @@ class TestPipelineIntegration:
         np.random.seed(42)
         n_samples = 100
 
-        X = pd.DataFrame({
-            "important_feature": np.random.normal(0, 1, n_samples),
-            "less_important_feature": np.random.normal(0, 1, n_samples),
-            "noise_feature": np.random.normal(0, 1, n_samples),
-        })
+        X = pd.DataFrame(
+            {
+                "important_feature": np.random.normal(0, 1, n_samples),
+                "less_important_feature": np.random.normal(0, 1, n_samples),
+                "noise_feature": np.random.normal(0, 1, n_samples),
+            }
+        )
 
         # Créer une target qui dépend principalement de la première feature
         y = (X["important_feature"] > 0).astype(int)

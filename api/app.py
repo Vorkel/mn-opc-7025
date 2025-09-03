@@ -393,7 +393,7 @@ def preprocess_data(data: CreditRequest) -> pd.DataFrame:
 
         # Importer le feature engineer complet
         # Importer le feature engineer complet
-        from complete_feature_engineering import create_complete_feature_set
+        from src.feature_engineering import create_complete_feature_set
 
         # Convertir les données en dictionnaire
         client_data = data.dict()

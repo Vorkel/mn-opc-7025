@@ -9,7 +9,8 @@ import joblib
 # Ajouter le chemin pour les imports
 sys.path.append(str(Path(__file__).parent))
 
-from complete_feature_engineering import create_complete_feature_set
+from src.feature_engineering import create_complete_feature_set
+
 
 def test_streamlit_integration():
     """
@@ -20,8 +21,8 @@ def test_streamlit_integration():
 
     # Charger le modèle
     try:
-        model_dict = joblib.load('models/best_credit_model.pkl')
-        model = model_dict['model']
+        model_dict = joblib.load("models/best_credit_model.pkl")
+        model = model_dict["model"]
         print("✅ Modèle chargé")
     except Exception as e:
         print(f"❌ Erreur chargement modèle: {e}")
@@ -61,7 +62,7 @@ def test_streamlit_integration():
             "REGION_RATING_CLIENT": 2,
             "REGION_RATING_CLIENT_W_CITY": 2,
             "HOUR_APPR_PROCESS_START": 14,
-            "ORGANIZATION_TYPE": "Business Entity Type 3"
+            "ORGANIZATION_TYPE": "Business Entity Type 3",
         },
         {
             "NAME_CONTRACT_TYPE": "Cash loans",
@@ -95,8 +96,8 @@ def test_streamlit_integration():
             "REGION_RATING_CLIENT": 3,
             "REGION_RATING_CLIENT_W_CITY": 3,
             "HOUR_APPR_PROCESS_START": 10,
-            "ORGANIZATION_TYPE": "Business Entity Type 1"
-        }
+            "ORGANIZATION_TYPE": "Business Entity Type 1",
+        },
     ]
 
     success_count = 0
@@ -149,6 +150,7 @@ def test_streamlit_integration():
     else:
         print("❌ Certains tests ont échoué")
         return False
+
 
 if __name__ == "__main__":
     success = test_streamlit_integration()

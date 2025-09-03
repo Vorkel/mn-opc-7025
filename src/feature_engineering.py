@@ -1,4 +1,4 @@
-# complete_feature_engineering.py
+# feature_engineering.py
 # Pipeline complet de feature engineering pour générer les 153 features attendues
 
 import pandas as pd
@@ -31,49 +31,14 @@ def create_complete_feature_set(client_data: dict) -> pd.DataFrame:
     # 1. FEATURES DE BASE (39 features) - À partir du formulaire Streamlit
     # ========================================================================================
 
-    # Variables catégorielles (déjà présentes)
-    base_categorical = [
-        "NAME_CONTRACT_TYPE",
-        "CODE_GENDER",
-        "FLAG_OWN_CAR",
-        "FLAG_OWN_REALTY",
-        "NAME_TYPE_SUITE",
-        "NAME_INCOME_TYPE",
-        "NAME_EDUCATION_TYPE",
-        "NAME_FAMILY_STATUS",
-        "NAME_HOUSING_TYPE",
-        "OCCUPATION_TYPE",
-        "ORGANIZATION_TYPE",
-    ]
+    # Variables catégorielles (déjà présentes) - commentées car non utilisées
+    # base_categorical = ["NAME_CONTRACT_TYPE", "CODE_GENDER", "FLAG_OWN_CAR", ...]
 
-    # Variables numériques (déjà présentes)
-    base_numeric = [
-        "CNT_CHILDREN",
-        "AMT_INCOME_TOTAL",
-        "AMT_CREDIT",
-        "AMT_ANNUITY",
-        "AMT_GOODS_PRICE",
-        "REGION_POPULATION_RELATIVE",
-        "DAYS_BIRTH",
-        "DAYS_EMPLOYED",
-        "DAYS_REGISTRATION",
-        "DAYS_ID_PUBLISH",
-        "OWN_CAR_AGE",
-        "CNT_FAM_MEMBERS",
-        "REGION_RATING_CLIENT",
-        "REGION_RATING_CLIENT_W_CITY",
-        "HOUR_APPR_PROCESS_START",
-    ]
+    # Variables numériques (déjà présentes) - commentées car non utilisées
+    # base_numeric = ["CNT_CHILDREN", "AMT_INCOME_TOTAL", "AMT_CREDIT", ...]
 
-    # Flags de contact (déjà présents)
-    contact_flags = [
-        "FLAG_MOBIL",
-        "FLAG_EMP_PHONE",
-        "FLAG_WORK_PHONE",
-        "FLAG_CONT_MOBILE",
-        "FLAG_PHONE",
-        "FLAG_EMAIL",
-    ]
+    # Flags de contact (déjà présents) - commentées car non utilisées
+    # contact_flags = ["FLAG_MOBIL", "FLAG_EMP_PHONE", "FLAG_WORK_PHONE", ...]
 
     # Variables de région (utiliser des valeurs par défaut)
     region_vars = [
@@ -605,72 +570,7 @@ def create_complete_feature_set(client_data: dict) -> pd.DataFrame:
     df_final = df_final.replace([np.inf, -np.inf], 0)
     df_final = df_final.fillna(0)
 
-    print(f"✅ Pipeline complet: {len(df_final.columns)} features générées")
-    print(f"📊 Shape finale: {df_final.shape}")
+    print(f"Pipeline complet: {len(df_final.columns)} features générées")
+    print(f"Shape finale: {df_final.shape}")
 
     return df_final
-
-
-def test_complete_pipeline():
-    """
-    Test du pipeline complet avec des données d'exemple
-    """
-    print("🧪 TEST DU PIPELINE COMPLET")
-    print("=" * 40)
-
-    # Données d'exemple du formulaire Streamlit
-    sample_data = {
-        "NAME_CONTRACT_TYPE": "Cash loans",
-        "CODE_GENDER": "M",
-        "FLAG_OWN_CAR": "Y",
-        "FLAG_OWN_REALTY": "Y",
-        "CNT_CHILDREN": 2,
-        "AMT_INCOME_TOTAL": 150000.0,
-        "AMT_CREDIT": 500000.0,
-        "AMT_ANNUITY": 25000.0,
-        "AMT_GOODS_PRICE": 480000.0,
-        "NAME_TYPE_SUITE": "Family",
-        "NAME_INCOME_TYPE": "Working",
-        "NAME_EDUCATION_TYPE": "Higher education",
-        "NAME_FAMILY_STATUS": "Married",
-        "NAME_HOUSING_TYPE": "House / apartment",
-        "REGION_POPULATION_RELATIVE": 0.035,
-        "DAYS_BIRTH": -12000,
-        "DAYS_EMPLOYED": -3000,
-        "DAYS_REGISTRATION": -5000,
-        "DAYS_ID_PUBLISH": -2000,
-        "OWN_CAR_AGE": 5.0,
-        "FLAG_MOBIL": 1,
-        "FLAG_EMP_PHONE": 1,
-        "FLAG_WORK_PHONE": 0,
-        "FLAG_CONT_MOBILE": 1,
-        "FLAG_PHONE": 1,
-        "FLAG_EMAIL": 1,
-        "OCCUPATION_TYPE": "Laborers",
-        "CNT_FAM_MEMBERS": 4.0,
-        "REGION_RATING_CLIENT": 2,
-        "REGION_RATING_CLIENT_W_CITY": 2,
-        "HOUR_APPR_PROCESS_START": 14,
-        "ORGANIZATION_TYPE": "Business Entity Type 3",
-    }
-
-    # Tester le pipeline
-    result = create_complete_feature_set(sample_data)
-
-    print(f"📊 Features générées: {len(result.columns)}")
-    print(f"📊 Shape: {result.shape}")
-
-    # Vérifier qu'il n'y a pas de valeurs manquantes
-    missing = result.isnull().sum().sum()
-    print(f"📊 Valeurs manquantes: {missing}")
-
-    return result
-
-
-if __name__ == "__main__":
-    # Test du pipeline
-    result = test_complete_pipeline()
-
-    # Sauvegarder le résultat pour inspection
-    result.to_csv("test_complete_features.csv", index=False)
-    print("💾 Résultat sauvegardé dans 'test_complete_features.csv'")

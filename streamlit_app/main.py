@@ -438,7 +438,7 @@ def predict_score(client_data, model_data):
 
         # Utiliser le feature engineering complet dans src/
         sys.path.append(str(Path(__file__).parent.parent / "src"))
-        from complete_feature_engineering import create_complete_feature_set
+        from feature_engineering import create_complete_feature_set
 
         df_engineered = create_complete_feature_set(client_data)
 

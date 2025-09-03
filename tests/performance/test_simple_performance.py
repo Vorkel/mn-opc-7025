@@ -97,11 +97,13 @@ def test_calculation_performance() -> None:
     start_time = time.time()
 
     # Simuler un calcul de feature engineering
-    data = pd.DataFrame({
-        "feature_1": np.random.random(10000),
-        "feature_2": np.random.random(10000),
-        "feature_3": np.random.random(10000),
-    })
+    data = pd.DataFrame(
+        {
+            "feature_1": np.random.random(10000),
+            "feature_2": np.random.random(10000),
+            "feature_3": np.random.random(10000),
+        }
+    )
 
     # Calcul de ratios
     data["ratio_1_2"] = data["feature_1"] / data["feature_2"]

@@ -210,11 +210,13 @@ class TestModelPerformance:
             np.random.seed(42)
             n_samples = 1000
 
-            X = pd.DataFrame({
-                "feature_1": np.random.normal(0, 1, n_samples),
-                "feature_2": np.random.normal(0, 1, n_samples),
-                "feature_3": np.random.normal(0, 1, n_samples),
-            })
+            X = pd.DataFrame(
+                {
+                    "feature_1": np.random.normal(0, 1, n_samples),
+                    "feature_2": np.random.normal(0, 1, n_samples),
+                    "feature_3": np.random.normal(0, 1, n_samples),
+                }
+            )
 
             # Créer un modèle simple
             from sklearn.linear_model import LogisticRegression
@@ -247,11 +249,13 @@ class TestModelPerformance:
             np.random.seed(42)
             n_samples = 1000
 
-            X = pd.DataFrame({
-                "feature_1": np.random.normal(0, 1, n_samples),
-                "feature_2": np.random.normal(0, 1, n_samples),
-                "feature_3": np.random.normal(0, 1, n_samples),
-            })
+            X = pd.DataFrame(
+                {
+                    "feature_1": np.random.normal(0, 1, n_samples),
+                    "feature_2": np.random.normal(0, 1, n_samples),
+                    "feature_3": np.random.normal(0, 1, n_samples),
+                }
+            )
             y = np.random.binomial(1, 0.3, n_samples)
 
             # Test de vitesse d'entraînement
@@ -280,13 +284,15 @@ class TestModelPerformance:
             np.random.seed(42)
             n_samples = 1000
 
-            X = pd.DataFrame({
-                "feature_1": np.random.normal(0, 1, n_samples),
-                "feature_2": np.random.normal(0, 1, n_samples),
-                "feature_3": np.random.normal(0, 1, n_samples),
-                "feature_4": np.random.normal(0, 1, n_samples),
-                "feature_5": np.random.normal(0, 1, n_samples),
-            })
+            X = pd.DataFrame(
+                {
+                    "feature_1": np.random.normal(0, 1, n_samples),
+                    "feature_2": np.random.normal(0, 1, n_samples),
+                    "feature_3": np.random.normal(0, 1, n_samples),
+                    "feature_4": np.random.normal(0, 1, n_samples),
+                    "feature_5": np.random.normal(0, 1, n_samples),
+                }
+            )
             y = np.random.binomial(1, 0.3, n_samples)
 
             # Test de vitesse de calcul d'importance
@@ -340,11 +346,13 @@ class TestDataProcessingPerformance:
             np.random.seed(42)
             n_samples = 1000
 
-            data = pd.DataFrame({
-                "numeric_col": np.random.normal(0, 1, n_samples),
-                "categorical_col": np.random.choice(["A", "B", "C"], n_samples),
-                "missing_col": np.random.choice([1, 2, np.nan], n_samples),
-            })
+            data = pd.DataFrame(
+                {
+                    "numeric_col": np.random.normal(0, 1, n_samples),
+                    "categorical_col": np.random.choice(["A", "B", "C"], n_samples),
+                    "missing_col": np.random.choice([1, 2, np.nan], n_samples),
+                }
+            )
 
             # Test de vitesse de prétraitement
             start_time = time.time()
@@ -421,11 +429,13 @@ class TestMemoryUsage:
             np.random.seed(42)
             n_samples = 10000
 
-            X = pd.DataFrame({
-                "feature_1": np.random.normal(0, 1, n_samples),
-                "feature_2": np.random.normal(0, 1, n_samples),
-                "feature_3": np.random.normal(0, 1, n_samples),
-            })
+            X = pd.DataFrame(
+                {
+                    "feature_1": np.random.normal(0, 1, n_samples),
+                    "feature_2": np.random.normal(0, 1, n_samples),
+                    "feature_3": np.random.normal(0, 1, n_samples),
+                }
+            )
             y = np.random.binomial(1, 0.3, n_samples)
 
             from sklearn.ensemble import RandomForestClassifier
@@ -461,13 +471,15 @@ class TestMemoryUsage:
             np.random.seed(42)
             n_samples = 50000
 
-            data = pd.DataFrame({
-                "feature_1": np.random.normal(0, 1, n_samples),
-                "feature_2": np.random.normal(0, 1, n_samples),
-                "feature_3": np.random.normal(0, 1, n_samples),
-                "feature_4": np.random.normal(0, 1, n_samples),
-                "feature_5": np.random.normal(0, 1, n_samples),
-            })
+            data = pd.DataFrame(
+                {
+                    "feature_1": np.random.normal(0, 1, n_samples),
+                    "feature_2": np.random.normal(0, 1, n_samples),
+                    "feature_3": np.random.normal(0, 1, n_samples),
+                    "feature_4": np.random.normal(0, 1, n_samples),
+                    "feature_5": np.random.normal(0, 1, n_samples),
+                }
+            )
 
             # Traitement des données
             data_processed = data.fillna(data.median())
