@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import Any, AsyncIterator, Dict, List, Optional, Union
 
 import joblib
-import numpy as np
 import pandas as pd
 import psutil
 import uvicorn
@@ -389,12 +388,13 @@ def preprocess_data(data: CreditRequest) -> pd.DataFrame:
         # Ajouter le chemin src pour import
         import sys
         from pathlib import Path
+
         sys.path.append(str(Path(__file__).parent.parent / "src"))
-        
+
         # Importer le feature engineer complet
         # Importer le feature engineer complet
         from complete_feature_engineering import create_complete_feature_set
-        
+
         # Convertir les données en dictionnaire
         client_data = data.dict()
 
@@ -402,7 +402,10 @@ def preprocess_data(data: CreditRequest) -> pd.DataFrame:
         # Appliquer le feature engineering complet
         df_processed = create_complete_feature_set(client_data)
 
-        logger.info(f"Feature engineering appliqué: {len(df_processed.columns)} features générées")
+        logger.info(
+            f"Feature engineering appliqué: {len(df_processed.columns)} "
+            f"features générées"
+        )
         logger.info(f"Features utilisées: {list(df_processed.columns)}")
 
         return df_processed
@@ -488,7 +491,7 @@ async def health_check() -> Dict[str, Any]:
             "memory_usage_percent": round(memory_info.percent, 2),
             "memory_status": memory_status,
             "uptime_seconds": round(time.time() - start_time, 2),
-            "total_requests": request_count
+            "total_requests": request_count,
         }
     except Exception as e:
         logger.error(f"Erreur lors du health check: {e}")
@@ -496,7 +499,7 @@ async def health_check() -> Dict[str, Any]:
             "status": "unhealthy",
             "timestamp": datetime.now().isoformat(),
             "error": str(e),
-            "service": "mn-opc-7025-api"
+            "service": "mn-opc-7025-api",
         }
 
 
@@ -558,7 +561,9 @@ async def predict_credit(
             probability = current_model.predict_proba(df)[0, 1]
 
             # DEBUG : Log des probabilités
-            logger.info(f"DEBUG - Probabilités brutes: {current_model.predict_proba(df)[0]}")
+            logger.info(
+                f"DEBUG - Probabilités brutes: {current_model.predict_proba(df)[0]}"
+            )
             logger.info(f"DEBUG - Probabilité de défaut: {probability}")
         else:
             raise HTTPException(
@@ -632,12 +637,17 @@ async def predict_credit_public(
                     # Garder seulement les features attendues
                     df = df[feature_names]
 
-                logger.info(f"Features finales après correction (PUBLIC): {list(df.columns)}")
+                logger.info(
+                    f"Features finales après correction (PUBLIC): {list(df.columns)}"
+                )
 
             probability = current_model.predict_proba(df)[0, 1]
 
             # DEBUG : Log des probabilités
-            logger.info(f"DEBUG PUBLIC - Probabilités brutes: {current_model.predict_proba(df)[0]}")
+            logger.info(
+                f"DEBUG PUBLIC - Probabilités brutes: "
+                f"{current_model.predict_proba(df)[0]}"
+            )
             logger.info(f"DEBUG PUBLIC - Probabilité de défaut: {probability}")
         else:
             raise HTTPException(
@@ -700,13 +710,15 @@ async def batch_predict(
             decision = "REFUSÉ" if probability >= (threshold or 0.5) else "ACCORDÉ"
             risk_level = determine_risk_level(probability)
 
-            results.append({
-                "client_index": i,
-                "probability": float(probability),
-                "decision": decision,
-                "risk_level": risk_level,
-                "timestamp": datetime.now().isoformat(),
-            })
+            results.append(
+                {
+                    "client_index": i,
+                    "probability": float(probability),
+                    "decision": decision,
+                    "risk_level": risk_level,
+                    "timestamp": datetime.now().isoformat(),
+                }
+            )
 
         logger.info(f"Prédiction en lot effectuée pour {len(requests)} clients")
 

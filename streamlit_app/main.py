@@ -37,12 +37,14 @@ BASE_DIR = Path(__file__).parent.parent
 MODELS_DIR = BASE_DIR / "models"
 DATA_DIR = BASE_DIR / "data"
 
+
 def init_session_state():
     """Initialise les variables de session"""
     if "history" not in st.session_state:
         st.session_state.history = []
     if "current_prediction" not in st.session_state:
         st.session_state.current_prediction = None
+
 
 @st.cache_resource
 def load_model(force_reload=False):
@@ -63,10 +65,12 @@ def load_model(force_reload=False):
                         "feature_names": [],
                         "loaded_from": "API distante",
                         "api_status": "connected",
-                        "api_health": health_data
+                        "api_health": health_data,
                     }
                 else:
-                    st.warning(f"API distante non disponible (status: {response.status_code})")
+                    st.warning(
+                        f"API distante non disponible (status: {response.status_code})"
+                    )
                     USE_REMOTE_API = False
             except Exception as e:
                 st.warning(f"Impossible de se connecter à l'API distante: {e}")
@@ -87,11 +91,16 @@ def load_model(force_reload=False):
                     try:
                         model_data = joblib.load(model_path)
                         # Vérifier que le modèle est valide
-                        if model_data and "model" in model_data and model_data["model"] is not None:
+                        if (
+                            model_data
+                            and "model" in model_data
+                            and model_data["model"] is not None
+                        ):
                             # Créer un scaler par défaut si manquant
                             scaler = model_data.get("scaler")
                             if scaler is None:
                                 from sklearn.preprocessing import StandardScaler
+
                                 scaler = StandardScaler()
                                 st.info("Scaler par défaut créé (StandardScaler)")
 
@@ -101,7 +110,7 @@ def load_model(force_reload=False):
                                 "scaler": scaler,
                                 "feature_names": model_data.get("feature_names", []),
                                 "loaded_from": str(model_path),
-                                "api_status": "local"
+                                "api_status": "local",
                             }
                         else:
                             st.warning(f"Modèle invalide dans {model_path}")
@@ -116,53 +125,164 @@ def load_model(force_reload=False):
         st.error(f"Erreur lors du chargement du modèle: {e}")
         return None
 
+
 def create_full_feature_set(df):
     """Crée le jeu complet de 153 features attendues par le modèle"""
     # Liste des features exactes attendues par le modèle
     expected_features = [
-        "NAME_CONTRACT_TYPE", "CODE_GENDER", "FLAG_OWN_CAR", "FLAG_OWN_REALTY",
-        "CNT_CHILDREN", "AMT_INCOME_TOTAL", "AMT_CREDIT", "AMT_ANNUITY",
-        "AMT_GOODS_PRICE", "NAME_TYPE_SUITE", "NAME_INCOME_TYPE", "NAME_EDUCATION_TYPE",
-        "NAME_FAMILY_STATUS", "NAME_HOUSING_TYPE", "REGION_POPULATION_RELATIVE",
-        "DAYS_BIRTH", "DAYS_EMPLOYED", "DAYS_REGISTRATION", "DAYS_ID_PUBLISH",
-        "OWN_CAR_AGE", "FLAG_MOBIL", "FLAG_EMP_PHONE", "FLAG_WORK_PHONE",
-        "FLAG_CONT_MOBILE", "FLAG_PHONE", "FLAG_EMAIL", "OCCUPATION_TYPE",
-        "CNT_FAM_MEMBERS", "REGION_RATING_CLIENT", "REGION_RATING_CLIENT_W_CITY",
-        "WEEKDAY_APPR_PROCESS_START", "HOUR_APPR_PROCESS_START", "REG_REGION_NOT_LIVE_REGION",
-        "REG_REGION_NOT_WORK_REGION", "LIVE_REGION_NOT_WORK_REGION", "REG_CITY_NOT_LIVE_CITY",
-        "REG_CITY_NOT_WORK_CITY", "LIVE_CITY_NOT_WORK_CITY", "ORGANIZATION_TYPE",
-        "EXT_SOURCE_1", "EXT_SOURCE_2", "EXT_SOURCE_3", "APARTMENTS_AVG",
-        "BASEMENTAREA_AVG", "YEARS_BEGINEXPLUATATION_AVG", "YEARS_BUILD_AVG",
-        "COMMONAREA_AVG", "ELEVATORS_AVG", "ENTRANCES_AVG", "FLOORSMAX_AVG",
-        "FLOORSMIN_AVG", "LANDAREA_AVG", "LIVINGAPARTMENTS_AVG", "LIVINGAREA_AVG",
-        "NONLIVINGAPARTMENTS_AVG", "NONLIVINGAREA_AVG", "APARTMENTS_MODE",
-        "BASEMENTAREA_MODE", "YEARS_BEGINEXPLUATATION_MODE", "YEARS_BUILD_MODE",
-        "COMMONAREA_MODE", "ELEVATORS_MODE", "ENTRANCES_MODE", "FLOORSMAX_MODE",
-        "FLOORSMIN_MODE", "LANDAREA_MODE", "LIVINGAPARTMENTS_MODE", "LIVINGAREA_MODE",
-        "NONLIVINGAPARTMENTS_MODE", "NONLIVINGAREA_MODE", "APARTMENTS_MEDI",
-        "BASEMENTAREA_MEDI", "YEARS_BEGINEXPLUATATION_MEDI", "YEARS_BUILD_MEDI",
-        "COMMONAREA_MEDI", "ELEVATORS_MEDI", "ENTRANCES_MEDI", "FLOORSMAX_MEDI",
-        "FLOORSMIN_MEDI", "LANDAREA_MEDI", "LIVINGAPARTMENTS_MEDI", "LIVINGAREA_MEDI",
-        "NONLIVINGAPARTMENTS_MEDI", "NONLIVINGAREA_MEDI", "FONDKAPREMONT_MODE",
-        "HOUSETYPE_MODE", "TOTALAREA_MODE", "WALLSMATERIAL_MODE", "EMERGENCYSTATE_MODE",
-        "OBS_30_CNT_SOCIAL_CIRCLE", "DEF_30_CNT_SOCIAL_CIRCLE", "OBS_60_CNT_SOCIAL_CIRCLE",
-        "DEF_60_CNT_SOCIAL_CIRCLE", "DAYS_LAST_PHONE_CHANGE", "FLAG_DOCUMENT_2",
-        "FLAG_DOCUMENT_3", "FLAG_DOCUMENT_4", "FLAG_DOCUMENT_5", "FLAG_DOCUMENT_6",
-        "FLAG_DOCUMENT_7", "FLAG_DOCUMENT_8", "FLAG_DOCUMENT_9", "FLAG_DOCUMENT_10",
-        "FLAG_DOCUMENT_11", "FLAG_DOCUMENT_12", "FLAG_DOCUMENT_13", "FLAG_DOCUMENT_14",
-        "FLAG_DOCUMENT_15", "FLAG_DOCUMENT_16", "FLAG_DOCUMENT_17", "FLAG_DOCUMENT_18",
-        "FLAG_DOCUMENT_19", "FLAG_DOCUMENT_20", "FLAG_DOCUMENT_21", "AMT_REQ_CREDIT_BUREAU_HOUR",
-        "AMT_REQ_CREDIT_BUREAU_DAY", "AMT_REQ_CREDIT_BUREAU_WEEK", "AMT_REQ_CREDIT_BUREAU_MON",
-        "AMT_REQ_CREDIT_BUREAU_QRT", "AMT_REQ_CREDIT_BUREAU_YEAR", "AGE_YEARS",
-        "EMPLOYMENT_YEARS", "DAYS_EMPLOYED_ABNORMAL", "YEARS_SINCE_REGISTRATION",
-        "YEARS_SINCE_ID_PUBLISH", "AGE_GROUP", "EMPLOYMENT_GROUP", "AGE_EMPLOYMENT_RATIO",
-        "CREDIT_INCOME_RATIO", "ANNUITY_INCOME_RATIO", "CREDIT_GOODS_RATIO",
-        "ANNUITY_CREDIT_RATIO", "CREDIT_DURATION", "INCOME_PER_PERSON", "CREDIT_PER_PERSON",
-        "INCOME_GROUP", "CREDIT_GROUP", "OWNS_PROPERTY", "OWNS_NEITHER", "CONTACT_SCORE",
-        "DOCUMENT_SCORE", "REGION_SCORE_NORMALIZED", "EXT_SOURCES_MEAN", "EXT_SOURCES_MAX",
-        "EXT_SOURCES_MIN", "EXT_SOURCES_STD", "EXT_SOURCES_COUNT", "AGE_EXT_SOURCES_INTERACTION",
-        "AMT_ANNUITY_MISSING", "AMT_GOODS_PRICE_MISSING", "DAYS_EMPLOYED_MISSING",
-        "CNT_FAM_MEMBERS_MISSING", "DAYS_REGISTRATION_MISSING"
+        "NAME_CONTRACT_TYPE",
+        "CODE_GENDER",
+        "FLAG_OWN_CAR",
+        "FLAG_OWN_REALTY",
+        "CNT_CHILDREN",
+        "AMT_INCOME_TOTAL",
+        "AMT_CREDIT",
+        "AMT_ANNUITY",
+        "AMT_GOODS_PRICE",
+        "NAME_TYPE_SUITE",
+        "NAME_INCOME_TYPE",
+        "NAME_EDUCATION_TYPE",
+        "NAME_FAMILY_STATUS",
+        "NAME_HOUSING_TYPE",
+        "REGION_POPULATION_RELATIVE",
+        "DAYS_BIRTH",
+        "DAYS_EMPLOYED",
+        "DAYS_REGISTRATION",
+        "DAYS_ID_PUBLISH",
+        "OWN_CAR_AGE",
+        "FLAG_MOBIL",
+        "FLAG_EMP_PHONE",
+        "FLAG_WORK_PHONE",
+        "FLAG_CONT_MOBILE",
+        "FLAG_PHONE",
+        "FLAG_EMAIL",
+        "OCCUPATION_TYPE",
+        "CNT_FAM_MEMBERS",
+        "REGION_RATING_CLIENT",
+        "REGION_RATING_CLIENT_W_CITY",
+        "WEEKDAY_APPR_PROCESS_START",
+        "HOUR_APPR_PROCESS_START",
+        "REG_REGION_NOT_LIVE_REGION",
+        "REG_REGION_NOT_WORK_REGION",
+        "LIVE_REGION_NOT_WORK_REGION",
+        "REG_CITY_NOT_LIVE_CITY",
+        "REG_CITY_NOT_WORK_CITY",
+        "LIVE_CITY_NOT_WORK_CITY",
+        "ORGANIZATION_TYPE",
+        "EXT_SOURCE_1",
+        "EXT_SOURCE_2",
+        "EXT_SOURCE_3",
+        "APARTMENTS_AVG",
+        "BASEMENTAREA_AVG",
+        "YEARS_BEGINEXPLUATATION_AVG",
+        "YEARS_BUILD_AVG",
+        "COMMONAREA_AVG",
+        "ELEVATORS_AVG",
+        "ENTRANCES_AVG",
+        "FLOORSMAX_AVG",
+        "FLOORSMIN_AVG",
+        "LANDAREA_AVG",
+        "LIVINGAPARTMENTS_AVG",
+        "LIVINGAREA_AVG",
+        "NONLIVINGAPARTMENTS_AVG",
+        "NONLIVINGAREA_AVG",
+        "APARTMENTS_MODE",
+        "BASEMENTAREA_MODE",
+        "YEARS_BEGINEXPLUATATION_MODE",
+        "YEARS_BUILD_MODE",
+        "COMMONAREA_MODE",
+        "ELEVATORS_MODE",
+        "ENTRANCES_MODE",
+        "FLOORSMAX_MODE",
+        "FLOORSMIN_MODE",
+        "LANDAREA_MODE",
+        "LIVINGAPARTMENTS_MODE",
+        "LIVINGAREA_MODE",
+        "NONLIVINGAPARTMENTS_MODE",
+        "NONLIVINGAREA_MODE",
+        "APARTMENTS_MEDI",
+        "BASEMENTAREA_MEDI",
+        "YEARS_BEGINEXPLUATATION_MEDI",
+        "YEARS_BUILD_MEDI",
+        "COMMONAREA_MEDI",
+        "ELEVATORS_MEDI",
+        "ENTRANCES_MEDI",
+        "FLOORSMAX_MEDI",
+        "FLOORSMIN_MEDI",
+        "LANDAREA_MEDI",
+        "LIVINGAPARTMENTS_MEDI",
+        "LIVINGAREA_MEDI",
+        "NONLIVINGAPARTMENTS_MEDI",
+        "NONLIVINGAREA_MEDI",
+        "FONDKAPREMONT_MODE",
+        "HOUSETYPE_MODE",
+        "TOTALAREA_MODE",
+        "WALLSMATERIAL_MODE",
+        "EMERGENCYSTATE_MODE",
+        "OBS_30_CNT_SOCIAL_CIRCLE",
+        "DEF_30_CNT_SOCIAL_CIRCLE",
+        "OBS_60_CNT_SOCIAL_CIRCLE",
+        "DEF_60_CNT_SOCIAL_CIRCLE",
+        "DAYS_LAST_PHONE_CHANGE",
+        "FLAG_DOCUMENT_2",
+        "FLAG_DOCUMENT_3",
+        "FLAG_DOCUMENT_4",
+        "FLAG_DOCUMENT_5",
+        "FLAG_DOCUMENT_6",
+        "FLAG_DOCUMENT_7",
+        "FLAG_DOCUMENT_8",
+        "FLAG_DOCUMENT_9",
+        "FLAG_DOCUMENT_10",
+        "FLAG_DOCUMENT_11",
+        "FLAG_DOCUMENT_12",
+        "FLAG_DOCUMENT_13",
+        "FLAG_DOCUMENT_14",
+        "FLAG_DOCUMENT_15",
+        "FLAG_DOCUMENT_16",
+        "FLAG_DOCUMENT_17",
+        "FLAG_DOCUMENT_18",
+        "FLAG_DOCUMENT_19",
+        "FLAG_DOCUMENT_20",
+        "FLAG_DOCUMENT_21",
+        "AMT_REQ_CREDIT_BUREAU_HOUR",
+        "AMT_REQ_CREDIT_BUREAU_DAY",
+        "AMT_REQ_CREDIT_BUREAU_WEEK",
+        "AMT_REQ_CREDIT_BUREAU_MON",
+        "AMT_REQ_CREDIT_BUREAU_QRT",
+        "AMT_REQ_CREDIT_BUREAU_YEAR",
+        "AGE_YEARS",
+        "EMPLOYMENT_YEARS",
+        "DAYS_EMPLOYED_ABNORMAL",
+        "YEARS_SINCE_REGISTRATION",
+        "YEARS_SINCE_ID_PUBLISH",
+        "AGE_GROUP",
+        "EMPLOYMENT_GROUP",
+        "AGE_EMPLOYMENT_RATIO",
+        "CREDIT_INCOME_RATIO",
+        "ANNUITY_INCOME_RATIO",
+        "CREDIT_GOODS_RATIO",
+        "ANNUITY_CREDIT_RATIO",
+        "CREDIT_DURATION",
+        "INCOME_PER_PERSON",
+        "CREDIT_PER_PERSON",
+        "INCOME_GROUP",
+        "CREDIT_GROUP",
+        "OWNS_PROPERTY",
+        "OWNS_NEITHER",
+        "CONTACT_SCORE",
+        "DOCUMENT_SCORE",
+        "REGION_SCORE_NORMALIZED",
+        "EXT_SOURCES_MEAN",
+        "EXT_SOURCES_MAX",
+        "EXT_SOURCES_MIN",
+        "EXT_SOURCES_STD",
+        "EXT_SOURCES_COUNT",
+        "AGE_EXT_SOURCES_INTERACTION",
+        "AMT_ANNUITY_MISSING",
+        "AMT_GOODS_PRICE_MISSING",
+        "DAYS_EMPLOYED_MISSING",
+        "CNT_FAM_MEMBERS_MISSING",
+        "DAYS_REGISTRATION_MISSING",
     ]
 
     df_full = df.copy()
@@ -196,6 +316,7 @@ def create_full_feature_set(df):
 
     return df_final
 
+
 def validate_business_rules(client_data):
     """Valide les règles métier avant prédiction"""
     try:
@@ -211,7 +332,9 @@ def validate_business_rules(client_data):
 
         if income and credit_amount and income > 0 and credit_amount > 0:
             if credit_amount / income > 5:
-                errors.append("Montant du crédit trop élevé par rapport aux revenus (max 5x)")
+                errors.append(
+                    "Montant du crédit trop élevé par rapport aux revenus (max 5x)"
+                )
 
         if income and annuity and income > 0 and annuity > 0:
             if annuity / income > 0.33:
@@ -228,6 +351,7 @@ def validate_business_rules(client_data):
     except Exception as e:
         return {"valid": False, "message": f"Erreur de validation: {str(e)}"}
 
+
 def call_api_prediction(client_data):
     """Appelle l'API distante pour la prédiction"""
     try:
@@ -237,9 +361,7 @@ def call_api_prediction(client_data):
                 api_data[key] = value
 
         response = requests.post(
-            f"{API_BASE_URL}/predict_public",
-            json=api_data,
-            timeout=API_TIMEOUT
+            f"{API_BASE_URL}/predict_public", json=api_data, timeout=API_TIMEOUT
         )
 
         if response.status_code == 200:
@@ -251,6 +373,7 @@ def call_api_prediction(client_data):
     except Exception as e:
         st.error(f"Erreur lors de l'appel API: {str(e)}")
         return None
+
 
 def predict_score(client_data, model_data):
     """Effectue une prédiction de score (local ou distant)"""
@@ -291,7 +414,9 @@ def predict_score(client_data, model_data):
                 "decision": "REFUSÉ",
                 "risk_level": "Élevé",
                 "threshold": 0.5,
-                "validation_error": "Modèle indisponible - veuillez contacter le support"
+                "validation_error": (
+                    "Modèle indisponible - veuillez contacter le support"
+                ),
             }
 
         threshold = model_data.get("threshold", 0.5)
@@ -352,6 +477,7 @@ def predict_score(client_data, model_data):
         st.error(f"Erreur prédiction: {e}")
         return None
 
+
 def get_refusal_reason(result, client_data):
     """Génère une explication claire du refus ou de l'accord"""
     try:
@@ -362,9 +488,10 @@ def get_refusal_reason(result, client_data):
                 "message": "Félicitations ! Votre demande de crédit a été acceptée.",
                 "details": [
                     f"Score de risque : {result.get('risk_level', 'N/A')}",
-                    f"Probabilité de remboursement : {(1 - result.get('probability', 0)) * 100:.1f}%",
-                    f"Seuil d'acceptation : {result.get('threshold', 0.5) * 100:.1f}%"
-                ]
+                    f"Probabilité de remboursement : "
+                    f"{(1 - result.get('probability', 0)) * 100:.1f}%",
+                    f"Seuil d'acceptation : {result.get('threshold', 0.5) * 100:.1f}%",
+                ],
             }
         else:
             reasons = []
@@ -385,10 +512,14 @@ def get_refusal_reason(result, client_data):
                 ratio = credit_amount / income
                 if ratio > 4:
                     reasons.append("Ratio crédit/revenus trop élevé")
-                    risk_factors.append(f"Le crédit représente {ratio:.1f}x vos revenus annuels")
+                    risk_factors.append(
+                        f"Le crédit représente {ratio:.1f}x vos revenus annuels"
+                    )
                 elif ratio > 3:
                     reasons.append("Ratio crédit/revenus élevé")
-                    risk_factors.append(f"Le crédit représente {ratio:.1f}x vos revenus annuels")
+                    risk_factors.append(
+                        f"Le crédit représente {ratio:.1f}x vos revenus annuels"
+                    )
 
             if not reasons:
                 reasons.append("Score de risque global trop élevé")
@@ -397,7 +528,10 @@ def get_refusal_reason(result, client_data):
             return {
                 "status": "error",
                 "title": "❌ CRÉDIT REFUSÉ",
-                "message": f"Votre demande de crédit n'a pas pu être acceptée pour les raisons suivantes :",
+                "message": (
+                    f"Votre demande de crédit n'a pas pu être acceptée "
+                    f"pour les raisons suivantes :"
+                ),
                 "reasons": reasons,
                 "risk_factors": risk_factors,
                 "recommendations": [
@@ -405,8 +539,8 @@ def get_refusal_reason(result, client_data):
                     "Réduire le montant demandé",
                     "Augmenter vos revenus",
                     "Stabiliser votre situation professionnelle",
-                    "Consulter un conseiller financier"
-                ]
+                    "Consulter un conseiller financier",
+                ],
             }
 
     except Exception as e:
@@ -414,8 +548,9 @@ def get_refusal_reason(result, client_data):
             "status": "warning",
             "title": "⚠️ ERREUR D'ANALYSE",
             "message": f"Impossible d'analyser les raisons : {str(e)}",
-            "details": ["Erreur technique lors de l'analyse"]
+            "details": ["Erreur technique lors de l'analyse"],
         }
+
 
 def render_prediction_tab(model_data):
     """Onglet de prédiction individuelle"""
@@ -514,7 +649,7 @@ def render_prediction_tab(model_data):
                 "Type de contrat",
                 ["Cash loans", "Revolving loans"],
                 key="contract_type",
-                help="Type de prêt demandé"
+                help="Type de prêt demandé",
             )
 
         # 3. INFORMATIONS FINANCIÈRES
@@ -595,13 +730,13 @@ def render_prediction_tab(model_data):
                 "Évaluation de la région",
                 [1, 2, 3],
                 key="region_rating",
-                help="1=Faible, 2=Moyen, 3=Élevé"
+                help="1=Faible, 2=Moyen, 3=Élevé",
             )
             region_rating_city = st.selectbox(
                 "Évaluation de la région avec ville",
                 [1, 2, 3],
                 key="region_rating_city",
-                help="1=Faible, 2=Moyen, 3=Élevé"
+                help="1=Faible, 2=Moyen, 3=Élevé",
             )
 
         with col1j:
@@ -625,11 +760,13 @@ def render_prediction_tab(model_data):
         # Bouton de validation
         if st.button("Analyser le Dossier", type="primary", use_container_width=True):
             # Validation des règles métier
-            validation = validate_business_rules({
-                "AMT_INCOME_TOTAL": income_monthly * 12,
-                "AMT_CREDIT": credit_amount,
-                "AMT_ANNUITY": annuity_amount,
-            })
+            validation = validate_business_rules(
+                {
+                    "AMT_INCOME_TOTAL": income_monthly * 12,
+                    "AMT_CREDIT": credit_amount,
+                    "AMT_ANNUITY": annuity_amount,
+                }
+            )
 
             if not validation["valid"]:
                 st.error(f"❌ Validation échouée: {validation['message']}")
@@ -647,46 +784,48 @@ def render_prediction_tab(model_data):
                 "AMT_CREDIT": credit_amount,
                 "AMT_ANNUITY": annuity_amount,
                 "AMT_GOODS_PRICE": goods_price,
-
                 # === FEATURES PERSONNELLES ===
                 "NAME_TYPE_SUITE": "Unaccompanied",
-                "NAME_INCOME_TYPE": {
-                    "Salarié": "Working",
-                    "Indépendant": "Commercial associate",
-                    "Fonctionnaire": "State servant",
-                    "Retraité": "Pensioner",
-                    "Étudiant": "Student",
-                    "Sans emploi": "Unemployed"
-                }.get(income_type, "Working"),
-
-                "NAME_EDUCATION_TYPE": {
-                    "Primaire": "Lower secondary",
-                    "Secondaire": "Secondary / secondary special",
-                    "Supérieur": "Higher education",
-                    "Post-universitaire": "Academic degree"
-                }.get(education, "Secondary / secondary special"),
-
-                "NAME_FAMILY_STATUS": {
-                    "Célibataire": "Single / not married",
-                    "Marié(e)": "Married",
-                    "Union libre": "Civil marriage",
-                    "Divorcé(e)": "Separated",
-                    "Veuf(ve)": "Widow"
-                }.get(family_status, "Single / not married"),
-
-                "NAME_HOUSING_TYPE": {
-                    "Propriétaire": "House / apartment",
-                    "Locataire": "Rented apartment",
-                    "Chez les parents": "With parents",
-                    "Logement social": "Municipal apartment"
-                }.get(housing_type, "House / apartment"),
-
+                "NAME_INCOME_TYPE": (
+                    {
+                        "Salarié": "Working",
+                        "Indépendant": "Commercial associate",
+                        "Fonctionnaire": "State servant",
+                        "Retraité": "Pensioner",
+                        "Étudiant": "Student",
+                        "Sans emploi": "Unemployed",
+                    }.get(income_type, "Working")
+                ),
+                "NAME_EDUCATION_TYPE": (
+                    {
+                        "Primaire": "Lower secondary",
+                        "Secondaire": "Secondary / secondary special",
+                        "Supérieur": "Higher education",
+                        "Post-universitaire": "Academic degree",
+                    }.get(education, "Secondary / secondary special")
+                ),
+                "NAME_FAMILY_STATUS": (
+                    {
+                        "Célibataire": "Single / not married",
+                        "Marié(e)": "Married",
+                        "Union libre": "Civil marriage",
+                        "Divorcé(e)": "Separated",
+                        "Veuf(ve)": "Widow",
+                    }.get(family_status, "Single / not married")
+                ),
+                "NAME_HOUSING_TYPE": (
+                    {
+                        "Propriétaire": "House / apartment",
+                        "Locataire": "Rented apartment",
+                        "Chez les parents": "With parents",
+                        "Logement social": "Municipal apartment",
+                    }.get(housing_type, "House / apartment")
+                ),
                 # === FEATURES TEMPORELLES ===
                 "DAYS_BIRTH": int(-age_years * 365.25),  # Négatif
                 "DAYS_EMPLOYED": int(-employment_years * 365.25),  # Négatif
                 "DAYS_REGISTRATION": int(-registration_years * 365.25),  # Négatif
                 "DAYS_ID_PUBLISH": int(-registration_years * 365.25),  # Négatif
-
                 # === FEATURES FAMILLE ET CONTACT ===
                 "CNT_FAM_MEMBERS": family_members,
                 "FLAG_MOBIL": 1,
@@ -695,22 +834,20 @@ def render_prediction_tab(model_data):
                 "FLAG_CONT_MOBILE": 1,
                 "FLAG_PHONE": 1,  # Par défaut
                 "FLAG_EMAIL": 0,  # Par défaut
-
                 # === FEATURES RÉGION ET ORGANISATION ===
                 "REGION_RATING_CLIENT": region_rating,
                 "REGION_RATING_CLIENT_W_CITY": region_rating_city,
                 "REGION_POPULATION_RELATIVE": 0.5,  # Valeur par défaut
-
-                "ORGANIZATION_TYPE": {
-                    "Entreprise": "Business Entity Type 3",
-                    "Administration": "Government",
-                    "Banque": "Bank",
-                    "École": "School",
-                    "Autre": "Other"
-                }.get(organization_type, "Business Entity Type 3"),
-
+                "ORGANIZATION_TYPE": (
+                    {
+                        "Entreprise": "Business Entity Type 3",
+                        "Administration": "Government",
+                        "Banque": "Bank",
+                        "École": "School",
+                        "Autre": "Other",
+                    }.get(organization_type, "Business Entity Type 3")
+                ),
                 "OCCUPATION_TYPE": "Laborers",  # Valeur par défaut
-
                 # === FEATURES GÉOGRAPHIQUES ===
                 "LIVE_CITY_NOT_WORK_CITY": 0,
                 "LIVE_REGION_NOT_WORK_REGION": 0,
@@ -718,16 +855,13 @@ def render_prediction_tab(model_data):
                 "REG_REGION_NOT_WORK_REGION": 0,
                 "REG_CITY_NOT_LIVE_CITY": 0,
                 "REG_CITY_NOT_WORK_CITY": 0,
-
                 # === FEATURES TIMING ===
                 "WEEKDAY_APPR_PROCESS_START": 1,  # Lundi
-                "HOUR_APPR_PROCESS_START": 12,   # Midi
-
+                "HOUR_APPR_PROCESS_START": 12,  # Midi
                 # === FEATURES EXTERNES (valeurs par défaut) ===
                 "EXT_SOURCE_1": 0.5,
                 "EXT_SOURCE_2": 0.5,
                 "EXT_SOURCE_3": 0.5,
-
                 # === FEATURES BÂTIMENT (valeurs par défaut) ===
                 "OWN_CAR_AGE": 5.0,  # Valeur par défaut
                 "YEARS_BEGINEXPLUATATION_AVG": 1.0,
@@ -744,14 +878,12 @@ def render_prediction_tab(model_data):
                 "LIVINGAREA_AVG": 60.0,
                 "NONLIVINGAPARTMENTS_AVG": 0.5,
                 "NONLIVINGAREA_AVG": 0.5,
-
                 # === FEATURES SOCIALES ===
                 "OBS_30_CNT_SOCIAL_CIRCLE": 2,
                 "DEF_30_CNT_SOCIAL_CIRCLE": 0,
                 "OBS_60_CNT_SOCIAL_CIRCLE": 2,
                 "DEF_60_CNT_SOCIAL_CIRCLE": 0,
                 "DAYS_LAST_PHONE_CHANGE": -1000,
-
                 # === FEATURES DOCUMENTS ===
                 "FLAG_DOCUMENT_2": 0,
                 "FLAG_DOCUMENT_3": 1,  # Documents fournis par défaut
@@ -762,7 +894,7 @@ def render_prediction_tab(model_data):
             # Stockage en session pour affichage
             st.session_state.current_prediction = {
                 "client_data": client_data,
-                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             }
 
             # Lancement de la prédiction
@@ -782,7 +914,10 @@ def render_prediction_tab(model_data):
 
     # Affichage des résultats
     with col2:
-        if st.session_state.current_prediction and "result" in st.session_state.current_prediction:
+        if (
+            st.session_state.current_prediction
+            and "result" in st.session_state.current_prediction
+        ):
             result = st.session_state.current_prediction["result"]
             client_data = st.session_state.current_prediction["client_data"]
 
@@ -855,10 +990,12 @@ def render_prediction_tab(model_data):
             with col2:
                 st.markdown("### Comparaison Risque vs Seuil")
                 # Graphique en barres pour comparaison
-                risk_data = pd.DataFrame({
-                    "Métrique": ["Risque Client", "Seuil Optimal"],
-                    "Valeur (%)": [risk_percentage, result["threshold"] * 100],
-                })
+                risk_data = pd.DataFrame(
+                    {
+                        "Métrique": ["Risque Client", "Seuil Optimal"],
+                        "Valeur (%)": [risk_percentage, result["threshold"] * 100],
+                    }
+                )
 
                 fig = px.bar(
                     risk_data,
@@ -895,7 +1032,11 @@ def render_prediction_tab(model_data):
                         st.write(f"• {rec}")
 
         else:
-            st.info("Prêt pour l'Analyse - Remplissez le formulaire et cliquez sur 'Analyser le Dossier'")
+            st.info(
+                "Prêt pour l'Analyse - Remplissez le formulaire et "
+                "cliquez sur 'Analyser le Dossier'"
+            )
+
 
 def render_history_tab():
     """Interface d'historique"""
@@ -903,7 +1044,9 @@ def render_history_tab():
 
     if st.session_state.history:
         for i, entry in enumerate(reversed(st.session_state.history[-10:])):
-            with st.expander(f"Prédiction {len(st.session_state.history) - i} - {entry['timestamp']}"):
+            with st.expander(
+                f"Prédiction {len(st.session_state.history) - i} - {entry['timestamp']}"
+            ):
                 result = entry["result"]
                 client_data = entry["client_data"]
 
@@ -920,6 +1063,7 @@ def render_history_tab():
                 st.rerun()
     else:
         st.info("Aucune prédiction effectuée pour le moment")
+
 
 def render_dashboard_overview(model_data):
     """Tableau de bord principal avec métriques et aperçu"""
@@ -1086,13 +1230,16 @@ def render_dashboard_overview(model_data):
                 ]
 
                 # Créer un DataFrame pour l'analyse temporelle
-                df_temp = pd.DataFrame({
-                    "timestamp": timestamps,
-                    "probability": probabilities,
-                    "decision": [
-                        pred["result"]["decision"] for pred in st.session_state.history
-                    ],
-                })
+                df_temp = pd.DataFrame(
+                    {
+                        "timestamp": timestamps,
+                        "probability": probabilities,
+                        "decision": [
+                            pred["result"]["decision"]
+                            for pred in st.session_state.history
+                        ],
+                    }
+                )
                 df_temp["timestamp"] = pd.to_datetime(df_temp["timestamp"])
                 df_temp = df_temp.sort_values("timestamp")
 
@@ -1343,6 +1490,7 @@ def render_dashboard_overview(model_data):
         if st.button("Actualiser", use_container_width=True):
             st.rerun()
 
+
 def render_batch_analysis_tab(model_data):
     """Interface d'analyse en lot"""
     st.markdown("## Analyse en Lot")
@@ -1417,6 +1565,7 @@ def render_batch_analysis_tab(model_data):
         except Exception as e:
             st.error(f"Erreur traitement fichier: {str(e)}")
 
+
 def render_batch_processing(df, model_data):
     """Traitement en lot des prédictions"""
     st.markdown("### Traitement en Cours")
@@ -1436,6 +1585,7 @@ def render_batch_processing(df, model_data):
     if results:
         results_df = pd.DataFrame(results)
         render_batch_results(results_df)
+
 
 def render_batch_results(results_df):
     """Affichage des résultats d'analyse en lot"""
@@ -1499,6 +1649,7 @@ def render_batch_results(results_df):
         use_container_width=True,
     )
 
+
 def render_features_tab():
     """Interface d'analyse des features"""
     st.markdown("## Analyse des Features")
@@ -1507,10 +1658,16 @@ def render_features_tab():
     # Simuler des données d'importance des features
     feature_importance_data = {
         "feature": [
-            "AMT_INCOME_TOTAL", "DAYS_BIRTH", "DAYS_EMPLOYED", "AMT_CREDIT",
-            "AMT_ANNUITY", "CODE_GENDER", "FLAG_OWN_CAR", "CNT_CHILDREN"
+            "AMT_INCOME_TOTAL",
+            "DAYS_BIRTH",
+            "DAYS_EMPLOYED",
+            "AMT_CREDIT",
+            "AMT_ANNUITY",
+            "CODE_GENDER",
+            "FLAG_OWN_CAR",
+            "CNT_CHILDREN",
         ],
-        "importance": [0.25, 0.20, 0.15, 0.12, 0.10, 0.08, 0.06, 0.04]
+        "importance": [0.25, 0.20, 0.15, 0.12, 0.10, 0.08, 0.06, 0.04],
     }
 
     feature_importance_df = pd.DataFrame(feature_importance_data)
@@ -1542,9 +1699,7 @@ def render_features_tab():
             color_continuous_scale="Viridis",
         )
         fig.update_layout(xaxis_title="Importance", yaxis_title="Variables", height=600)
-        st.plotly_chart(
-            fig, use_container_width=True, key="features_importance_chart"
-        )
+        st.plotly_chart(fig, use_container_width=True, key="features_importance_chart")
 
         # Recherche et tableau
         st.markdown("### Analyse Détaillée")
@@ -1560,18 +1715,21 @@ def render_features_tab():
         display_df["Catégorie"] = "Standard"
 
         # Réorganiser les colonnes
-        display_df = display_df[[
-            "Nom Compréhensible",
-            "importance",
-            "Description",
-            "Catégorie",
-            "feature",
-        ]]
+        display_df = display_df[
+            [
+                "Nom Compréhensible",
+                "importance",
+                "Description",
+                "Catégorie",
+                "feature",
+            ]
+        ]
 
         # Affichage direct sans recherche problématique
         st.dataframe(display_df, use_container_width=True)
     else:
         st.info("Données d'importance des features non disponibles")
+
 
 def render_reports_tab():
     """Interface des rapports"""
@@ -1600,6 +1758,7 @@ def render_reports_tab():
                 st.image(str(file_path), use_container_width=True)
             else:
                 st.info(f"Rapport {title} non disponible")
+
 
 def main():
     """Fonction principale de l'application"""
@@ -1630,7 +1789,7 @@ def main():
                 "Historique des Prédictions",
                 "Analyse des Features",
                 "Rapports et Métriques",
-            ]
+            ],
         )
 
         st.markdown("---")
@@ -1669,7 +1828,6 @@ def main():
     elif page == "Rapports et Métriques":
         render_reports_tab()
 
+
 if __name__ == "__main__":
     main()
-
-

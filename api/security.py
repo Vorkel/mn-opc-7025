@@ -7,14 +7,11 @@ Module de sécurité pour l'API de scoring crédit
 - Logs de sécurité
 """
 
-import hashlib
-import hmac
 import json
 import logging
 import os
 import re
 import time
-from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 

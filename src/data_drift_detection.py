@@ -637,18 +637,23 @@ def main() -> None:
         n_samples = 1000
         n_features = 10
 
-        reference_data = pd.DataFrame({
-            f"feature_{i}": np.random.normal(0, 1, n_samples) for i in range(n_features)
-        })
+        reference_data = pd.DataFrame(
+            {
+                f"feature_{i}": np.random.normal(0, 1, n_samples)
+                for i in range(n_features)
+            }
+        )
         reference_data["TARGET"] = np.random.binomial(1, 0.2, n_samples)
 
         # Données actuelles avec drift simulé
-        current_data = pd.DataFrame({
-            f"feature_{i}": np.random.normal(
-                0.5 if i < 3 else 0, 1.2 if i < 3 else 1, n_samples
-            )
-            for i in range(n_features)
-        })
+        current_data = pd.DataFrame(
+            {
+                f"feature_{i}": np.random.normal(
+                    0.5 if i < 3 else 0, 1.2 if i < 3 else 1, n_samples
+                )
+                for i in range(n_features)
+            }
+        )
         # Pas de colonne TARGET pour simuler des données de production
 
         logger.info("Données d'exemple créées")
