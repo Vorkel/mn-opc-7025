@@ -10,14 +10,15 @@ graph TB
     API[API FastAPI<br/>Production Cloud]
 
     %% Modèle ML
-    MODEL[Modèle RandomForest<br/>Scoring Crédit]
+    MODEL[Modèle RandomForest<br/>153 Features<br/>AUC 0.736]
 
     %% Données
     DATA[Données Home Credit<br/>Features Client]
 
-    %% Flux principal
+    %% Flux principal - Architecture Hybride
     USER --> STREAMLIT
     USER --> API
+    STREAMLIT --> API
     STREAMLIT --> MODEL
     API --> MODEL
     DATA --> MODEL
@@ -50,7 +51,7 @@ graph TB
     USER[Utilisateur Final]
 
     subgraph "Interfaces Utilisateur"
-        STREAMLIT[Application Streamlit<br/>Interface Web Locale<br/>Port 8501]
+        STREAMLIT[Application Streamlit<br/>Interface Web Hybride<br/>Port Configurable]
         API_CLIENT[Client API<br/>Applications externes]
     end
 
@@ -62,7 +63,7 @@ graph TB
 
     subgraph "Pipeline Machine Learning"
         PREP[Preprocessing<br/>Encodage Features<br/>Validation Données]
-        MODEL[Modèle RandomForest<br/>16 Features Optimisées<br/>Score Métier]
+        MODEL[Modèle RandomForest<br/>153 Features Engineered<br/>Score Métier AUC 0.736]
         EVAL[Évaluation<br/>Métriques Performance<br/>Seuil Optimisé]
     end
 
@@ -78,11 +79,12 @@ graph TB
         REPORTS[Rapports Analytics<br/>Visualisations SHAP]
     end
 
-    %% Flux principal
+    %% Flux principal - Architecture Hybride
     USER --> STREAMLIT
     USER --> API_CLIENT
     API_CLIENT --> API
     STREAMLIT --> API
+    STREAMLIT --> MODEL
 
     %% Flux API
     API --> SECURITY
@@ -125,6 +127,50 @@ graph TB
     class RESULT result
 ```
 
+## Architecture Hybride - Innovation Clé
+
+```mermaid
+graph TB
+    subgraph "Mode de Fonctionnement Intelligent"
+        USER[Utilisateur]
+        STREAMLIT[Interface Streamlit]
+
+        subgraph "Détection Automatique"
+            ENV_CHECK{Environment<br/>Production ?}
+            API_CHECK{API Distante<br/>Disponible ?}
+        end
+
+        subgraph "Mode Production"
+            API_REMOTE[API Render.com<br/>https://mn-opc-7025.onrender.com]
+            MODEL_REMOTE[Modèle Cloud<br/>Scalable]
+        end
+
+        subgraph "Mode Local (Fallback)"
+            MODEL_LOCAL[Modèle Local<br/>models/best_credit_model.pkl]
+            CACHE_LOCAL[Cache Local<br/>Continuité Service]
+        end
+    end
+
+    %% Flux intelligent
+    USER --> STREAMLIT
+    STREAMLIT --> ENV_CHECK
+    ENV_CHECK -->|Production| API_CHECK
+    ENV_CHECK -->|Développement| MODEL_LOCAL
+    API_CHECK -->|Disponible| API_REMOTE
+    API_CHECK -->|Indisponible| MODEL_LOCAL
+    API_REMOTE --> MODEL_REMOTE
+    MODEL_LOCAL --> CACHE_LOCAL
+
+    %% Styles
+    classDef production fill:#90EE90
+    classDef fallback fill:#FFB6C1
+    classDef decision fill:#87CEEB
+
+    class API_REMOTE,MODEL_REMOTE production
+    class MODEL_LOCAL,CACHE_LOCAL fallback
+    class ENV_CHECK,API_CHECK decision
+```
+
 ## Architecture Technique Détaillée
 
 ```mermaid
@@ -138,8 +184,8 @@ graph LR
 
     subgraph "API Layer"
         B1[FastAPI Server<br/>Uvicorn]
-        B2[Endpoints REST<br/>/predict, /batch_predict]
-        B3[Middleware<br/>CORS, Security]
+        B2[Endpoints REST<br/>/predict, /predict_public, /batch_predict<br/>/health, /explain, /feature_importance]
+        B3[Middleware<br/>CORS, Security, Rate Limiting]
         B4[Validation<br/>Pydantic Models]
     end
 
@@ -189,81 +235,102 @@ graph LR
     E1 --> E4
 ```
 
-## Flux de Données Détaillé
+## Flux de Données Détaillé - Architecture Hybride
 
 ```mermaid
 sequenceDiagram
     participant U as Utilisateur
     participant S as Streamlit
-    participant A as API
-    participant P as Preprocessing
-    participant M as Modèle
-    participant D as Données
+    participant ENV as Détection ENV
+    participant API as API Distante
+    participant ML as Modèle Local
     participant R as Résultat
 
-    %% Flux Streamlit
+    Note over S,ENV: Architecture Hybride Intelligente
+
+    %% Flux principal avec détection
     U->>S: Saisie données client
     S->>S: Validation côté client
-    S->>A: POST /predict
-    A->>P: Preprocessing données
-    P->>M: Prédiction modèle
-    M->>R: Résultat (probabilité)
-    R->>A: JSON response
-    A->>S: Affichage résultat
-    S->>U: Interface utilisateur
+    S->>ENV: Vérifier environnement
 
-    %% Flux API direct
-    U->>A: POST /predict (direct)
-    A->>P: Validation + preprocessing
-    P->>M: Prédiction
-    M->>R: Résultat métier
-    R->>A: Réponse API
-    A->>U: JSON final
+    alt Mode Production
+        ENV->>API: Tenter connexion API
+        alt API Disponible
+            S->>API: POST /predict_public
+            API->>API: Preprocessing + Prédiction
+            API->>R: Résultat JSON
+            R->>S: Affichage résultat
+        else API Indisponible
+            Note over S,ML: Fallback Automatique
+            S->>ML: Prédiction locale
+            ML->>R: Résultat local
+            R->>S: Affichage avec warning
+        end
+    else Mode Développement
+        S->>ML: Prédiction locale directe
+        ML->>R: Résultat local
+        R->>S: Affichage résultat
+    end
 
-    %% Flux batch
-    U->>A: POST /batch_predict
-    A->>P: Preprocessing lot
-    P->>M: Prédictions multiples
-    M->>R: Résultats batch
-    R->>A: Rapport synthèse
-    A->>U: CSV résultats
+    S->>U: Interface utilisateur finale
+
+    %% Flux API direct (externe)
+    Note over U,API: Usage API Direct
+    U->>API: POST /predict_public (direct)
+    API->>API: Authentification + Rate Limiting
+    API->>API: Validation + Preprocessing
+    API->>API: Prédiction modèle
+    API->>U: Réponse JSON structurée
 ```
 
 ## Composants Techniques
 
-| Couche         | Composant      | Technologie           | Rôle                  |
-| -------------- | -------------- | --------------------- | --------------------- |
-| **Frontend**   | Streamlit App  | Python + Streamlit    | Interface utilisateur |
-| **API**        | FastAPI Server | Python + FastAPI      | Service REST          |
-| **ML**         | Model Engine   | Scikit-learn          | Prédictions           |
-| **Data**       | Feature Store  | Pandas + Joblib       | Gestion données       |
-| **Monitoring** | Analytics      | SHAP + Evidently 0.7+ | Surveillance          |
+| Couche         | Composant      | Technologie           | Rôle                          |
+| -------------- | -------------- | --------------------- | ----------------------------- |
+| **Frontend**   | Streamlit App  | Python + Streamlit    | Interface hybride utilisateur |
+| **API**        | FastAPI Server | Python + FastAPI      | Service REST cloud            |
+| **ML**         | Model Engine   | Scikit-learn RF       | Prédictions (153 features)    |
+| **Data**       | Feature Store  | Pandas + Joblib       | Engineering + Gestion         |
+| **Monitoring** | Analytics      | SHAP + Evidently 0.7+ | Surveillance + Drift          |
+| **Security**   | Auth Layer     | JWT + Rate Limiting   | Protection API                |
 
 ## Points d'Intégration Clés
 
-### 1. **Modèle Unique**
+### 1. **Architecture Hybride Innovante**
+
+- **Innovation** : Détection automatique environnement + fallback intelligent
+- **Production** : API distante Render.com en priorité
+- **Développement** : Modèle local pour tests rapides
+- **Résilience** : Continuité service même si API indisponible
+- **Configuration** : Variables d'environnement (RENDER, STREAMLIT_ENV)
+
+### 2. **Modèle Unique Multi-Usage**
 
 - **Fichier** : `models/best_credit_model.pkl`
-- **Usage** : API + Streamlit
-- **Features** : 16 variables standardisées
+- **Usage** : API + Streamlit (architecture hybride)
+- **Features** : 153 variables après feature engineering
+- **Performance** : AUC 0.736, coût métier optimisé à 7,100
 
-### 2. **Preprocessing Cohérent**
+### 3. **Preprocessing Cohérent**
 
 - **API** : `api/app.py` - `preprocess_input()`
-- **Streamlit** : `main.py` - `preprocess_for_prediction()`
-- **Logique** : Même encodage partout
+- **Streamlit** : `main.py` - `create_full_feature_set()`
+- **Logique** : Même encodage + feature engineering partout
+- **Validation** : 153 features identiques API ↔ Local
 
-### 3. **Validation Stricte**
+### 4. **Validation Stricte Multi-Niveau**
 
-- **Pydantic** : Modèles de validation
-- **Types** : Validation automatique
-- **Erreurs** : Gestion centralisée
+- **Pydantic** : Modèles de validation API (30+ champs)
+- **Types** : Validation automatique + sanitisation
+- **Business Rules** : Validation métier avant prédiction
+- **Erreurs** : Gestion centralisée avec codes HTTP appropriés
 
-### 4. **Monitoring Unifié**
+### 5. **Monitoring Unifié Intelligent**
 
-- **Logs** : JSON structuré
-- **Métriques** : Temps réel
-- **Alertes** : Proactives
+- **Logs** : JSON structuré avec rotation automatique
+- **Métriques** : Temps réel (latence, throughput, erreurs)
+- **Health Checks** : Endpoints de surveillance automatique
+- **Alertes** : Détection proactive des anomalies
 
 ## Sécurité et Performance
 

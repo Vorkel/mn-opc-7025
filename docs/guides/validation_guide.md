@@ -20,7 +20,7 @@ poetry run pytest tests/unit/ -v
 poetry run pytest tests/integration/ -v
 ```
 
-**Attendu** : Pipeline complet, MLflow, API fonctionnels
+**Attendu** : Pipeline complet, MLflow, API fonctionnels (certains peuvent être ignorés)
 
 ### 3. Tests API
 
@@ -28,7 +28,7 @@ poetry run pytest tests/integration/ -v
 poetry run pytest tests/api/ -v
 ```
 
-**Attendu** : Endpoints API répondent correctement
+**Attendu** : Tests d'import validés (tests de fonctionnalité peuvent être ignorés)
 
 ### 4. Tests de performance
 

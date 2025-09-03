@@ -415,7 +415,7 @@
 - ✅ **Score métier optimisé** : seuil adapté aux coûts asymétriques (FN=10×FP)
 - ✅ **Modèles robustes** : Random Forest + LightGBM avec SMOTE
 - ✅ **Explicabilité** : SHAP pour transparence locale et globale
-- ✅ **Performance** : AUC 0.78+ avec coût métier minimisé
+- ✅ **Performance** : AUC 0.736 avec coût métier minimisé
 
 **Mission 2 - Système MLOps**:
 
@@ -509,10 +509,10 @@
 
 **Métriques de performance**:
 
-- **Modèle final** : Random Forest avec SMOTE
-- **AUC Score** : 0.784
-- **Coût métier** : 1,247 (optimisé)
-- **Seuil optimal** : 0.423 (vs 0.5 classique)
+- **Modèle final** : Random Forest standard
+- **AUC Score** : 0.736
+- **Coût métier** : 7,100 (optimisé)
+- **Amélioration** : -22% vs baseline (9,058)
 - **Latence API** : < 100ms
 - **Throughput** : 1000+ req/min
 

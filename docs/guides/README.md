@@ -86,7 +86,7 @@ import mlflow
 with mlflow.start_run():
     # Logger des métriques
     mlflow.log_metric("business_score", 0.85)
-    mlflow.log_metric("auc_score", 0.784)
+    mlflow.log_metric("auc_score", 0.736)
 
     # Logger des paramètres
     mlflow.log_param("model_type", "RandomForest")

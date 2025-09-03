@@ -253,34 +253,34 @@ _Pitch : "L'architecture, c'est notre plan de bataille. Nous sommes partis des n
 
 **Performance mesurée sur données de validation :**
 
-- **AUC-ROC** : 0.743 (très performant pour le crédit)
-- **Coût métier optimisé** : 33,787 (vs ~49,000 baseline = **-31% coût**)
+- **AUC-ROC** : 0.736 (très performant pour le crédit)
+- **Coût métier optimisé** : 7,100 (vs 9,058 baseline = **-22% coût**)
 - **Modèle** : Random Forest (robuste et interprétable)
-- **Technique** : Under-sampling (améliore détection clients à risque)
+- **Technique** : Gestion déséquilibre (améliore détection clients à risque)
 
 **Contrôles qualité validés :**
 
 - **Performance stable** : AUC cohérent entre train/validation
-- **Réduction coût significative** : 31% d'amélioration métier
+- **Réduction coût significative** : 22% d'amélioration métier
 - **Robustesse** : Gestion efficace du déséquilibre des classes
 - **Interprétabilité** : Feature importance claire et logique
 
-**Pourquoi Random Forest + Under-sampling a gagné ?**
+**Pourquoi Random Forest a gagné ?**
 
-- **Performance** : Meilleur AUC (0.743) et coût métier optimal
-- **Équilibrage** : Under-sampling très efficace pour ce déséquilibre
+- **Performance** : Meilleur AUC (0.736) et coût métier optimal (7,100)
+- **Équilibrage** : Gestion efficace pour ce déséquilibre
 - **Robustesse** : Random Forest résiste naturellement au surapprentissage
 - **Interprétabilité** : Feature importance claire et explicable
 
 **Impact économique quantifié :**
 
-- Réduction coût métier : **31%** (de ~49,000 à 33,787)
+- Réduction coût métier : **22%** (de 9,058 à 7,100)
 - ROI immédiat dès mise en production
 - Amélioration significative de la rentabilité
 
 **Visuel :** ![Importance features](reports/feature_importance.png)
 
-_Pitch : "Nos résultats sont très satisfaisants : -31% de coût métier, c'est une amélioration majeure ! Notre Random Forest avec under-sampling trouve le bon équilibre entre performance technique et impact business. L'AUC de 0.743 nous place dans la catégorie des modèles performants pour le crédit, et surtout, nous avons divisé les coûts métier par 1.5."_
+_Pitch : "Nos résultats sont très satisfaisants : -22% de coût métier, c'est une amélioration majeure ! Notre Random Forest trouve le bon équilibre entre performance technique et impact business. L'AUC de 0.736 nous place dans la catégorie des modèles performants pour le crédit, et surtout, nous avons réduit significativement les coûts métier."_
 
 ---
 
@@ -617,10 +617,10 @@ _Pitch : "Le monitoring, c'est notre assurance vie. Un modèle sans surveillance
 
 **1. Gains financiers directs :**
 
-- **Réduction coût métier** : -29% vs baseline (892 vs 1,250)
-- **ROI calculé** : Sur 10,000 décisions/mois = 3,580€ économisés/mois
-- **Projection annuelle** : 43,000€ d'économies avec même volume
-- **Break-even** : Projet rentabilisé en 2 mois de production
+- **Réduction coût métier** : -22% vs baseline (7,100 vs 9,058)
+- **ROI calculé** : Économies substantielles sur décisions/mois
+- **Projection annuelle** : Réduction significative des pertes crédit
+- **Break-even** : Projet rentabilisé rapidement
 
 **2. Bénéfices opérationnels :**
 
@@ -664,7 +664,7 @@ ROI immediate + qualité service client améliorée."_
 
 **Visuel :** Tableau de bord résultats
 
-_Pitch : "Les chiffres parlent d'eux-mêmes : -29% de coût, c'est 43,000€ d'économies annuelles. Mais au-delà des gains financiers, nous avons transformé le processus métier. Fini les décisions au feeling, place à l'objectivité algorithmique justifiée. Nous avons industrialisé l'expertise crédit tout en gardant l'humain dans la boucle pour les cas complexes."_
+_Pitch : "Les chiffres parlent d'eux-mêmes : -22% de coût métier, c'est une amélioration substantielle. Mais au-delà des gains financiers, nous avons transformé le processus métier. Fini les décisions au feeling, place à l'objectivité algorithmique justifiée. Nous avons industrialisé l'expertise crédit tout en gardant l'humain dans la boucle pour les cas complexes."_
 
 ---
 
@@ -707,7 +707,7 @@ _Pitch : "Les chiffres parlent d'eux-mêmes : -29% de coût, c'est 43,000€ d'�
 **🎯 SYNTHÈSE DES ACCOMPLISSEMENTS**
 
 **Innovation technique majeure :**
-✅ **Score métier optimisé** : -31% coût vs approche traditionnelle
+✅ **Score métier optimisé** : -22% coût vs approche traditionnelle
 ✅ **MLOps end-to-end** : De l'expérimentation à la production
 ✅ **IA explicable** : Transparence complète des décisions
 ✅ **Architecture modulaire** : Évolutive et maintenable
@@ -719,7 +719,7 @@ _Pitch : "Les chiffres parlent d'eux-mêmes : -29% de coût, c'est 43,000€ d'�
 ✅ **Gouvernance** : Tests + Monitoring + Versioning
 
 **Impact économique mesuré :**
-✅ **Réduction coût significative** : 31% d'amélioration vs baseline
+✅ **Réduction coût significative** : 22% d'amélioration vs baseline
 ✅ **Efficiency gains** : Décisions automatisées et explicables
 ✅ **Risk reduction** : Modèle Random Forest robuste et validé
 ✅ **Scalabilité** : Infrastructure production-ready
