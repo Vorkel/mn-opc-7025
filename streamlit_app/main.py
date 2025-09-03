@@ -282,18 +282,18 @@ def predict_score(client_data, model_data):
 
         # Modèle local (fallback)
         model = model_data.get("model")
-        
+
         # Vérifier que le modèle est disponible
         if model is None:
             logger.error("Aucun modèle local disponible")
             return {
                 "probability": 0.8,
-                "decision": "REFUSÉ", 
+                "decision": "REFUSÉ",
                 "risk_level": "Élevé",
                 "threshold": 0.5,
                 "validation_error": "Modèle indisponible - veuillez contacter le support"
             }
-            
+
         threshold = model_data.get("threshold", 0.5)
         feature_names = model_data.get("feature_names", [])
 
@@ -311,11 +311,11 @@ def predict_score(client_data, model_data):
         # Conversion en DataFrame
         df = pd.DataFrame([client_data])
 
-        # Utiliser le feature engineering existant dans src/
-        from src.feature_engineering import CreditFeatureEngineer
-        
-        feature_engineer = CreditFeatureEngineer()
-        df_engineered = feature_engineer.engineer_features(df)
+        # Utiliser le feature engineering existant dans scripts/
+        sys.path.append(str(Path(__file__).parent.parent / "scripts"))
+        from complete_feature_engineering import create_complete_feature_set
+
+        df_engineered = create_complete_feature_set(client_data)
 
         # Prédiction avec le DataFrame complet
         probabilities = model.predict_proba(df_engineered)

@@ -1,10 +1,15 @@
 # test_pipeline_avec_modele.py
 # Test du pipeline complet avec le modèle
 
+import sys
+from pathlib import Path
 import pandas as pd
 import joblib
 from sklearn.ensemble import RandomForestClassifier
-from complete_feature_engineering import create_complete_feature_set
+
+# Ajouter le chemin vers src
+sys.path.append(str(Path(__file__).parent.parent / "src"))
+from feature_engineering import CreditFeatureEngineer
 
 def test_avec_modele():
     """
@@ -15,7 +20,7 @@ def test_avec_modele():
 
     # Charger le modèle
     try:
-        model_dict = joblib.load('models/best_credit_model.pkl')
+        model_dict = joblib.load('../models/best_credit_model.pkl')
 
         if isinstance(model_dict, dict):
             model = model_dict['model']
@@ -63,8 +68,10 @@ def test_avec_modele():
         }
 
         print("\n🔧 GÉNÉRATION DES FEATURES")
-        # Générer les features
-        df_features = create_complete_feature_set(sample_data)
+        # Générer les features avec le feature engineer
+        df = pd.DataFrame([sample_data])
+        feature_engineer = CreditFeatureEngineer()
+        df_features = feature_engineer.engineer_features(df)
         print(f"✅ Features générées: {df_features.shape}")
 
         print("\n🎯 PRÉDICTION")

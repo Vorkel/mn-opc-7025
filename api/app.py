@@ -386,20 +386,20 @@ def preprocess_data(data: CreditRequest) -> pd.DataFrame:
         pd.DataFrame: Données prétraitées avec feature engineering
     """
     try:
-        # Ajouter le chemin src pour import
+        # Ajouter le chemin scripts pour import
         import sys
         from pathlib import Path
-        sys.path.append(str(Path(__file__).parent.parent / "src"))
-        
-        # Importer le feature engineer
-        from feature_engineering import CreditFeatureEngineer
-        
-        # Convertir en DataFrame
-        df = pd.DataFrame([data.dict()])
-        
+        sys.path.append(str(Path(__file__).parent.parent / "scripts"))
+
+        # Importer le feature engineer complet
+        from complete_feature_engineering import create_complete_feature_set
+
+        # Convertir les données en dictionnaire
+        client_data = data.dict()
+
         # Appliquer le même feature engineering que l'entraînement
-        feature_engineer = CreditFeatureEngineer()
-        df_processed = feature_engineer.engineer_features(df)
+        # Appliquer le feature engineering complet
+        df_processed = create_complete_feature_set(client_data)
 
         logger.info(f"Feature engineering appliqué: {len(df_processed.columns)} features générées")
         logger.info(f"Features utilisées: {list(df_processed.columns)}")
