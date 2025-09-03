@@ -22,7 +22,11 @@ def test_streamlit_integration() -> None:
     # Charger le modèle
     try:
         model_dict = joblib.load("models/best_credit_model.pkl")
-        model = model_dict["model"]
+        # Le modèle est maintenant directement le RandomForest, pas un dict
+        if isinstance(model_dict, dict) and "model" in model_dict:
+            model = model_dict["model"]
+        else:
+            model = model_dict
         print("✅ Modèle chargé")
     except Exception as e:
         print(f"❌ Erreur chargement modèle: {e}")

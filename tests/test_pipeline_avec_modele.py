@@ -21,9 +21,10 @@ def test_avec_modele() -> bool:
 
     # Charger le modèle
     try:
-        model_dict = joblib.load("../models/best_credit_model.pkl")
+        model_dict = joblib.load("models/best_credit_model.pkl")
 
-        if isinstance(model_dict, dict):
+        # Le modèle est maintenant directement le RandomForest, pas un dict
+        if isinstance(model_dict, dict) and "model" in model_dict:
             model = model_dict["model"]
             print("✅ Modèle chargé depuis dictionnaire")
         else:

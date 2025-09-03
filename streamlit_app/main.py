@@ -30,7 +30,14 @@ st.set_page_config(
 # Configuration de l'API distante
 API_BASE_URL = "https://mn-opc-7025.onrender.com"
 API_TIMEOUT = 30
-USE_REMOTE_API = True
+
+# Configuration automatique basée sur l'environnement
+import os
+IS_PRODUCTION = (
+    os.getenv('STREAMLIT_ENV') == 'production' or
+    os.getenv('RENDER') is not None
+)
+USE_REMOTE_API = IS_PRODUCTION  # True en production, False en local
 
 # Chemins des fichiers
 BASE_DIR = Path(__file__).parent.parent
@@ -60,7 +67,7 @@ def load_model(force_reload=False):
                     health_data = response.json()
                     return {
                         "model": None,
-                        "threshold": 0.5,
+                        "threshold": 0.295,  # Seuil métier optimisé
                         "scaler": None,
                         "feature_names": [],
                         "loaded_from": "API distante",
@@ -90,17 +97,34 @@ def load_model(force_reload=False):
                 if model_path.exists():
                     try:
                         model_data = joblib.load(model_path)
-                        # Vérifier que le modèle est valide
-                        if (
+
+                        # Vérifier le type de modèle chargé
+                        if hasattr(model_data, 'predict'):
+                            # C'est directement un modèle sklearn
+                            from sklearn.preprocessing import StandardScaler
+                            scaler = StandardScaler()
+                            st.info(
+                                f"Modèle RandomForest chargé directement depuis "
+                                f"{model_path}"
+                            )
+
+                            return {
+                                "model": model_data,
+                                "threshold": 0.295,  # Seuil métier optimisé
+                                "scaler": scaler,
+                                "feature_names": [],
+                                "loaded_from": str(model_path),
+                                "api_status": "local",
+                            }
+                        elif (
                             model_data
                             and "model" in model_data
                             and model_data["model"] is not None
                         ):
-                            # Créer un scaler par défaut si manquant
+                            # C'est un dictionnaire avec le modèle
                             scaler = model_data.get("scaler")
                             if scaler is None:
                                 from sklearn.preprocessing import StandardScaler
-
                                 scaler = StandardScaler()
                                 st.info("Scaler par défaut créé (StandardScaler)")
 
@@ -128,161 +152,167 @@ def load_model(force_reload=False):
 
 def create_full_feature_set(df):
     """Crée le jeu complet de 153 features attendues par le modèle"""
-    # Liste des features exactes attendues par le modèle
-    expected_features = [
-        "NAME_CONTRACT_TYPE",
-        "CODE_GENDER",
-        "FLAG_OWN_CAR",
-        "FLAG_OWN_REALTY",
-        "CNT_CHILDREN",
-        "AMT_INCOME_TOTAL",
-        "AMT_CREDIT",
-        "AMT_ANNUITY",
-        "AMT_GOODS_PRICE",
-        "NAME_TYPE_SUITE",
-        "NAME_INCOME_TYPE",
-        "NAME_EDUCATION_TYPE",
-        "NAME_FAMILY_STATUS",
-        "NAME_HOUSING_TYPE",
-        "REGION_POPULATION_RELATIVE",
-        "DAYS_BIRTH",
-        "DAYS_EMPLOYED",
-        "DAYS_REGISTRATION",
-        "DAYS_ID_PUBLISH",
-        "OWN_CAR_AGE",
-        "FLAG_MOBIL",
-        "FLAG_EMP_PHONE",
-        "FLAG_WORK_PHONE",
-        "FLAG_CONT_MOBILE",
-        "FLAG_PHONE",
-        "FLAG_EMAIL",
-        "OCCUPATION_TYPE",
-        "CNT_FAM_MEMBERS",
-        "REGION_RATING_CLIENT",
-        "REGION_RATING_CLIENT_W_CITY",
-        "WEEKDAY_APPR_PROCESS_START",
-        "HOUR_APPR_PROCESS_START",
-        "REG_REGION_NOT_LIVE_REGION",
-        "REG_REGION_NOT_WORK_REGION",
-        "LIVE_REGION_NOT_WORK_REGION",
-        "REG_CITY_NOT_LIVE_CITY",
-        "REG_CITY_NOT_WORK_CITY",
-        "LIVE_CITY_NOT_WORK_CITY",
-        "ORGANIZATION_TYPE",
-        "EXT_SOURCE_1",
-        "EXT_SOURCE_2",
-        "EXT_SOURCE_3",
-        "APARTMENTS_AVG",
-        "BASEMENTAREA_AVG",
-        "YEARS_BEGINEXPLUATATION_AVG",
-        "YEARS_BUILD_AVG",
-        "COMMONAREA_AVG",
-        "ELEVATORS_AVG",
-        "ENTRANCES_AVG",
-        "FLOORSMAX_AVG",
-        "FLOORSMIN_AVG",
-        "LANDAREA_AVG",
-        "LIVINGAPARTMENTS_AVG",
-        "LIVINGAREA_AVG",
-        "NONLIVINGAPARTMENTS_AVG",
-        "NONLIVINGAREA_AVG",
-        "APARTMENTS_MODE",
-        "BASEMENTAREA_MODE",
-        "YEARS_BEGINEXPLUATATION_MODE",
-        "YEARS_BUILD_MODE",
-        "COMMONAREA_MODE",
-        "ELEVATORS_MODE",
-        "ENTRANCES_MODE",
-        "FLOORSMAX_MODE",
-        "FLOORSMIN_MODE",
-        "LANDAREA_MODE",
-        "LIVINGAPARTMENTS_MODE",
-        "LIVINGAREA_MODE",
-        "NONLIVINGAPARTMENTS_MODE",
-        "NONLIVINGAREA_MODE",
-        "APARTMENTS_MEDI",
-        "BASEMENTAREA_MEDI",
-        "YEARS_BEGINEXPLUATATION_MEDI",
-        "YEARS_BUILD_MEDI",
-        "COMMONAREA_MEDI",
-        "ELEVATORS_MEDI",
-        "ENTRANCES_MEDI",
-        "FLOORSMAX_MEDI",
-        "FLOORSMIN_MEDI",
-        "LANDAREA_MEDI",
-        "LIVINGAPARTMENTS_MEDI",
-        "LIVINGAREA_MEDI",
-        "NONLIVINGAPARTMENTS_MEDI",
-        "NONLIVINGAREA_MEDI",
-        "FONDKAPREMONT_MODE",
-        "HOUSETYPE_MODE",
-        "TOTALAREA_MODE",
-        "WALLSMATERIAL_MODE",
-        "EMERGENCYSTATE_MODE",
-        "OBS_30_CNT_SOCIAL_CIRCLE",
-        "DEF_30_CNT_SOCIAL_CIRCLE",
-        "OBS_60_CNT_SOCIAL_CIRCLE",
-        "DEF_60_CNT_SOCIAL_CIRCLE",
-        "DAYS_LAST_PHONE_CHANGE",
-        "FLAG_DOCUMENT_2",
-        "FLAG_DOCUMENT_3",
-        "FLAG_DOCUMENT_4",
-        "FLAG_DOCUMENT_5",
-        "FLAG_DOCUMENT_6",
-        "FLAG_DOCUMENT_7",
-        "FLAG_DOCUMENT_8",
-        "FLAG_DOCUMENT_9",
-        "FLAG_DOCUMENT_10",
-        "FLAG_DOCUMENT_11",
-        "FLAG_DOCUMENT_12",
-        "FLAG_DOCUMENT_13",
-        "FLAG_DOCUMENT_14",
-        "FLAG_DOCUMENT_15",
-        "FLAG_DOCUMENT_16",
-        "FLAG_DOCUMENT_17",
-        "FLAG_DOCUMENT_18",
-        "FLAG_DOCUMENT_19",
-        "FLAG_DOCUMENT_20",
-        "FLAG_DOCUMENT_21",
-        "AMT_REQ_CREDIT_BUREAU_HOUR",
-        "AMT_REQ_CREDIT_BUREAU_DAY",
-        "AMT_REQ_CREDIT_BUREAU_WEEK",
-        "AMT_REQ_CREDIT_BUREAU_MON",
-        "AMT_REQ_CREDIT_BUREAU_QRT",
-        "AMT_REQ_CREDIT_BUREAU_YEAR",
-        "AGE_YEARS",
-        "EMPLOYMENT_YEARS",
-        "DAYS_EMPLOYED_ABNORMAL",
-        "YEARS_SINCE_REGISTRATION",
-        "YEARS_SINCE_ID_PUBLISH",
-        "AGE_GROUP",
-        "EMPLOYMENT_GROUP",
-        "AGE_EMPLOYMENT_RATIO",
-        "CREDIT_INCOME_RATIO",
-        "ANNUITY_INCOME_RATIO",
-        "CREDIT_GOODS_RATIO",
-        "ANNUITY_CREDIT_RATIO",
-        "CREDIT_DURATION",
-        "INCOME_PER_PERSON",
-        "CREDIT_PER_PERSON",
-        "INCOME_GROUP",
-        "CREDIT_GROUP",
-        "OWNS_PROPERTY",
-        "OWNS_NEITHER",
-        "CONTACT_SCORE",
-        "DOCUMENT_SCORE",
-        "REGION_SCORE_NORMALIZED",
-        "EXT_SOURCES_MEAN",
-        "EXT_SOURCES_MAX",
-        "EXT_SOURCES_MIN",
-        "EXT_SOURCES_STD",
-        "EXT_SOURCES_COUNT",
-        "AGE_EXT_SOURCES_INTERACTION",
-        "AMT_ANNUITY_MISSING",
-        "AMT_GOODS_PRICE_MISSING",
-        "DAYS_EMPLOYED_MISSING",
-        "CNT_FAM_MEMBERS_MISSING",
-        "DAYS_REGISTRATION_MISSING",
+    # Utiliser notre feature engineering centralisé
+    try:
+        from feature_engineering import create_complete_feature_set
+        return create_complete_feature_set(df)
+    except ImportError:
+        # Fallback vers l'ancien système
+        expected_features = [
+            "NAME_CONTRACT_TYPE",
+            "CODE_GENDER",
+            "FLAG_OWN_CAR",
+            "FLAG_OWN_REALTY",
+            "CNT_CHILDREN",
+            "AMT_INCOME_TOTAL",
+            "AMT_CREDIT",
+            "AMT_ANNUITY",
+            "AMT_GOODS_PRICE",
+            "NAME_TYPE_SUITE",
+            "NAME_INCOME_TYPE",
+            "NAME_EDUCATION_TYPE",
+            "NAME_FAMILY_STATUS",
+            "NAME_HOUSING_TYPE",
+            "REGION_POPULATION_RELATIVE",
+            "DAYS_BIRTH",
+            "DAYS_EMPLOYED",
+            "DAYS_REGISTRATION",
+            "DAYS_ID_PUBLISH",
+            "OWN_CAR_AGE",
+            "FLAG_MOBIL",
+            "FLAG_EMP_PHONE",
+            "FLAG_WORK_PHONE",
+            "FLAG_CONT_MOBILE",
+            "FLAG_PHONE",
+            "FLAG_EMAIL",
+            "OCCUPATION_TYPE",
+            "CNT_FAM_MEMBERS",
+            "REGION_RATING_CLIENT",
+            "REGION_RATING_CLIENT_W_CITY",
+            "WEEKDAY_APPR_PROCESS_START",
+            "HOUR_APPR_PROCESS_START",
+            "REG_REGION_NOT_LIVE_REGION",
+            "REG_REGION_NOT_WORK_REGION",
+            "LIVE_REGION_NOT_WORK_REGION",
+            "REG_CITY_NOT_LIVE_CITY",
+            "REG_CITY_NOT_WORK_CITY",
+            "LIVE_CITY_NOT_WORK_CITY",
+            "ORGANIZATION_TYPE",
+            "EXT_SOURCE_1",
+            "EXT_SOURCE_2",
+            "EXT_SOURCE_3",
+            "APARTMENTS_AVG",
+            "BASEMENTAREA_AVG",
+            "YEARS_BEGINEXPLUATATION_AVG",
+            "YEARS_BUILD_AVG",
+            "COMMONAREA_AVG",
+            "ELEVATORS_AVG",
+            "ENTRANCES_AVG",
+            "FLOORSMAX_AVG",
+            "FLOORSMIN_AVG",
+            "LANDAREA_AVG",
+            "LIVINGAPARTMENTS_AVG",
+            "LIVINGAREA_AVG",
+            "NONLIVINGAPARTMENTS_AVG",
+            "NONLIVINGAREA_AVG",
+            "APARTMENTS_MODE",
+            "BASEMENTAREA_MODE",
+            "YEARS_BEGINEXPLUATATION_MODE",
+            "YEARS_BUILD_MODE",
+            "COMMONAREA_MODE",
+            "ELEVATORS_MODE",
+            "ENTRANCES_MODE",
+            "FLOORSMAX_MODE",
+            "FLOORSMIN_MODE",
+            "LANDAREA_MODE",
+            "LIVINGAPARTMENTS_MODE",
+            "LIVINGAREA_MODE",
+            "NONLIVINGAPARTMENTS_MODE",
+            "NONLIVINGAREA_MODE",
+            "APARTMENTS_MEDI",
+            "BASEMENTAREA_MEDI",
+            "YEARS_BEGINEXPLUATATION_MEDI",
+            "YEARS_BUILD_MEDI",
+            "COMMONAREA_MEDI",
+            "ELEVATORS_MEDI",
+            "ENTRANCES_MEDI",
+            "FLOORSMAX_MEDI",
+            "FLOORSMIN_MEDI",
+            "LANDAREA_MEDI",
+            "LIVINGAPARTMENTS_MEDI",
+            "LIVINGAREA_MEDI",
+            "NONLIVINGAPARTMENTS_MEDI",
+            "NONLIVINGAREA_MEDI",
+            "FONDKAPREMONT_MODE",
+            "HOUSETYPE_MODE",
+            "TOTALAREA_MODE",
+            "WALLSMATERIAL_MODE",
+            "EMERGENCYSTATE_MODE",
+            "OBS_30_CNT_SOCIAL_CIRCLE",
+            "DEF_30_CNT_SOCIAL_CIRCLE",
+            "OBS_60_CNT_SOCIAL_CIRCLE",
+            "OBS_60_CNT_SOCIAL_CIRCLE",
+            "DEF_60_CNT_SOCIAL_CIRCLE",
+            "DAYS_LAST_PHONE_CHANGE",
+            "FLAG_DOCUMENT_2",
+            "FLAG_DOCUMENT_3",
+            "FLAG_DOCUMENT_4",
+            "FLAG_DOCUMENT_5",
+            "FLAG_DOCUMENT_6",
+            "FLAG_DOCUMENT_7",
+            "FLAG_DOCUMENT_8",
+            "FLAG_DOCUMENT_9",
+            "FLAG_DOCUMENT_10",
+            "FLAG_DOCUMENT_11",
+            "FLAG_DOCUMENT_12",
+            "FLAG_DOCUMENT_13",
+            "FLAG_DOCUMENT_14",
+            "FLAG_DOCUMENT_15",
+            "FLAG_DOCUMENT_16",
+            "FLAG_DOCUMENT_17",
+            "FLAG_DOCUMENT_18",
+            "FLAG_DOCUMENT_19",
+            "FLAG_DOCUMENT_20",
+            "FLAG_DOCUMENT_21",
+            "AMT_REQ_CREDIT_BUREAU_HOUR",
+            "AMT_REQ_CREDIT_BUREAU_DAY",
+            "AMT_REQ_CREDIT_BUREAU_WEEK",
+            "AMT_REQ_CREDIT_BUREAU_MON",
+            "AMT_REQ_CREDIT_BUREAU_QRT",
+            "AMT_REQ_CREDIT_BUREAU_YEAR",
+            "AGE_YEARS",
+            "EMPLOYMENT_YEARS",
+            "DAYS_EMPLOYED_ABNORMAL",
+            "YEARS_SINCE_REGISTRATION",
+            "YEARS_SINCE_ID_PUBLISH",
+            "AGE_GROUP",
+            "EMPLOYMENT_GROUP",
+            "AGE_EMPLOYMENT_RATIO",
+            "CREDIT_INCOME_RATIO",
+            "ANNUITY_INCOME_RATIO",
+            "CREDIT_GOODS_RATIO",
+            "ANNUITY_CREDIT_RATIO",
+            "CREDIT_DURATION",
+            "INCOME_PER_PERSON",
+            "CREDIT_PER_PERSON",
+            "INCOME_GROUP",
+            "CREDIT_GROUP",
+            "OWNS_PROPERTY",
+            "OWNS_NEITHER",
+            "CONTACT_SCORE",
+            "DOCUMENT_SCORE",
+            "REGION_SCORE_NORMALIZED",
+            "EXT_SOURCES_MEAN",
+            "EXT_SOURCES_MAX",
+            "EXT_SOURCES_MIN",
+            "EXT_SOURCES_STD",
+            "EXT_SOURCES_COUNT",
+            "AGE_EXT_SOURCES_INTERACTION",
+            "AMT_ANNUITY_MISSING",
+            "AMT_GOODS_PRICE_MISSING",
+            "DAYS_EMPLOYED_MISSING",
+            "CNT_FAM_MEMBERS_MISSING",
+            "DAYS_REGISTRATION_MISSING",
     ]
 
     df_full = df.copy()
@@ -310,12 +340,6 @@ def create_full_feature_set(df):
                 df_full[feature] = 0.5
             else:
                 df_full[feature] = 0.5
-
-    # S'assurer que les colonnes sont dans le bon ordre
-    df_final = df_full[expected_features]
-
-    return df_final
-
 
 def validate_business_rules(client_data):
     """Valide les règles métier avant prédiction"""
@@ -413,7 +437,7 @@ def predict_score(client_data, model_data):
                 "probability": 0.8,
                 "decision": "REFUSÉ",
                 "risk_level": "Élevé",
-                "threshold": 0.5,
+                "threshold": 0.295,  # Seuil métier optimisé
                 "validation_error": (
                     "Modèle indisponible - veuillez contacter le support"
                 ),

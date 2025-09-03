@@ -3,10 +3,9 @@
 
 import pandas as pd
 import numpy as np
-from datetime import datetime
 
 
-def create_complete_feature_set(client_data) -> pd.DataFrame:
+def create_complete_feature_set(client_data: dict | pd.DataFrame) -> pd.DataFrame:
     """
     Génère les 153 features complètes attendues par le modèle à partir des
     données de base du client.
@@ -79,8 +78,9 @@ def create_complete_feature_set(client_data) -> pd.DataFrame:
 
     # Variables catégorielles de base
     categorical_vars = [
-        "NAME_INCOME_TYPE", "NAME_EDUCATION_TYPE", "NAME_FAMILY_STATUS",
-        "NAME_HOUSING_TYPE", "OCCUPATION_TYPE", "ORGANIZATION_TYPE"
+        "NAME_TYPE_SUITE", "NAME_INCOME_TYPE", "NAME_EDUCATION_TYPE",
+        "NAME_FAMILY_STATUS", "NAME_HOUSING_TYPE", "OCCUPATION_TYPE",
+        "ORGANIZATION_TYPE"
     ]
 
     # Variables de flag
@@ -115,7 +115,7 @@ def create_complete_feature_set(client_data) -> pd.DataFrame:
             elif var == "DAYS_ID_PUBLISH":
                 df[var] = -3000  # ~8.2 ans depuis publication ID
             elif var == "OWN_CAR_AGE":
-                df[var] = None  # Pas de voiture par défaut
+                df[var] = 0  # Pas de voiture par défaut
 
     for var in numeric_vars:
         if var not in df.columns:
@@ -154,6 +154,8 @@ def create_complete_feature_set(client_data) -> pd.DataFrame:
                 df[var] = "House / apartment"
             elif var == "OCCUPATION_TYPE":
                 df[var] = "Laborers"
+            elif var == "NAME_TYPE_SUITE":
+                df[var] = "Unaccompanied"  # Valeur par défaut
             elif var == "ORGANIZATION_TYPE":
                 df[var] = "Business Entity Type 3"
 
@@ -162,7 +164,9 @@ def create_complete_feature_set(client_data) -> pd.DataFrame:
             if var in ["FLAG_MOBIL", "FLAG_CONT_MOBILE"]:
                 df[var] = 1  # La plupart ont un mobile
             else:
-                df[var] = 0  # Par défaut pas de contact    # ========================================================================================
+                df[var] = 0  # Par défaut pas de contact
+
+    # ========================================================================================
     # 2. EXTERNAL SOURCES (3 features)
     # ========================================================================================
 
@@ -645,10 +649,16 @@ def create_complete_feature_set(client_data) -> pd.DataFrame:
     ]
 
     # S'assurer que toutes les features sont présentes
+    missing_features_dict = {}
     for feature in expected_features:
         if feature not in df.columns:
             print(f"⚠️ Feature manquante ajoutée: {feature}")
-            df[feature] = 0.0
+            missing_features_dict[feature] = 0.0
+
+    # Ajouter toutes les features manquantes en une seule fois
+    if missing_features_dict:
+        missing_df = pd.DataFrame([missing_features_dict] * len(df))
+        df = pd.concat([df, missing_df], axis=1)
 
     # Réorganiser les colonnes dans l'ordre attendu
     df_final = df[expected_features].copy()

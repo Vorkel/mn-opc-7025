@@ -28,12 +28,26 @@ print("\nChargement du modèle et des données...")
 print("=" * 40)
 
 try:
-    # Charger le modèle sauvegardé
-    model_data = joblib.load("models/best_credit_model.pkl")
-    model = model_data["model"]
-    feature_names = model_data["feature_names"]
+    # Charger le modèle entraîné
+    model_path = "models/best_credit_model.pkl"
+    print(f"Chargement du modèle depuis: {model_path}")
 
-    print(f"Modèle chargé: {model_data['model_name']}")
+    model_dict = joblib.load(model_path)
+    # Le modèle est maintenant directement le RandomForest, pas un dict
+    if isinstance(model_dict, dict) and "model" in model_dict:
+        model = model_dict["model"]
+        feature_names = model_dict.get("feature_names", [f"feature_{i}" for i in range(153)])
+        print(f"Modèle chargé: {model_dict.get('model_name', 'RandomForest')}")
+    else:
+        model = model_dict
+        feature_names = [f"feature_{i}" for i in range(153)]
+        print(f"Modèle chargé: RandomForestClassifier")
+
+    # Remplacer model_data par des valeurs directes
+    model_data = {
+        "model_name": "RandomForestClassifier",
+        "feature_names": feature_names
+    }
     print(f"Features: {len(feature_names)}")
 
     # Charger les données
