@@ -18,7 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from pydantic import BaseModel, Field
 
-from security import (
+from .security import (
     SecurityMiddleware,
     check_rate_limit_dependency,
     setup_security_logging,
