@@ -1,0 +1,10 @@
+artifact_location: file:///Users/maximenejad/Developer/OPC/P7-8/mlruns/199911806239249832/models/m-5b03fb60a1db4a79a1874568df423703/artifacts
+creation_timestamp: 1757674437934
+experiment_id: '199911806239249832'
+last_updated_timestamp: 1757674439867
+model_id: m-5b03fb60a1db4a79a1874568df423703
+model_type: null
+name: model
+source_run_id: ad68022fb9314867ad2f61efa58714f7
+status: 2
+status_message: null

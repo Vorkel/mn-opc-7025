@@ -23,9 +23,9 @@ Ce projet implémente un **système complet MLOps** pour le scoring crédit, con
 ### Modèle ML Avancé
 
 - **RandomForest optimisé** avec SMOTE pour déséquilibre
-- **Score métier** : seuil optimal calculé (0.16 vs 0.5 par défaut)
-- **Métriques** : AUC 0.48, coût optimisé à 1591€
-- **Feature importance** : 16 features clés sélectionnées
+- **Score métier** : seuil optimal calculé dynamiquement
+- **Métriques** : AUC 0.736, coût optimisé à 7100€ (-22% vs baseline)
+- **Feature importance** : 153 features avec top 5 : EXT_SOURCES, AGE, CREDIT_RATIOS
 
 ### API Production
 
@@ -139,12 +139,12 @@ graph TB
 
 ### Modèle ML
 
-| Métrique          | Valeur | Commentaire            |
-| ----------------- | ------ | ---------------------- |
-| **AUC-ROC**       | 0.48   | Performance équilibrée |
-| **Coût Métier**   | 1591€  | Optimisé vs baseline   |
-| **Seuil Optimal** | 0.16   | vs 0.5 par défaut      |
-| **Features**      | 16     | Sélection optimale     |
+| Métrique          | Valeur    | Commentaire                       |
+| ----------------- | --------- | --------------------------------- |
+| **AUC-ROC**       | 0.736     | Performance élevée                |
+| **Coût Métier**   | 7100€     | Optimisé (-22% vs baseline 9058€) |
+| **Seuil Optimal** | Dynamique | Calculé selon coûts FN=10×FP      |
+| **Features**      | 153       | Engineering avancé                |
 
 ### Système
 

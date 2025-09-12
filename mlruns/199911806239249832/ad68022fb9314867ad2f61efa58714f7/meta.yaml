@@ -1,0 +1,14 @@
+artifact_uri: file:///Users/maximenejad/Developer/OPC/P7-8/mlruns/199911806239249832/ad68022fb9314867ad2f61efa58714f7/artifacts
+end_time: 1757674439868
+entry_point_name: ''
+experiment_id: '199911806239249832'
+lifecycle_stage: active
+run_id: ad68022fb9314867ad2f61efa58714f7
+run_name: RandomForest_Run_4
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1757674437792
+status: 3
+tags: []
+user_id: maximenejad

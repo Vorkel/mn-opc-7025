@@ -1,0 +1,10 @@
+artifact_location: file:///Users/maximenejad/Developer/OPC/P7-8/mlruns/199911806239249832/models/m-39fd5f8d03134e1d9bcd1f9e7ae8846a/artifacts
+creation_timestamp: 1757674460137
+experiment_id: '199911806239249832'
+last_updated_timestamp: 1757674462019
+model_id: m-39fd5f8d03134e1d9bcd1f9e7ae8846a
+model_type: null
+name: credit_scoring_model
+source_run_id: cd3acadf067d43c6a6a2739519cdd7a5
+status: 2
+status_message: null
