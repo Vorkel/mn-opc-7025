@@ -11,6 +11,7 @@
 .cursor/
 .claude/
 .windsurf/
+.specstory/
 .vscode/tasks.json
 .vscode/keybindings.json
 .githooks/

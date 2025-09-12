@@ -112,7 +112,7 @@ uvicorn app:app --reload --port 8000
 ```mermaid
 graph TB
     subgraph "Interface Utilisateur"
-        STREAMLIT[Dashboard Streamlit<br/>Design Épuré OpenClassrooms]
+        STREAMLIT[Dashboard Streamlit<br/>Design Épuré]
         API_DOC[Documentation API<br/>FastAPI Swagger]
     end
 
