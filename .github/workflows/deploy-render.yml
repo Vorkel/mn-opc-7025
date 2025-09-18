@@ -30,20 +30,20 @@ jobs:
           RENDER_WEBHOOK_URL: ${{ secrets.RENDER_WEBHOOK_URL }}
         run: |
           if [ -n "$RENDER_WEBHOOK_URL" ]; then
-            echo "🚀 Déclenchement du déploiement sur Render..."
+            echo "Déclenchement du déploiement sur Render..."
             curl -X POST "$RENDER_WEBHOOK_URL" \
               -H "Content-Type: application/json" \
               -d '{"ref": "'${{ github.ref }}'", "sha": "'${{ github.sha }}'"}'
-            echo "✅ Déploiement déclenché"
+            echo "Déploiement déclenché"
           else
-            echo "⚠️ RENDER_WEBHOOK_URL non configuré, déploiement manuel requis"
+            echo "RENDER_WEBHOOK_URL non configuré, déploiement manuel requis"
           fi
 
       - name: Notification de déploiement
         if: always()
         run: |
           if [ "${{ job.status }}" == "success" ]; then
-            echo "✅ Déploiement réussi sur Render"
+            echo "Déploiement réussi sur Render"
           else
-            echo "❌ Échec du déploiement sur Render"
+            echo "Échec du déploiement sur Render"
           fi

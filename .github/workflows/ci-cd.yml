@@ -75,7 +75,7 @@ jobs:
           timeout 30s python -c "
           import uvicorn
           from api.app import app
-          print('✅ API importée avec succès')
+          print('API importée avec succès')
           " || exit 1
 
       - name: Validate API endpoints
@@ -86,7 +86,7 @@ jobs:
           required_routes = ['/health', '/predict', '/docs']
           missing = [r for r in required_routes if r not in routes]
           if missing:
-              print(f'❌ Routes manquantes: {missing}')
+              print(f'Routes manquantes: {missing}')
               exit(1)
           print('✅ Toutes les routes requises sont présentes')
           "
@@ -114,7 +114,7 @@ jobs:
           timeout 30s python -c "
           import streamlit as st
           from streamlit_app.main import main
-          print('✅ Streamlit app importée avec succès')
+          print('Streamlit app importée avec succès')
           " || exit 1
 
   # Build et package
@@ -149,7 +149,7 @@ jobs:
           if [ -f "render.yaml" ]; then
               echo "render.yaml présent"
           else
-              echo "❌ render.yaml manquant"
+              echo "render.yaml manquant"
               exit 1
           fi
 
@@ -157,7 +157,7 @@ jobs:
           if [ -f "requirements_minimal.txt" ]; then
               echo "requirements_minimal.txt présent"
           else
-              echo "❌ requirements_minimal.txt manquant"
+              echo "requirements_minimal.txt manquant"
               exit 1
           fi
 
@@ -165,7 +165,7 @@ jobs:
           if [ -f "streamlit_app/.streamlit/config.toml" ]; then
               echo "Streamlit config présent"
           else
-              echo "❌ Streamlit config manquant"
+              echo "Streamlit config manquant"
               exit 1
           fi
 
@@ -192,14 +192,14 @@ jobs:
         if: ${{ needs.build.result == 'success' }}
         run: |
           echo "Pipeline CI/CD réussi!"
-          echo "✅ Tests: ${{ needs.test.result }}"
-          echo "✅ API Validation: ${{ needs.validate-api.result }}"
-          echo "✅ Streamlit Validation: ${{ needs.validate-streamlit.result }}"
-          echo "✅ Build: ${{ needs.build.result }}"
+          echo "Tests: ${{ needs.test.result }}"
+          echo "API Validation: ${{ needs.validate-api.result }}"
+          echo "Streamlit Validation: ${{ needs.validate-streamlit.result }}"
+          echo "Build: ${{ needs.build.result }}"
           echo ""
           echo "Prêt pour le déploiement sur:"
           echo "   - Render.com (API): https://mn-opc-7025.onrender.com"
-          echo "   - Streamlit Cloud (UI): Votre app Streamlit"
+          echo "   - Streamlit Cloud (UI): https://mn-opc-7025.streamlit.app"
 
       - name: Notify failure
         if: ${{ needs.test.result == 'failure' || needs.validate-api.result == 'failure' || needs.validate-streamlit.result == 'failure' || needs.build.result == 'failure' }}

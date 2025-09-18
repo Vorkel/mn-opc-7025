@@ -52,12 +52,12 @@ jobs:
                       model_path = os.path.join(models_dir, file)
                       try:
                           model = joblib.load(model_path)
-                          print(f'✅ Modèle {file} chargé avec succès')
+                          print(f'Modèle {file} chargé avec succès')
                       except Exception as e:
-                          print(f'❌ Erreur chargement {file}: {e}')
+                          print(f'Erreur chargement {file}: {e}')
                           exit(1)
           else:
-              print('⚠️ Dossier models/ non trouvé')
+              print('Dossier models/ non trouvé')
           "
 
       - name: Upload des résultats de couverture
