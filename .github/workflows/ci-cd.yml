@@ -1,4 +1,5 @@
 # .github/workflows/ci-cd.yml
+# Force new build - test_feature_alignment.py removed
 name: CI/CD Pipeline - Credit Scoring MLOps
 
 on:
