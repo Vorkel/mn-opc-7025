@@ -3,9 +3,9 @@ name: CI/CD Pipeline - Credit Scoring MLOps
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, master]
   pull_request:
-    branches: [main]
+    branches: [main, master]
 
 env:
   PYTHON_VERSION: "3.11"
@@ -27,23 +27,38 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements_minimal.txt
-          pip install pytest pytest-cov flake8 black
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+
+      - name: Install project
+        run: poetry install --no-interaction
 
       - name: Run tests
         run: |
-          pytest tests/ -v --cov=src --cov=api --cov=streamlit_app --cov-report=xml
+          poetry run pytest tests/ -v --cov=src --cov=api --cov=streamlit_app --cov-report=xml
 
       - name: Run linting
         run: |
-          flake8 src/ api/ streamlit_app/ tests/ --max-line-length=100 --ignore=E501,W503
+          poetry run flake8 src/ api/ streamlit_app/ tests/ --max-line-length=100 --ignore=E501,W503
 
       - name: Run code formatting check
         run: |
-          black --check src/ api/ streamlit_app/ tests/
+          poetry run black --check src/ api/ streamlit_app/ tests/
 
       - name: Upload coverage to Codecov
         if: github.event_name == 'push'
@@ -66,13 +81,19 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install API dependencies
-        run: |
-          pip install -r requirements_minimal.txt
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
 
       - name: Test API startup
         run: |
-          timeout 30s python -c "
+          timeout 30s poetry run python -c "
           import uvicorn
           from api.app import app
           print('✅ API importée avec succès')
@@ -80,7 +101,7 @@ jobs:
 
       - name: Validate API endpoints
         run: |
-          python -c "
+          poetry run python -c "
           from api.app import app
           routes = [route.path for route in app.routes]
           required_routes = ['/health', '/predict', '/docs']
@@ -105,13 +126,19 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install Streamlit dependencies
-        run: |
-          pip install -r streamlit_app/requirements.txt
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
 
       - name: Test Streamlit startup
         run: |
-          timeout 30s python -c "
+          timeout 30s poetry run python -c "
           import streamlit as st
           from streamlit_app.main import main
           print('✅ Streamlit app importée avec succès')
@@ -121,7 +148,7 @@ jobs:
   build:
     needs: [test, validate-api, validate-streamlit]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
 
     steps:
       - name: Checkout code
@@ -132,14 +159,21 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Generate requirements files
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Export requirements for deployment
         run: |
-          echo "Génération des fichiers requirements..."
-          echo "API requirements:"
-          cat requirements_minimal.txt
-          echo ""
-          echo "Streamlit requirements:"
-          cat streamlit_app/requirements.txt
+          echo "Génération des fichiers requirements pour déploiement..."
+          poetry export -f requirements.txt --output requirements_deploy.txt --without-hashes
+          echo "✅ requirements_deploy.txt généré"
 
       - name: Validate deployment files
         run: |
@@ -147,23 +181,23 @@ jobs:
 
           # Vérifier render.yaml
           if [ -f "render.yaml" ]; then
-              echo "render.yaml présent"
+              echo "✅ render.yaml présent"
           else
               echo "❌ render.yaml manquant"
               exit 1
           fi
 
-          # Vérifier requirements_minimal.txt
-          if [ -f "requirements_minimal.txt" ]; then
-              echo "requirements_minimal.txt présent"
+          # Vérifier requirements_deploy.txt
+          if [ -f "requirements_deploy.txt" ]; then
+              echo "✅ requirements_deploy.txt généré"
           else
-              echo "❌ requirements_minimal.txt manquant"
+              echo "❌ requirements_deploy.txt manquant"
               exit 1
           fi
 
           # Vérifier .streamlit/config.toml
           if [ -f "streamlit_app/.streamlit/config.toml" ]; then
-              echo "Streamlit config présent"
+              echo "✅ Streamlit config présent"
           else
               echo "❌ Streamlit config manquant"
               exit 1
@@ -175,8 +209,7 @@ jobs:
           name: deployment-files
           path: |
             render.yaml
-            requirements_minimal.txt
-            streamlit_app/requirements.txt
+            requirements_deploy.txt
             streamlit_app/.streamlit/
             streamlit_app/runtime.txt
             streamlit_app/setup.sh
@@ -189,24 +222,14 @@ jobs:
 
     steps:
       - name: Notify success
-        if: ${{ needs.build.result == 'success' }}
+        if: ${{ needs.test.result == 'success' && needs.validate-api.result == 'success' && needs.validate-streamlit.result == 'success' && needs.build.result == 'success' }}
         run: |
-          echo "Pipeline CI/CD réussi!"
-          echo "✅ Tests: ${{ needs.test.result }}"
-          echo "✅ API Validation: ${{ needs.validate-api.result }}"
-          echo "✅ Streamlit Validation: ${{ needs.validate-streamlit.result }}"
-          echo "✅ Build: ${{ needs.build.result }}"
-          echo ""
-          echo "Prêt pour le déploiement sur:"
-          echo "   - Render.com (API): https://mn-opc-7025.onrender.com"
-          echo "   - Streamlit Cloud (UI): Votre app Streamlit"
+          echo "✅ Pipeline CI/CD terminé avec succès"
+          echo "Tous les tests passent, l'API et Streamlit sont validés"
 
       - name: Notify failure
         if: ${{ needs.test.result == 'failure' || needs.validate-api.result == 'failure' || needs.validate-streamlit.result == 'failure' || needs.build.result == 'failure' }}
         run: |
-          echo "Pipeline CI/CD échoué!"
-          echo "Tests: ${{ needs.test.result }}"
-          echo "API Validation: ${{ needs.validate-api.result }}"
-          echo "Streamlit Validation: ${{ needs.validate-streamlit.result }}"
-          echo "Build: ${{ needs.build.result }}"
+          echo "❌ Pipeline CI/CD échoué"
+          echo "Vérifiez les logs pour plus de détails"
           exit 1
