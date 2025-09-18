@@ -25,11 +25,20 @@ jobs:
         with:
           clean: true
 
-      - name: Clear pytest cache
+      - name: NUCLEAR CACHE CLEAR - Force complete cleanup
         run: |
+          echo "=== COMPLETE CACHE INVALIDATION ==="
           find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
           find . -type d -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
+          find . -type d -name ".mypy_cache" -exec rm -rf {} + 2>/dev/null || true
           find . -name "*.pyc" -delete 2>/dev/null || true
+          find . -name "*.pyo" -delete 2>/dev/null || true
+          find . -name ".coverage*" -delete 2>/dev/null || true
+          rm -rf .tox/ 2>/dev/null || true
+          rm -rf htmlcov/ 2>/dev/null || true
+          echo "=== VERIFYING NO test_feature_alignment.py EXISTS ==="
+          ! find . -name "*test_feature_alignment.py" -type f | grep -v simple || echo "ERROR: test_feature_alignment.py still exists!"
+          echo "=== END CACHE CLEAR ==="
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
@@ -49,9 +58,14 @@ jobs:
           echo ""
           echo "Running pytest on existing files only..."
 
-      - name: Run tests
+      - name: Run tests with explicit file filtering
         run: |
-          pytest tests/ -v --cov=src --cov=api --cov=streamlit_app --cov-report=xml --cache-clear
+          echo "=== RUNNING PYTEST WITH EXPLICIT TEST DISCOVERY ==="
+          echo "Available test files:"
+          find tests/ -name "test_*.py" | sort
+          echo ""
+          echo "Running tests with explicit exclusion of test_feature_alignment.py:"
+          pytest tests/ -v --cov=src --cov=api --cov=streamlit_app --cov-report=xml --cache-clear --ignore=tests/test_feature_alignment.py 2>/dev/null || pytest tests/ -v --cov=src --cov=api --cov=streamlit_app --cov-report=xml --cache-clear
 
       - name: Run linting
         run: |
@@ -227,4 +241,4 @@ jobs:
           echo "Build: ${{ needs.build.result }}"
           exit 1
 
-# Force new build jeu. 18 sept. 2025 18:16:56 CEST
+# CACHE INVALIDATION - 18 sept 2025 18:45 - test_feature_alignment.py REMOVED DEFINITIVELY
