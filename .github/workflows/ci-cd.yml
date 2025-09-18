@@ -45,11 +45,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Install dependencies with Poetry
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements_minimal.txt
-          pip install pytest pytest-cov flake8 black
+          poetry install --with dev
 
       - name: List test files
         run: |
@@ -58,22 +63,22 @@ jobs:
           echo ""
           echo "Running pytest on existing files only..."
 
-      - name: Run tests with explicit file filtering
+      - name: Run tests with Poetry
         run: |
-          echo "=== RUNNING PYTEST WITH EXPLICIT TEST DISCOVERY ==="
+          echo "=== RUNNING PYTEST WITH POETRY ==="
           echo "Available test files:"
           find tests/ -name "test_*.py" | sort
           echo ""
-          echo "Running tests with explicit exclusion of test_feature_alignment.py:"
-          pytest tests/ -v --cov=src --cov=api --cov=streamlit_app --cov-report=xml --cache-clear --ignore=tests/test_feature_alignment.py 2>/dev/null || pytest tests/ -v --cov=src --cov=api --cov=streamlit_app --cov-report=xml --cache-clear
+          echo "Running tests with Poetry (uses pyproject.toml config):"
+          poetry run pytest tests/ -v --cov=src --cov=api --cov=streamlit_app --cov-report=xml --cache-clear
 
-      - name: Run linting
+      - name: Run linting with Poetry
         run: |
-          flake8 src/ api/ streamlit_app/ tests/ --max-line-length=100 --ignore=E501,W503
+          poetry run flake8 src/ api/ streamlit_app/ tests/ --max-line-length=100 --ignore=E501,W503
 
-      - name: Run code formatting check
+      - name: Run code formatting check with Poetry
         run: |
-          black --check src/ api/ streamlit_app/ tests/
+          poetry run black --check src/ api/ streamlit_app/ tests/
 
       - name: Upload coverage to Codecov
         if: github.event_name == 'push'
@@ -96,13 +101,20 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
       - name: Install API dependencies
         run: |
-          pip install -r requirements_minimal.txt
+          poetry install --only main
 
       - name: Test API startup
         run: |
-          timeout 30s python -c "
+          timeout 30s poetry run python -c "
           import uvicorn
           from api.app import app
           print('API importée avec succès')
@@ -110,7 +122,7 @@ jobs:
 
       - name: Validate API endpoints
         run: |
-          python -c "
+          poetry run python -c "
           from api.app import app
           routes = [route.path for route in app.routes]
           required_routes = ['/health', '/predict', '/docs']
@@ -135,13 +147,20 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
       - name: Install Streamlit dependencies
         run: |
-          pip install -r streamlit_app/requirements.txt
+          poetry install --only main
 
       - name: Test Streamlit startup
         run: |
-          timeout 30s python -c "
+          timeout 30s poetry run python -c "
           import streamlit as st
           from streamlit_app.main import main
           print('Streamlit app importée avec succès')
