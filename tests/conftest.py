@@ -37,35 +37,33 @@ def sample_data() -> pd.DataFrame:
     np.random.seed(42)
     n_samples = 100
 
-    data = pd.DataFrame(
-        {
-            "CODE_GENDER": np.random.choice(["M", "F"], n_samples),
-            "AMT_INCOME_TOTAL": np.random.uniform(50000, 300000, n_samples),
-            "AMT_CREDIT": np.random.uniform(100000, 500000, n_samples),
-            "AMT_ANNUITY": np.random.uniform(5000, 50000, n_samples),
-            "AMT_GOODS_PRICE": np.random.uniform(80000, 400000, n_samples),
-            "NAME_EDUCATION_TYPE": np.random.choice(
-                ["Secondary / secondary special", "Higher education"], n_samples
-            ),
-            "NAME_FAMILY_STATUS": np.random.choice(
-                ["Married", "Single / not married"], n_samples
-            ),
-            "NAME_HOUSING_TYPE": np.random.choice(
-                ["House / apartment", "Rented apartment"], n_samples
-            ),
-            "DAYS_BIRTH": np.random.uniform(-20000, -8000, n_samples),
-            "DAYS_EMPLOYED": np.random.uniform(-10000, -1000, n_samples),
-            "DAYS_REGISTRATION": np.random.uniform(-5000, -1000, n_samples),
-            "DAYS_ID_PUBLISH": np.random.uniform(-3000, -500, n_samples),
-            "FLAG_OWN_CAR": np.random.choice(["Y", "N"], n_samples),
-            "FLAG_OWN_REALTY": np.random.choice(["Y", "N"], n_samples),
-            "CNT_CHILDREN": np.random.randint(0, 5, n_samples),
-            "CNT_FAM_MEMBERS": np.random.randint(1, 8, n_samples),
-            "EXT_SOURCE_1": np.random.uniform(0, 1, n_samples),
-            "EXT_SOURCE_2": np.random.uniform(0, 1, n_samples),
-            "EXT_SOURCE_3": np.random.uniform(0, 1, n_samples),
-        }
-    )
+    data = pd.DataFrame({
+        "CODE_GENDER": np.random.choice(["M", "F"], n_samples),
+        "AMT_INCOME_TOTAL": np.random.uniform(50000, 300000, n_samples),
+        "AMT_CREDIT": np.random.uniform(100000, 500000, n_samples),
+        "AMT_ANNUITY": np.random.uniform(5000, 50000, n_samples),
+        "AMT_GOODS_PRICE": np.random.uniform(80000, 400000, n_samples),
+        "NAME_EDUCATION_TYPE": np.random.choice(
+            ["Secondary / secondary special", "Higher education"], n_samples
+        ),
+        "NAME_FAMILY_STATUS": np.random.choice(
+            ["Married", "Single / not married"], n_samples
+        ),
+        "NAME_HOUSING_TYPE": np.random.choice(
+            ["House / apartment", "Rented apartment"], n_samples
+        ),
+        "DAYS_BIRTH": np.random.uniform(-20000, -8000, n_samples),
+        "DAYS_EMPLOYED": np.random.uniform(-10000, -1000, n_samples),
+        "DAYS_REGISTRATION": np.random.uniform(-5000, -1000, n_samples),
+        "DAYS_ID_PUBLISH": np.random.uniform(-3000, -500, n_samples),
+        "FLAG_OWN_CAR": np.random.choice(["Y", "N"], n_samples),
+        "FLAG_OWN_REALTY": np.random.choice(["Y", "N"], n_samples),
+        "CNT_CHILDREN": np.random.randint(0, 5, n_samples),
+        "CNT_FAM_MEMBERS": np.random.randint(1, 8, n_samples),
+        "EXT_SOURCE_1": np.random.uniform(0, 1, n_samples),
+        "EXT_SOURCE_2": np.random.uniform(0, 1, n_samples),
+        "EXT_SOURCE_3": np.random.uniform(0, 1, n_samples),
+    })
 
     return data
 

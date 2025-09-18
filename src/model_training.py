@@ -273,12 +273,10 @@ class ModelTrainer:
 
         # Créer le pipeline
         if sampler:
-            pipeline = ImbPipeline(
-                [
-                    ("sampler", sampler),
-                    ("classifier", RandomForestClassifier(random_state=42, n_jobs=-1)),
-                ]
-            )
+            pipeline = ImbPipeline([
+                ("sampler", sampler),
+                ("classifier", RandomForestClassifier(random_state=42, n_jobs=-1)),
+            ])
         else:
             pipeline = RandomForestClassifier(random_state=42, n_jobs=-1)
 
@@ -466,18 +464,16 @@ class ModelTrainer:
 
         for model_name, model_info in self.models.items():
             metrics = model_info["metrics"]
-            comparison_data.append(
-                {
-                    "Modèle": model_name,
-                    "Coût Métier": metrics["business_cost"],
-                    "AUC": metrics["auc_score"],
-                    "Accuracy": metrics["accuracy"],
-                    "Précision": metrics["precision"],
-                    "Rappel": metrics["recall"],
-                    "F1-Score": metrics["f1_score"],
-                    "Seuil Optimal": metrics["threshold"],
-                }
-            )
+            comparison_data.append({
+                "Modèle": model_name,
+                "Coût Métier": metrics["business_cost"],
+                "AUC": metrics["auc_score"],
+                "Accuracy": metrics["accuracy"],
+                "Précision": metrics["precision"],
+                "Rappel": metrics["recall"],
+                "F1-Score": metrics["f1_score"],
+                "Seuil Optimal": metrics["threshold"],
+            })
 
         comparison_df = pd.DataFrame(comparison_data)
         comparison_df = comparison_df.sort_values("Coût Métier")

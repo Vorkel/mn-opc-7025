@@ -2,6 +2,7 @@
 # Test final de l'intégration Streamlit avec le nouveau pipeline
 
 import sys
+import pytest
 from pathlib import Path
 import pandas as pd
 import joblib
@@ -9,10 +10,10 @@ import joblib
 # Ajouter le chemin pour les imports
 sys.path.append(str(Path(__file__).parent.parent / "src"))
 
-from feature_engineering import create_complete_feature_set
+from src.feature_engineering import create_complete_feature_set
 
 
-def test_streamlit_integration() -> None:
+def test_streamlit_integration () -> None:
     """
     Test complet de l'intégration Streamlit avec données de formulaire
     """
@@ -21,16 +22,12 @@ def test_streamlit_integration() -> None:
 
     # Charger le modèle
     try:
-        model_dict = joblib.load("models/best_credit_model.pkl")
-        # Le modèle est maintenant directement le RandomForest, pas un dict
-        if isinstance(model_dict, dict) and "model" in model_dict:
-            model = model_dict["model"]
-        else:
-            model = model_dict
-        print("✅ Modèle chargé")
+        model = joblib.load("models/best_credit_model.pkl")
+        assert hasattr(model, 'predict_proba'), "Le modèle doit avoir la méthode predict_proba"
+        print("Modèle chargé")
     except Exception as e:
-        print(f"❌ Erreur chargement modèle: {e}")
-        return False
+        print(f"Erreur chargement modèle: {e}")
+        assert False, f"Erreur chargement modèle: {e}"
 
     # Données simulées du formulaire Streamlit
     client_data_examples = [
@@ -107,13 +104,13 @@ def test_streamlit_integration() -> None:
     success_count = 0
 
     for i, client_data in enumerate(client_data_examples, 1):
-        print(f"\n🔍 TEST CLIENT {i}")
+        print(f"\nTEST CLIENT {i}")
         print("-" * 30)
 
         try:
             # Générer les features avec notre pipeline
             df_engineered = create_complete_feature_set(client_data)
-            print(f"✅ Features générées: {df_engineered.shape}")
+            print(f"Features générées: {df_engineered.shape}")
 
             # Faire une prédiction
             probabilities = model.predict_proba(df_engineered)
@@ -132,15 +129,15 @@ def test_streamlit_integration() -> None:
             else:
                 risk_level = "Élevé"
 
-            print(f"✅ Prédiction: {prediction}")
-            print(f"✅ Probabilité de défaut: {probability:.4f}")
-            print(f"✅ Décision: {decision}")
-            print(f"✅ Niveau de risque: {risk_level}")
+            print(f"Prédiction: {prediction}")
+            print(f"Probabilité de défaut: {probability:.4f}")
+            print(f"Décision: {decision}")
+            print(f"Niveau de risque: {risk_level}")
 
             success_count += 1
 
         except Exception as e:
-            print(f"❌ Erreur client {i}: {e}")
+            print(f"Erreur client {i}: {e}")
             print(f"Type erreur: {type(e)}")
             continue
 
@@ -150,17 +147,13 @@ def test_streamlit_integration() -> None:
     if success_count == len(client_data_examples):
         print("TOUS LES TESTS RÉUSSIS !")
         print("L'intégration Streamlit est fonctionnelle")
-        return True
+        assert True, "Tous les tests d'intégration Streamlit réussis"
     else:
         print("❌ Certains tests ont échoué")
-        return False
+        pytest.fail("Certains tests d'intégration Streamlit ont échoué")
 
 
 if __name__ == "__main__":
-    success = test_streamlit_integration()
-    if success:
-        print("\nDÉPLOIEMENT RECOMMANDÉ")
-        print("L'application peut être déployée sur Streamlit Cloud")
-    else:
-        print("\n⚠️ CORRECTIONS NÉCESSAIRES")
-        print("Résolvez les erreurs avant le déploiement")
+    test_streamlit_integration()
+    print("\nDÉPLOIEMENT RECOMMANDÉ")
+    print("L'application peut être déployée sur Streamlit Cloud")

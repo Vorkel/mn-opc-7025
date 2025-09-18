@@ -9,6 +9,7 @@
 /docs/soutenance/
 .rules
 .cursor/
+.cursorindexingignore
 .claude/
 .windsurf/
 .specstory/

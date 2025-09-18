@@ -138,13 +138,11 @@ class HomeCreditDataAnalyzer:
         missing_train = self.main_train.isnull().sum()
         missing_pct_train = (missing_train / len(self.main_train)) * 100
 
-        missing_df = pd.DataFrame(
-            {
-                "Colonne": missing_train.index,
-                "Manquantes": missing_train.values,
-                "Pourcentage": missing_pct_train.values,
-            }
-        )
+        missing_df = pd.DataFrame({
+            "Colonne": missing_train.index,
+            "Manquantes": missing_train.values,
+            "Pourcentage": missing_pct_train.values,
+        })
 
         # Filtrer et trier
         filtered_df = missing_df[missing_df["Manquantes"] > 0]

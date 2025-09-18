@@ -2,6 +2,7 @@
 # Test du pipeline complet avec le modèle
 
 import sys
+import pytest
 from pathlib import Path
 import pandas as pd
 import joblib
@@ -9,10 +10,10 @@ from sklearn.ensemble import RandomForestClassifier
 
 # Ajouter le chemin vers src
 sys.path.append(str(Path(__file__).parent.parent / "src"))
-from feature_engineering import create_complete_feature_set
+from src.feature_engineering import create_complete_feature_set
 
 
-def test_avec_modele() -> bool:
+def test_avec_modele () -> None:
     """
     Test du pipeline complet avec prédiction du modèle
     """
@@ -21,17 +22,11 @@ def test_avec_modele() -> bool:
 
     # Charger le modèle
     try:
-        model_dict = joblib.load("models/best_credit_model.pkl")
-
-        # Le modèle est maintenant directement le RandomForest, pas un dict
-        if isinstance(model_dict, dict) and "model" in model_dict:
-            model = model_dict["model"]
-            print("✅ Modèle chargé depuis dictionnaire")
-        else:
-            model = model_dict
-            print("✅ Modèle chargé directement")
-
+        model = joblib.load("models/best_credit_model.pkl")
         print(f"Type de modèle: {type(model)}")
+
+        # Vérifier que c'est bien un RandomForest
+        assert hasattr(model, 'predict_proba'), "Le modèle doit avoir la méthode predict_proba"
 
         # Données d'exemple du formulaire Streamlit
         sample_data = {
@@ -69,10 +64,10 @@ def test_avec_modele() -> bool:
             "ORGANIZATION_TYPE": "Business Entity Type 3",
         }
 
-        print("\n🔧 GÉNÉRATION DES FEATURES")
+        print("\nGÉNÉRATION DES FEATURES")
         # Générer les features avec le feature engineer
         df_features = create_complete_feature_set(sample_data)
-        print(f"✅ Features générées: {df_features.shape}")
+        print(f"Features générées: {df_features.shape}")
 
         print("\nPRÉDICTION")
         # Faire la prédiction
@@ -81,14 +76,14 @@ def test_avec_modele() -> bool:
             proba = model.predict_proba(df_features)[0]
             prediction = model.predict(df_features)[0]
 
-            print(f"✅ Prédiction: {prediction}")
-            print(f"✅ Probabilité de défaut: {proba[1]:.4f}")
-            print(f"✅ Probabilité de non-défaut: {proba[0]:.4f}")
+            print(f"Prédiction: {prediction}")
+            print(f"Probabilité de défaut: {proba[1]:.4f}")
+            print(f"Probabilité de non-défaut: {proba[0]:.4f}")
 
-            return True
+            assert True, "Test réussi"
 
         except Exception as e:
-            print(f"❌ Erreur prédiction: {e}")
+            print(f"Erreur prédiction: {e}")
             print(f"Shape des features: {df_features.shape}")
             print(f"Features attendues: {model.n_features_in_}")
             print(f"Colonnes avec NaN: {df_features.isnull().sum().sum()}")
@@ -98,16 +93,13 @@ def test_avec_modele() -> bool:
             print("\nPremières valeurs:")
             print(df_features.iloc[0, :10].to_dict())
 
-            return False
+            pytest.fail("Erreur dans le pipeline de test")
 
     except Exception as e:
-        print(f"❌ Erreur chargement modèle: {e}")
-        return False
+        print(f"Erreur chargement modèle: {e}")
+        pytest.fail(f"Erreur chargement modèle: {e}")
 
 
 if __name__ == "__main__":
-    success = test_avec_modele()
-    if success:
-        print("\nSUCCÈS - Pipeline complet fonctionnel !")
-    else:
-        print("\n❌ ÉCHEC - Corrections nécessaires")
+    test_avec_modele()
+    print("\nSUCCÈS - Pipeline complet fonctionnel !")

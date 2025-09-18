@@ -403,7 +403,7 @@ def preprocess_data(data: CreditRequest) -> pd.DataFrame:
 
         logger.info(
             f"Feature engineering appliqué: {len(df_processed.columns)} "
-            f"features générées"
+            "features générées"
         )
         logger.info(f"Features utilisées: {list(df_processed.columns)}")
 
@@ -644,7 +644,7 @@ async def predict_credit_public(
 
             # DEBUG : Log des probabilités
             logger.info(
-                f"DEBUG PUBLIC - Probabilités brutes: "
+                "DEBUG PUBLIC - Probabilités brutes: "
                 f"{current_model.predict_proba(df)[0]}"
             )
             logger.info(f"DEBUG PUBLIC - Probabilité de défaut: {probability}")
@@ -709,15 +709,13 @@ async def batch_predict(
             decision = "REFUSÉ" if probability >= (threshold or 0.5) else "ACCORDÉ"
             risk_level = determine_risk_level(probability)
 
-            results.append(
-                {
-                    "client_index": i,
-                    "probability": float(probability),
-                    "decision": decision,
-                    "risk_level": risk_level,
-                    "timestamp": datetime.now().isoformat(),
-                }
-            )
+            results.append({
+                "client_index": i,
+                "probability": float(probability),
+                "decision": decision,
+                "risk_level": risk_level,
+                "timestamp": datetime.now().isoformat(),
+            })
 
         logger.info(f"Prédiction en lot effectuée pour {len(requests)} clients")
 

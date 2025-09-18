@@ -64,29 +64,51 @@ def create_complete_feature_set(client_data: dict | pd.DataFrame) -> pd.DataFram
 
     # Variables temporelles requises
     temporal_vars = [
-        "DAYS_BIRTH", "DAYS_EMPLOYED", "DAYS_REGISTRATION",
-        "DAYS_ID_PUBLISH", "OWN_CAR_AGE"
+        "DAYS_BIRTH",
+        "DAYS_EMPLOYED",
+        "DAYS_REGISTRATION",
+        "DAYS_ID_PUBLISH",
+        "OWN_CAR_AGE",
     ]
 
     # Variables numériques de base
     numeric_vars = [
-        "CNT_CHILDREN", "AMT_INCOME_TOTAL", "AMT_CREDIT", "AMT_ANNUITY",
-        "AMT_GOODS_PRICE", "REGION_POPULATION_RELATIVE", "CNT_FAM_MEMBERS",
-        "REGION_RATING_CLIENT", "REGION_RATING_CLIENT_W_CITY",
-        "HOUR_APPR_PROCESS_START", "EXT_SOURCE_1", "EXT_SOURCE_2", "EXT_SOURCE_3"
+        "CNT_CHILDREN",
+        "AMT_INCOME_TOTAL",
+        "AMT_CREDIT",
+        "AMT_ANNUITY",
+        "AMT_GOODS_PRICE",
+        "REGION_POPULATION_RELATIVE",
+        "CNT_FAM_MEMBERS",
+        "REGION_RATING_CLIENT",
+        "REGION_RATING_CLIENT_W_CITY",
+        "HOUR_APPR_PROCESS_START",
+        "EXT_SOURCE_1",
+        "EXT_SOURCE_2",
+        "EXT_SOURCE_3",
     ]
 
     # Variables catégorielles de base
     categorical_vars = [
-        "NAME_TYPE_SUITE", "NAME_INCOME_TYPE", "NAME_EDUCATION_TYPE",
-        "NAME_FAMILY_STATUS", "NAME_HOUSING_TYPE", "OCCUPATION_TYPE",
-        "ORGANIZATION_TYPE"
+        "NAME_TYPE_SUITE",
+        "NAME_INCOME_TYPE",
+        "NAME_EDUCATION_TYPE",
+        "NAME_FAMILY_STATUS",
+        "NAME_HOUSING_TYPE",
+        "OCCUPATION_TYPE",
+        "ORGANIZATION_TYPE",
     ]
 
     # Variables de flag
     flag_vars = [
-        "FLAG_OWN_CAR", "FLAG_OWN_REALTY", "FLAG_MOBIL", "FLAG_EMP_PHONE",
-        "FLAG_WORK_PHONE", "FLAG_CONT_MOBILE", "FLAG_PHONE", "FLAG_EMAIL"
+        "FLAG_OWN_CAR",
+        "FLAG_OWN_REALTY",
+        "FLAG_MOBIL",
+        "FLAG_EMP_PHONE",
+        "FLAG_WORK_PHONE",
+        "FLAG_CONT_MOBILE",
+        "FLAG_PHONE",
+        "FLAG_EMAIL",
     ]
 
     # Ajouter les variables manquantes avec des valeurs par défaut

@@ -28,13 +28,11 @@ class TestFeatureEngineering:
     def test_analyze_feature_importance_basic(self) -> None:
         """Test basique de l'analyse d'importance des features"""
         # Données de test
-        X = pd.DataFrame(
-            {
-                "feature_1": [1, 2, 3, 4, 5],
-                "feature_2": [2, 4, 6, 8, 10],
-                "feature_3": [0, 0, 0, 0, 0],  # Feature constante
-            }
-        )
+        X = pd.DataFrame({
+            "feature_1": [1, 2, 3, 4, 5],
+            "feature_2": [2, 4, 6, 8, 10],
+            "feature_3": [0, 0, 0, 0, 0],  # Feature constante
+        })
         y = pd.Series([0, 0, 1, 1, 0])
 
         # Test de la fonction d'analyse
@@ -47,12 +45,10 @@ class TestFeatureEngineering:
 
     def test_feature_importance_with_categorical_data(self) -> None:
         """Test avec des données catégorielles"""
-        X = pd.DataFrame(
-            {
-                "numeric_feature": [1, 2, 3, 4, 5],
-                "categorical_feature": ["A", "B", "A", "B", "A"],
-            }
-        )
+        X = pd.DataFrame({
+            "numeric_feature": [1, 2, 3, 4, 5],
+            "categorical_feature": ["A", "B", "A", "B", "A"],
+        })
         y = pd.Series([0, 1, 0, 1, 0])
 
         try:
@@ -101,12 +97,10 @@ class TestFeatureEngineering:
     def test_feature_importance_with_high_cardinality(self) -> None:
         """Test avec des features à haute cardinalité"""
         # Créer des données avec haute cardinalité mais longueurs compatibles
-        X = pd.DataFrame(
-            {
-                "feature_1": [1, 2, 3, 4, 5],
-                "feature_2": [f"cat_{i}" for i in range(5)],  # 5 catégories uniques
-            }
-        )
+        X = pd.DataFrame({
+            "feature_1": [1, 2, 3, 4, 5],
+            "feature_2": [f"cat_{i}" for i in range(5)],  # 5 catégories uniques
+        })
         y = pd.Series([0, 0, 1, 1, 0])
 
         try:
@@ -122,26 +116,22 @@ class TestDataPreprocessing:
     def test_handle_missing_values(self) -> None:
         """Test de la gestion des valeurs manquantes"""
         # Créer des données avec des valeurs manquantes
-        data = pd.DataFrame(
-            {
-                "numeric_col": [1, 2, np.nan, 4, 5],
-                "categorical_col": ["A", "B", np.nan, "A", "B"],
-                "binary_col": [0, 1, 0, np.nan, 1],
-            }
-        )
+        data = pd.DataFrame({
+            "numeric_col": [1, 2, np.nan, 4, 5],
+            "categorical_col": ["A", "B", np.nan, "A", "B"],
+            "binary_col": [0, 1, 0, np.nan, 1],
+        })
 
         # Test de remplissage des valeurs manquantes
-        data_filled = data.fillna(
-            {
-                "numeric_col": data["numeric_col"].median(),
-                "categorical_col": (
-                    data["categorical_col"].mode()[0]
-                    if len(data["categorical_col"].mode()) > 0
-                    else "Unknown"
-                ),
-                "binary_col": 0,
-            }
-        )
+        data_filled = data.fillna({
+            "numeric_col": data["numeric_col"].median(),
+            "categorical_col": (
+                data["categorical_col"].mode()[0]
+                if len(data["categorical_col"].mode()) > 0
+                else "Unknown"
+            ),
+            "binary_col": 0,
+        })
 
         assert not data_filled.isnull().any().any()  # type: ignore
         assert len(data_filled) == len(data)
