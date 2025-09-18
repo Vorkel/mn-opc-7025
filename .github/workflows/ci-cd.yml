@@ -1,6 +1,6 @@
 # .github/workflows/ci-cd.yml
 # Force new build - test_feature_alignment.py removed
-name: CI/CD Pipeline - Credit Scoring MLOps
+name: CI/CD Pipeline - Credit Scoring MLOps v2
 
 on:
   push:
@@ -211,4 +211,5 @@ jobs:
           echo "Streamlit Validation: ${{ needs.validate-streamlit.result }}"
           echo "Build: ${{ needs.build.result }}"
           exit 1
+
 # Force new build jeu. 18 sept. 2025 18:16:56 CEST
