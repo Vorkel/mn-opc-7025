@@ -1,0 +1,110 @@
+# NOUVEAU WORKFLOW - 18 Sept 2025 - Sans cache corrompu
+name: Fresh CI Pipeline - Credit Scoring MLOps
+
+on:
+  push:
+    branches: [main, develop, master]
+  pull_request:
+    branches: [main, master]
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  # Tests avec Poetry - Configuration propre
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+
+    steps:
+      - name: Checkout fresh code
+        uses: actions/checkout@v4
+        with:
+          clean: true
+          fetch-depth: 0
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}-fresh-v1
+
+      - name: Install dependencies with Poetry
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --with dev
+
+      - name: Verify current test files
+        run: |
+          echo "=== CURRENT TEST FILES ==="
+          find tests/ -name "test_*.py" | sort
+          echo ""
+          echo "=== VERIFY NO PHANTOM FILES ==="
+          if find tests/ -name "*test_feature_alignment.py" -not -name "*simple*"; then
+            echo "❌ ERREUR: test_feature_alignment.py encore présent!"
+            exit 1
+          else
+            echo "✅ OK: Pas de test_feature_alignment.py phantom"
+          fi
+
+      - name: Run tests with Poetry
+        run: |
+          echo "=== RUNNING FRESH PYTEST ==="
+          poetry run pytest tests/ -v --tb=short
+
+      - name: Run linting
+        run: poetry run flake8 src/ api/ streamlit_app/ tests/ --max-line-length=100 --ignore=E501,W503
+
+      - name: Run formatting check
+        run: poetry run black --check src/ api/ streamlit_app/ tests/
+
+  # Validation API simple
+  validate-api:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: snok/install-poetry@v1
+      - run: poetry install --only main
+      - name: Test API import
+        run: |
+          poetry run python -c "
+          from api.app import app
+          print('✅ API importée avec succès')
+          "
+
+  # Notification
+  notify:
+    needs: [test, validate-api]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Report results
+        run: |
+          echo "🆕 NOUVEAU WORKFLOW FRESH-CI"
+          echo "Tests: ${{ needs.test.result }}"
+          echo "API: ${{ needs.validate-api.result }}"
+          if [[ "${{ needs.test.result }}" == "success" && "${{ needs.validate-api.result }}" == "success" ]]; then
+            echo "✅ SUCCESS: Workflow fresh fonctionne!"
+          else
+            echo "❌ FAILURE: Problème dans le nouveau workflow"
+            exit 1
+          fi
