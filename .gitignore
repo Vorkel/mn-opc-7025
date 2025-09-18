@@ -133,3 +133,4 @@ tools/
 docs/soutenance/
 docs/shared/
 mlruns/
+tests/test_feature_alignment.py
