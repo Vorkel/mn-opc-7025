@@ -22,6 +22,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          clean: true
+
+      - name: Clear pytest cache
+        run: |
+          find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+          find . -type d -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
+          find . -name "*.pyc" -delete 2>/dev/null || true
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
@@ -34,9 +42,16 @@ jobs:
           pip install -r requirements_minimal.txt
           pip install pytest pytest-cov flake8 black
 
+      - name: List test files
+        run: |
+          echo "Files in tests directory:"
+          find tests/ -name "*.py" | sort
+          echo ""
+          echo "Running pytest on existing files only..."
+
       - name: Run tests
         run: |
-          pytest tests/ -v --cov=src --cov=api --cov=streamlit_app --cov-report=xml
+          pytest tests/ -v --cov=src --cov=api --cov=streamlit_app --cov-report=xml --cache-clear
 
       - name: Run linting
         run: |
