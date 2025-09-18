@@ -178,9 +178,6 @@ mn-opc-7025/
 ├── notebooks/                    # Notebooks d'analyse
 ├── tests/                        # Tests automatisés (100%)
 ├── docs/                         # Documentation complète
-│   ├── CONFORMITE_RAPPORT.md       # Rapport conformité missions
-│   ├── PRESENTATION_SOUTENANCE.md  # Support présentation
-│   └── ARCHITECTURE.md             # Architecture détaillée
 ├── .github/workflows/            # CI/CD GitHub Actions
 └── requirements.txt              # Dépendances Python
 ```
