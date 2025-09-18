@@ -121,8 +121,6 @@ requirements-dev.txt
 # Hide UI code
 streamlit_app/ui/
 
-
-
 .github/copilot-instructions.md
 .github/workflows/rules-ci.yml
 .tools/
