@@ -3,10 +3,11 @@ Application principale MLOps Credit Scoring - Version Simplifiée et Fonctionnel
 """
 
 import logging
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
-
+from typing import Optional, Dict, Any, List, Union
 import joblib
 import numpy as np
 import pandas as pd
@@ -28,13 +29,12 @@ st.set_page_config(
 )
 
 # Configuration de l'API distante
-API_BASE_URL = "https://mn-opc-7025.onrender.com"
-API_TIMEOUT = 30
+API_BASE_URL: str = "https://mn-opc-7025.onrender.com"  # Hardcodé
+API_TIMEOUT: int = 30
 
 # Configuration automatique basée sur l'environnement
-
 # Détection plus robuste de l'environnement de production
-IS_PRODUCTION = (
+IS_PRODUCTION: bool = (
     os.getenv("STREAMLIT_ENV") == "production" or
     os.getenv("RENDER") is not None or
     os.getenv("STREAMLIT_CLOUD") is not None or  # Streamlit Cloud
@@ -43,12 +43,12 @@ IS_PRODUCTION = (
 )
 
 # OU plus simple : forcer l'API en production
-USE_REMOTE_API = True  # Toujours utiliser l'API en production
+USE_REMOTE_API: bool = IS_PRODUCTION  # Utiliser la détection d'environnement
 
 # Chemins des fichiers
-BASE_DIR = Path(__file__).parent.parent
-MODELS_DIR = BASE_DIR / "models"
-DATA_DIR = BASE_DIR / "data"
+BASE_DIR: Path = Path(__file__).parent.parent
+MODELS_DIR: Path = BASE_DIR / "models"
+DATA_DIR: Path = BASE_DIR / "data"
 
 
 def init_session_state() -> None:
@@ -59,109 +59,103 @@ def init_session_state() -> None:
         st.session_state.current_prediction = None
 
 
-@st.cache_resource
-def load_model(force_reload=False):
-    """Charge le modèle entraîné (local ou distant)"""
-    global USE_REMOTE_API
-
+@st.cache_resource(ttl=3600)  # Cache avec TTL
+def load_model(force_reload: bool = False) -> Optional[Dict[str, Any]]:
+    """Charge le modèle avec gestion de la mémoire"""
+    # TOUJOURS tenter la connexion API d'abord
     try:
-        # TOUJOURS tenter la connexion API d'abord
-        try:
-            response = requests.get(f"{API_BASE_URL}/health", timeout=10)
-            if response.status_code == 200:
-                health_data = response.json()
-                st.success("API Connectée")
-                return {
-                    "model": None,
-                    "threshold": 0.295,
-                    "scaler": None,
-                    "feature_names": [],
-                    "loaded_from": "API distante",
-                    "api_status": "connected",
-                    "api_health": health_data,
-                }
-            else:
-                st.warning(f"API distante non disponible (status: {response.status_code})")
-        except Exception as e:
-            st.warning(f"Impossible de se connecter à l'API distante: {e}")
+        response = requests.get(f"{API_BASE_URL}/health", timeout=10)
+        if response.status_code == 200:
+            health_data = response.json()
+            st.success("API Connectée")
+            return {
+                "model": None,
+                "threshold": 0.295,
+                "scaler": None,
+                "feature_names": [],
+                "loaded_from": "API distante",
+                "api_status": "connected",
+                "api_health": health_data,
+            }
+        else:
+            st.warning(f"API distante non disponible (status: {response.status_code})")
+    except Exception as e:
+        st.warning(f"Impossible de se connecter à l'API distante: {e}")
 
-        # Fallback sur le modèle local
-        st.info("Utilisation du modèle local")
-        model_paths = [
-            BASE_DIR / "models" / "best_credit_model.pkl",
-            MODELS_DIR / "best_credit_model.pkl",
-            MODELS_DIR / "best_model.pkl",
-            MODELS_DIR / "model.pkl",
-            BASE_DIR / "model.pkl",
-        ]
+    # Fallback sur le modèle local
+    st.info("Utilisation du modèle local")
+    model_paths = [
+        BASE_DIR / "models" / "best_credit_model.pkl",
+        MODELS_DIR / "best_credit_model.pkl",
+        MODELS_DIR / "best_model.pkl",
+        MODELS_DIR / "model.pkl",
+        BASE_DIR / "model.pkl",
+    ]
 
-        for model_path in model_paths:
-            if model_path.exists():
-                try:
-                    model_data = joblib.load(model_path)
+    for model_path in model_paths:
+        if model_path.exists():
+            try:
+                model_data = joblib.load(model_path)
 
-                    # Vérifier le type de modèle chargé
-                    if hasattr(model_data, "predict"):
-                        # C'est directement un modèle sklearn
+                # Vérifier le type de modèle chargé
+                if hasattr(model_data, "predict"):
+                    # C'est directement un modèle sklearn
+                    from sklearn.preprocessing import StandardScaler
+
+                    scaler = StandardScaler()
+                    st.info(
+                        "Modèle RandomForest chargé directement depuis "
+                        f"{model_path}"
+                    )
+
+                    return {
+                        "model": model_data,
+                        "threshold": 0.295,  # Seuil métier optimisé
+                        "scaler": scaler,
+                        "feature_names": [],
+                        "loaded_from": str(model_path),
+                        "api_status": "local",
+                    }
+                elif (
+                    model_data
+                    and "model" in model_data
+                    and model_data["model"] is not None
+                ):
+                    # C'est un dictionnaire avec le modèle
+                    scaler = model_data.get("scaler")
+                    if scaler is None:
                         from sklearn.preprocessing import StandardScaler
 
                         scaler = StandardScaler()
-                        st.info(
-                            "Modèle RandomForest chargé directement depuis "
-                            f"{model_path}"
-                        )
+                        st.info("Scaler par défaut créé (StandardScaler)")
 
-                        return {
-                            "model": model_data,
-                            "threshold": 0.295,  # Seuil métier optimisé
-                            "scaler": scaler,
-                            "feature_names": [],
-                            "loaded_from": str(model_path),
-                            "api_status": "local",
-                        }
-                    elif (
-                        model_data
-                        and "model" in model_data
-                        and model_data["model"] is not None
-                    ):
-                        # C'est un dictionnaire avec le modèle
-                        scaler = model_data.get("scaler")
-                        if scaler is None:
-                            from sklearn.preprocessing import StandardScaler
+                    return {
+                        "model": model_data["model"],
+                        "threshold": model_data.get("threshold", 0.5),
+                        "scaler": scaler,
+                        "feature_names": model_data.get("feature_names", []),
+                        "loaded_from": str(model_path),
+                        "api_status": "local",
+                    }
+                else:
+                    st.warning(f"Modèle invalide dans {model_path}")
+            except Exception as e:
+                st.warning(f"Erreur chargement modèle {model_path}: {e}")
+                continue
 
-                            scaler = StandardScaler()
-                            st.info("Scaler par défaut créé (StandardScaler)")
-
-                        return {
-                            "model": model_data["model"],
-                            "threshold": model_data.get("threshold", 0.5),
-                            "scaler": scaler,
-                            "feature_names": model_data.get("feature_names", []),
-                            "loaded_from": str(model_path),
-                            "api_status": "local",
-                        }
-                    else:
-                        st.warning(f"Modèle invalide dans {model_path}")
-                except Exception as e:
-                    st.warning(f"Erreur chargement modèle {model_path}: {e}")
-                    continue
-
-        # Si aucun modèle valide n'est trouvé
-        st.error("Aucun modèle local valide trouvé")
-        return None
-    except Exception as e:
-        st.error(f"Erreur lors du chargement du modèle: {e}")
-        return None
+    # Si aucun modèle valide n'est trouvé
+    st.error("Aucun modèle local valide trouvé")
+    return None
 
 
-def create_full_feature_set(df) -> pd.DataFrame:
+def create_full_feature_set(df: pd.DataFrame) -> pd.DataFrame:
     """Crée le jeu complet de 153 features attendues par le modèle"""
-    # Utiliser notre feature engineering centralisé
     try:
-        from feature_engineering import create_complete_feature_set
-
+        # Import au niveau du module si possible
+        from src.feature_engineering import create_complete_feature_set
         return create_complete_feature_set(df)
-    except ImportError:
+    except ImportError as e:
+        logger.warning(f"Feature engineering centralisé non disponible: {e}")
         # Fallback vers l'ancien système
         expected_features = [
             "NAME_CONTRACT_TYPE",
@@ -346,14 +340,16 @@ def create_full_feature_set(df) -> pd.DataFrame:
             else:
                 df_full[feature] = 0.5
 
-def validate_business_rules(client_data):
+    return df_full
+
+def validate_business_rules(client_data: Dict[str, Any]) -> Dict[str, Any]:
     """Valide les règles métier avant prédiction"""
     try:
         income = client_data.get("AMT_INCOME_TOTAL")
         credit_amount = client_data.get("AMT_CREDIT")
         annuity = client_data.get("AMT_ANNUITY")
 
-        errors = []
+        errors: List[str] = []
 
         # Règles de validation métier
         if income is None or income < 12000:
@@ -381,10 +377,10 @@ def validate_business_rules(client_data):
         return {"valid": False, "message": f"Erreur de validation: {str(e)}"}
 
 
-def call_api_prediction(client_data):
+def call_api_prediction(client_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """Appelle l'API distante pour la prédiction"""
     try:
-        api_data = {}
+        api_data: Dict[str, Union[int, float, str]] = {}
         for key, value in client_data.items():
             if isinstance(value, (int, float, str)):
                 api_data[key] = value
@@ -404,7 +400,7 @@ def call_api_prediction(client_data):
         return None
 
 
-def predict_score(client_data, model_data):
+def predict_score(client_data: Dict[str, Any], model_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """Effectue une prédiction de score (local ou distant)"""
     global USE_REMOTE_API
 
@@ -467,7 +463,7 @@ def predict_score(client_data, model_data):
 
         # Utiliser le feature engineering complet dans src/
         sys.path.append(str(Path(__file__).parent.parent / "src"))
-        from feature_engineering import create_complete_feature_set
+        from src.feature_engineering import create_complete_feature_set
 
         df_engineered = create_complete_feature_set(client_data)
 
@@ -507,7 +503,7 @@ def predict_score(client_data, model_data):
         return None
 
 
-def get_refusal_reason(result, client_data):
+def get_refusal_reason(result: Dict[str, Any], client_data: Dict[str, Any]) -> Dict[str, Any]:
     """Génère une explication claire du refus ou de l'accord"""
     try:
         if result.get("decision") == "ACCORDÉ":
@@ -583,7 +579,7 @@ def get_refusal_reason(result, client_data):
         }
 
 
-def render_prediction_tab(model_data):
+def render_prediction_tab(model_data: Dict[str, Any]) -> None:
     """Onglet de prédiction individuelle"""
     st.markdown("## Prédiction Individuelle")
     st.markdown("Analysez le profil de risque d'un client")
@@ -927,7 +923,10 @@ def render_prediction_tab(model_data):
                 st.session_state.history.append(st.session_state.current_prediction)
 
                 st.success("Prédiction effectuée avec succès")
-                st.rerun()
+                if hasattr(st, 'rerun'):
+                    st.rerun()
+                else:
+                    st.experimental_rerun()
             else:
                 st.error("Erreur lors de la prédiction")
 
@@ -1082,7 +1081,7 @@ def render_history_tab():
         st.info("Aucune prédiction effectuée pour le moment")
 
 
-def render_dashboard_overview(model_data):
+def render_dashboard_overview(model_data: Dict[str, Any]) -> None:
     """Tableau de bord principal avec métriques et aperçu"""
     st.markdown("## Tableau de Bord - Vue d'ensemble")
 
@@ -1228,7 +1227,10 @@ def render_dashboard_overview(model_data):
 
         # Bouton pour forcer la mise à jour
         if st.button("Actualiser les Graphiques", use_container_width=True):
-            st.rerun()
+            if hasattr(st, 'rerun'):
+                st.rerun()
+            else:
+                st.experimental_rerun()
 
         # ===== SECTION 4: ANALYSES AVANCÉES =====
         st.markdown("---")
@@ -1496,16 +1498,25 @@ def render_dashboard_overview(model_data):
     col1, col2, col3 = st.columns(3)
     with col1:
         if st.button("Nouvelle Prédiction", use_container_width=True):
-            st.rerun()
+            if hasattr(st, 'rerun'):
+                st.rerun()
+            else:
+                st.experimental_rerun()
     with col2:
         if st.button("Voir l'Historique", use_container_width=True):
-            st.rerun()
+            if hasattr(st, 'rerun'):
+                st.rerun()
+            else:
+                st.experimental_rerun()
     with col3:
         if st.button("Actualiser", use_container_width=True):
-            st.rerun()
+            if hasattr(st, 'rerun'):
+                st.rerun()
+            else:
+                st.experimental_rerun()
 
 
-def render_batch_analysis_tab(model_data):
+def render_batch_analysis_tab(model_data: Dict[str, Any]) -> None:
     """Interface d'analyse en lot"""
     st.markdown("## Analyse en Lot")
     st.markdown("Analysez plusieurs dossiers simultanément")
@@ -1580,12 +1591,12 @@ def render_batch_analysis_tab(model_data):
             st.error(f"Erreur traitement fichier: {str(e)}")
 
 
-def render_batch_processing(df, model_data):
+def render_batch_processing(df: pd.DataFrame, model_data: Dict[str, Any]) -> None:
     """Traitement en lot des prédictions"""
     st.markdown("### Traitement en Cours")
 
     progress_bar = st.progress(0)
-    results = []
+    results: List[Dict[str, Any]] = []
 
     for i, row in df.iterrows():
         client_data = row.to_dict()
@@ -1601,7 +1612,7 @@ def render_batch_processing(df, model_data):
         render_batch_results(results_df)
 
 
-def render_batch_results(results_df):
+def render_batch_results(results_df: pd.DataFrame) -> None:
     """Affichage des résultats d'analyse en lot"""
     st.markdown("## Résultats de l'Analyse")
 
@@ -1664,7 +1675,7 @@ def render_batch_results(results_df):
     )
 
 
-def render_features_tab():
+def render_features_tab() -> None:
     """Interface d'analyse des features"""
     st.markdown("## Analyse des Features")
     st.markdown("Comprenez les facteurs clés du modèle")
@@ -1743,7 +1754,7 @@ def render_features_tab():
         st.info("Données d'importance des features non disponibles")
 
 
-def render_reports_tab():
+def render_reports_tab() -> None:
     """Interface des rapports"""
     st.markdown("## Rapports et Visualisations")
     st.markdown("Explorez les analyses approfondies")
@@ -1772,7 +1783,7 @@ def render_reports_tab():
                 st.info(f"Rapport {title} non disponible")
 
 
-def main():
+def main() -> None:
     """Fonction principale de l'application"""
     st.title("Dashboard Credit Scoring")
     st.markdown("**Prêt à Dépenser** - Système MLOps de scoring crédit")

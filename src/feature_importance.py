@@ -1,4 +1,5 @@
 # feature_importance.py
+# type: ignore
 import logging
 import warnings
 from pathlib import Path

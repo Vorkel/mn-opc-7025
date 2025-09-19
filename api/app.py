@@ -389,10 +389,12 @@ def preprocess_data(data: CreditRequest) -> pd.DataFrame:
         import sys
         from pathlib import Path
 
-        sys.path.append(str(Path(__file__).parent.parent / "src"))
+        src_path = str(Path(__file__).parent.parent / "src")
+        if src_path not in sys.path:
+            sys.path.append(src_path)
 
         # Importer le feature engineer complet
-        from feature_engineering import create_complete_feature_set
+        from src.feature_engineering import create_complete_feature_set
 
         # Convertir les données en dictionnaire
         client_data = data.dict()

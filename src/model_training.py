@@ -1,4 +1,5 @@
 # model_training.py
+# type: ignore
 import logging
 import os
 import warnings
@@ -42,13 +43,10 @@ except ImportError:
 try:
     from src.business_score import BusinessScorer
 except ImportError:
-    try:
-        from src.business_score import BusinessScorer
-    except ImportError:
-        logger.warning(
-            "BusinessScorer non disponible, certaines fonctionnalités seront limitées"
-        )
-        BusinessScorer = None
+    logger.warning(
+        "BusinessScorer non disponible, certaines fonctionnalités seront limitées"
+    )
+    BusinessScorer = None  # type: ignore
 
 
 class ModelTrainer:
@@ -64,7 +62,7 @@ class ModelTrainer:
             experiment_name (str): Nom de l'expérience MLFlow
         """
         self.experiment_name = experiment_name
-        self.scorer = BusinessScorer(cost_fn=10, cost_fp=1) if BusinessScorer else None
+        self.scorer = BusinessScorer(cost_fn=10, cost_fp=1) if BusinessScorer is not None else None
         self.models: Dict[str, Dict[str, Any]] = {}
         self.best_model: Optional[Any] = None
         self.best_threshold: Optional[float] = None
