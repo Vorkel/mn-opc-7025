@@ -5,6 +5,7 @@ Application principale MLOps Credit Scoring - Version Simplifiée et Fonctionnel
 import logging
 import os
 import sys
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Dict, Any, List, Union
@@ -30,7 +31,9 @@ st.set_page_config(
 
 # Configuration de l'API distante
 API_BASE_URL: str = "https://mn-opc-7025.onrender.com"  # Hardcodé
-API_TIMEOUT: int = 30
+API_TIMEOUT: int = 60  # Augmenté à 60 secondes pour Render.com
+API_RETRY_ATTEMPTS: int = 3  # Nombre de tentatives
+API_RETRY_DELAY: int = 5  # Délai entre les tentatives (secondes)
 
 # Configuration automatique basée sur l'environnement
 # Détection plus robuste de l'environnement de production
@@ -59,28 +62,77 @@ def init_session_state() -> None:
         st.session_state.current_prediction = None
 
 
+def test_api_connection_with_retry() -> Optional[Dict[str, Any]]:
+    """
+    Teste la connexion à l'API avec retry logic et gestion robuste des timeouts
+    Returns:
+        Dict contenant les informations de santé de l'API ou None si échec
+    """
+    for attempt in range(API_RETRY_ATTEMPTS):
+        try:
+            # Progressif timeout : plus de temps pour les tentatives suivantes
+            current_timeout = API_TIMEOUT + (attempt * 10)
+
+            logger.info(f"Tentative de connexion API {attempt + 1}/{API_RETRY_ATTEMPTS} (timeout: {current_timeout}s)")
+
+            response = requests.get(
+                f"{API_BASE_URL}/health",
+                timeout=current_timeout,
+                headers={'User-Agent': 'Streamlit-Credit-Scoring/1.0'}
+            )
+
+            if response.status_code == 200:
+                health_data = response.json()
+                logger.info(f"API connectée avec succès (tentative {attempt + 1})")
+                return health_data
+            else:
+                logger.warning(f"API répond avec status {response.status_code} (tentative {attempt + 1})")
+
+        except requests.exceptions.Timeout as e:
+            logger.warning(f"Timeout API (tentative {attempt + 1}): {e}")
+            if attempt < API_RETRY_ATTEMPTS - 1:
+                logger.info(f"Attente de {API_RETRY_DELAY}s avant nouvelle tentative...")
+                time.sleep(API_RETRY_DELAY)
+
+        except requests.exceptions.ConnectionError as e:
+            logger.warning(f"Erreur de connexion API (tentative {attempt + 1}): {e}")
+            if attempt < API_RETRY_ATTEMPTS - 1:
+                logger.info(f"Attente de {API_RETRY_DELAY}s avant nouvelle tentative...")
+                time.sleep(API_RETRY_DELAY)
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Erreur de requête API (tentative {attempt + 1}): {e}")
+            if attempt < API_RETRY_ATTEMPTS - 1:
+                time.sleep(API_RETRY_DELAY)
+
+        except Exception as e:
+            logger.error(f"Erreur inattendue lors de la connexion API (tentative {attempt + 1}): {e}")
+            if attempt < API_RETRY_ATTEMPTS - 1:
+                time.sleep(API_RETRY_DELAY)
+
+    logger.error(f"Échec de connexion API après {API_RETRY_ATTEMPTS} tentatives")
+    return None
+
+
 @st.cache_resource(ttl=3600)  # Cache avec TTL
 def load_model(force_reload: bool = False) -> Optional[Dict[str, Any]]:
     """Charge le modèle avec gestion de la mémoire"""
-    # TOUJOURS tenter la connexion API d'abord
-    try:
-        response = requests.get(f"{API_BASE_URL}/health", timeout=10)
-        if response.status_code == 200:
-            health_data = response.json()
-            st.success("API Connectée")
-            return {
-                "model": None,
-                "threshold": 0.295,
-                "scaler": None,
-                "feature_names": [],
-                "loaded_from": "API distante",
-                "api_status": "connected",
-                "api_health": health_data,
-            }
-        else:
-            st.warning(f"API distante non disponible (status: {response.status_code})")
-    except Exception as e:
-        st.warning(f"Impossible de se connecter à l'API distante: {e}")
+    # TOUJOURS tenter la connexion API d'abord avec retry logic
+    health_data = test_api_connection_with_retry()
+
+    if health_data:
+        st.success("API Connectée avec succès")
+        return {
+            "model": None,
+            "threshold": 0.295,
+            "scaler": None,
+            "feature_names": [],
+            "loaded_from": "API distante",
+            "api_status": "connected",
+            "api_health": health_data,
+        }
+    else:
+        st.warning("Impossible de se connecter à l'API distante après plusieurs tentatives")
 
     # Fallback sur le modèle local
     st.info("Utilisation du modèle local")
@@ -378,26 +430,59 @@ def validate_business_rules(client_data: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def call_api_prediction(client_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    """Appelle l'API distante pour la prédiction"""
-    try:
-        api_data: Dict[str, Union[int, float, str]] = {}
-        for key, value in client_data.items():
-            if isinstance(value, (int, float, str)):
-                api_data[key] = value
+    """Appelle l'API distante pour la prédiction avec retry logic"""
+    api_data: Dict[str, Union[int, float, str]] = {}
+    for key, value in client_data.items():
+        if isinstance(value, (int, float, str)):
+            api_data[key] = value
 
-        response = requests.post(
-            f"{API_BASE_URL}/predict_public", json=api_data, timeout=API_TIMEOUT
-        )
+    for attempt in range(API_RETRY_ATTEMPTS):
+        try:
+            # Progressif timeout pour les prédictions
+            current_timeout = API_TIMEOUT + (attempt * 15)
 
-        if response.status_code == 200:
-            return response.json()
-        else:
-            st.error(f"Erreur API: {response.status_code} - {response.text}")
-            return None
+            logger.info(f"Tentative de prédiction API {attempt + 1}/{API_RETRY_ATTEMPTS} (timeout: {current_timeout}s)")
 
-    except Exception as e:
-        st.error(f"Erreur lors de l'appel API: {str(e)}")
-        return None
+            response = requests.post(
+                f"{API_BASE_URL}/predict_public",
+                json=api_data,
+                timeout=current_timeout,
+                headers={'User-Agent': 'Streamlit-Credit-Scoring/1.0'}
+            )
+
+            if response.status_code == 200:
+                result: Dict[str, Any] = response.json()
+                logger.info(f"Prédiction API réussie (tentative {attempt + 1})")
+                return result
+            else:
+                logger.warning(f"API prédiction erreur {response.status_code} (tentative {attempt + 1}): {response.text}")
+                if attempt < API_RETRY_ATTEMPTS - 1:
+                    time.sleep(API_RETRY_DELAY)
+
+        except requests.exceptions.Timeout as e:
+            logger.warning(f"Timeout prédiction API (tentative {attempt + 1}): {e}")
+            if attempt < API_RETRY_ATTEMPTS - 1:
+                logger.info(f"Attente de {API_RETRY_DELAY}s avant nouvelle tentative...")
+                time.sleep(API_RETRY_DELAY)
+
+        except requests.exceptions.ConnectionError as e:
+            logger.warning(f"Erreur de connexion prédiction API (tentative {attempt + 1}): {e}")
+            if attempt < API_RETRY_ATTEMPTS - 1:
+                time.sleep(API_RETRY_DELAY)
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Erreur de requête prédiction API (tentative {attempt + 1}): {e}")
+            if attempt < API_RETRY_ATTEMPTS - 1:
+                time.sleep(API_RETRY_DELAY)
+
+        except Exception as e:
+            logger.error(f"Erreur inattendue prédiction API (tentative {attempt + 1}): {e}")
+            if attempt < API_RETRY_ATTEMPTS - 1:
+                time.sleep(API_RETRY_DELAY)
+
+    logger.error(f"Échec de prédiction API après {API_RETRY_ATTEMPTS} tentatives")
+    st.error(f"❌ Impossible d'obtenir une prédiction de l'API après {API_RETRY_ATTEMPTS} tentatives")
+    return None
 
 
 def predict_score(client_data: Dict[str, Any], model_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -915,7 +1000,7 @@ def render_prediction_tab(model_data: Dict[str, Any]) -> None:
             # Lancement de la prédiction
             result = predict_score(client_data, model_data)
 
-            if result:
+            if result is not None:
                 # Stockage du résultat
                 st.session_state.current_prediction["result"] = result
 
@@ -923,10 +1008,7 @@ def render_prediction_tab(model_data: Dict[str, Any]) -> None:
                 st.session_state.history.append(st.session_state.current_prediction)
 
                 st.success("Prédiction effectuée avec succès")
-                if hasattr(st, 'rerun'):
-                    st.rerun()
-                else:
-                    st.experimental_rerun()
+                st.rerun()
             else:
                 st.error("Erreur lors de la prédiction")
 
@@ -938,6 +1020,11 @@ def render_prediction_tab(model_data: Dict[str, Any]) -> None:
         ):
             result = st.session_state.current_prediction["result"]
             client_data = st.session_state.current_prediction["client_data"]
+
+            # Vérification de type pour éviter les erreurs
+            if result is None or not isinstance(result, dict):
+                st.error("Résultat de prédiction invalide")
+                return
 
             st.markdown("### Résultats de l'Analyse")
 
@@ -1054,7 +1141,7 @@ def render_prediction_tab(model_data: Dict[str, Any]) -> None:
             )
 
 
-def render_history_tab():
+def render_history_tab() -> None:
     """Interface d'historique"""
     st.markdown("## Historique des Prédictions")
 
@@ -1227,10 +1314,7 @@ def render_dashboard_overview(model_data: Dict[str, Any]) -> None:
 
         # Bouton pour forcer la mise à jour
         if st.button("Actualiser les Graphiques", use_container_width=True):
-            if hasattr(st, 'rerun'):
-                st.rerun()
-            else:
-                st.experimental_rerun()
+            st.rerun()
 
         # ===== SECTION 4: ANALYSES AVANCÉES =====
         st.markdown("---")
@@ -1498,22 +1582,13 @@ def render_dashboard_overview(model_data: Dict[str, Any]) -> None:
     col1, col2, col3 = st.columns(3)
     with col1:
         if st.button("Nouvelle Prédiction", use_container_width=True):
-            if hasattr(st, 'rerun'):
-                st.rerun()
-            else:
-                st.experimental_rerun()
+            st.rerun()
     with col2:
         if st.button("Voir l'Historique", use_container_width=True):
-            if hasattr(st, 'rerun'):
-                st.rerun()
-            else:
-                st.experimental_rerun()
+            st.rerun()
     with col3:
         if st.button("Actualiser", use_container_width=True):
-            if hasattr(st, 'rerun'):
-                st.rerun()
-            else:
-                st.experimental_rerun()
+            st.rerun()
 
 
 def render_batch_analysis_tab(model_data: Dict[str, Any]) -> None:
@@ -1826,9 +1901,21 @@ def main() -> None:
         st.markdown("### Statut de l'API")
         if model_data.get("api_status") == "connected":
             st.success("API Connectée")
+            # Afficher des informations de santé si disponibles
+            health_data = model_data.get("api_health", {})
+            if health_data:
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.metric("Uptime", f"{health_data.get('uptime_seconds', 0):.0f}s")
+                with col2:
+                    st.metric("Requêtes", health_data.get('total_requests', 0))
         else:
             st.error("API Déconnectée")
             st.info("Utilisation du modèle local")
+            st.markdown("**Tentatives de connexion :**")
+            st.markdown(f"- Timeout : {API_TIMEOUT}s")
+            st.markdown(f"- Tentatives : {API_RETRY_ATTEMPTS}")
+            st.markdown(f"- Délai : {API_RETRY_DELAY}s")
 
         st.markdown("---")
         st.markdown("### Informations")
