@@ -32,12 +32,18 @@ API_BASE_URL = "https://mn-opc-7025.onrender.com"
 API_TIMEOUT = 30
 
 # Configuration automatique basée sur l'environnement
-import os
 
+# Détection plus robuste de l'environnement de production
 IS_PRODUCTION = (
-    os.getenv("STREAMLIT_ENV") == "production" or os.getenv("RENDER") is not None
+    os.getenv("STREAMLIT_ENV") == "production" or
+    os.getenv("RENDER") is not None or
+    os.getenv("STREAMLIT_CLOUD") is not None or  # Streamlit Cloud
+    "streamlit.app" in os.getenv("STREAMLIT_SERVER_BASE_URL_PATH", "") or  # URL Streamlit Cloud
+    os.getenv("STREAMLIT_SERVER_PORT") == "8501"  # Port par défaut Streamlit Cloud
 )
-USE_REMOTE_API = IS_PRODUCTION  # True en production, False en local
+
+# OU plus simple : forcer l'API en production
+USE_REMOTE_API = True  # Toujours utiliser l'API en production
 
 # Chemins des fichiers
 BASE_DIR = Path(__file__).parent.parent
@@ -45,7 +51,7 @@ MODELS_DIR = BASE_DIR / "models"
 DATA_DIR = BASE_DIR / "data"
 
 
-def init_session_state():
+def init_session_state() -> None:
     """Initialise les variables de session"""
     if "history" not in st.session_state:
         st.session_state.history = []
@@ -59,100 +65,96 @@ def load_model(force_reload=False):
     global USE_REMOTE_API
 
     try:
-        # Si on utilise l'API distante, on ne charge pas le modèle local
-        if USE_REMOTE_API:
-            try:
-                response = requests.get(f"{API_BASE_URL}/health", timeout=10)
-                if response.status_code == 200:
-                    health_data = response.json()
-                    return {
-                        "model": None,
-                        "threshold": 0.295,  # Seuil métier optimisé
-                        "scaler": None,
-                        "feature_names": [],
-                        "loaded_from": "API distante",
-                        "api_status": "connected",
-                        "api_health": health_data,
-                    }
-                else:
-                    st.warning(
-                        f"API distante non disponible (status: {response.status_code})"
-                    )
-                    USE_REMOTE_API = False
-            except Exception as e:
-                st.warning(f"Impossible de se connecter à l'API distante: {e}")
-                USE_REMOTE_API = False
+        # TOUJOURS tenter la connexion API d'abord
+        try:
+            response = requests.get(f"{API_BASE_URL}/health", timeout=10)
+            if response.status_code == 200:
+                health_data = response.json()
+                st.success("API Connectée")
+                return {
+                    "model": None,
+                    "threshold": 0.295,
+                    "scaler": None,
+                    "feature_names": [],
+                    "loaded_from": "API distante",
+                    "api_status": "connected",
+                    "api_health": health_data,
+                }
+            else:
+                st.warning(f"API distante non disponible (status: {response.status_code})")
+        except Exception as e:
+            st.warning(f"Impossible de se connecter à l'API distante: {e}")
 
         # Fallback sur le modèle local
-        if not USE_REMOTE_API:
-            model_paths = [
-                BASE_DIR / "models" / "best_credit_model.pkl",
-                MODELS_DIR / "best_credit_model.pkl",
-                MODELS_DIR / "best_model.pkl",
-                MODELS_DIR / "model.pkl",
-                BASE_DIR / "model.pkl",
-            ]
+        st.info("Utilisation du modèle local")
+        model_paths = [
+            BASE_DIR / "models" / "best_credit_model.pkl",
+            MODELS_DIR / "best_credit_model.pkl",
+            MODELS_DIR / "best_model.pkl",
+            MODELS_DIR / "model.pkl",
+            BASE_DIR / "model.pkl",
+        ]
 
-            for model_path in model_paths:
-                if model_path.exists():
-                    try:
-                        model_data = joblib.load(model_path)
+        for model_path in model_paths:
+            if model_path.exists():
+                try:
+                    model_data = joblib.load(model_path)
 
-                        # Vérifier le type de modèle chargé
-                        if hasattr(model_data, "predict"):
-                            # C'est directement un modèle sklearn
+                    # Vérifier le type de modèle chargé
+                    if hasattr(model_data, "predict"):
+                        # C'est directement un modèle sklearn
+                        from sklearn.preprocessing import StandardScaler
+
+                        scaler = StandardScaler()
+                        st.info(
+                            "Modèle RandomForest chargé directement depuis "
+                            f"{model_path}"
+                        )
+
+                        return {
+                            "model": model_data,
+                            "threshold": 0.295,  # Seuil métier optimisé
+                            "scaler": scaler,
+                            "feature_names": [],
+                            "loaded_from": str(model_path),
+                            "api_status": "local",
+                        }
+                    elif (
+                        model_data
+                        and "model" in model_data
+                        and model_data["model"] is not None
+                    ):
+                        # C'est un dictionnaire avec le modèle
+                        scaler = model_data.get("scaler")
+                        if scaler is None:
                             from sklearn.preprocessing import StandardScaler
 
                             scaler = StandardScaler()
-                            st.info(
-                                "Modèle RandomForest chargé directement depuis "
-                                f"{model_path}"
-                            )
+                            st.info("Scaler par défaut créé (StandardScaler)")
 
-                            return {
-                                "model": model_data,
-                                "threshold": 0.295,  # Seuil métier optimisé
-                                "scaler": scaler,
-                                "feature_names": [],
-                                "loaded_from": str(model_path),
-                                "api_status": "local",
-                            }
-                        elif (
-                            model_data
-                            and "model" in model_data
-                            and model_data["model"] is not None
-                        ):
-                            # C'est un dictionnaire avec le modèle
-                            scaler = model_data.get("scaler")
-                            if scaler is None:
-                                from sklearn.preprocessing import StandardScaler
+                        return {
+                            "model": model_data["model"],
+                            "threshold": model_data.get("threshold", 0.5),
+                            "scaler": scaler,
+                            "feature_names": model_data.get("feature_names", []),
+                            "loaded_from": str(model_path),
+                            "api_status": "local",
+                        }
+                    else:
+                        st.warning(f"Modèle invalide dans {model_path}")
+                except Exception as e:
+                    st.warning(f"Erreur chargement modèle {model_path}: {e}")
+                    continue
 
-                                scaler = StandardScaler()
-                                st.info("Scaler par défaut créé (StandardScaler)")
-
-                            return {
-                                "model": model_data["model"],
-                                "threshold": model_data.get("threshold", 0.5),
-                                "scaler": scaler,
-                                "feature_names": model_data.get("feature_names", []),
-                                "loaded_from": str(model_path),
-                                "api_status": "local",
-                            }
-                        else:
-                            st.warning(f"Modèle invalide dans {model_path}")
-                    except Exception as e:
-                        st.warning(f"Erreur chargement modèle {model_path}: {e}")
-                        continue
-
-            # Si aucun modèle valide n'est trouvé
-            st.error("Aucun modèle local valide trouvé")
-            return None
+        # Si aucun modèle valide n'est trouvé
+        st.error("Aucun modèle local valide trouvé")
+        return None
     except Exception as e:
         st.error(f"Erreur lors du chargement du modèle: {e}")
         return None
 
 
-def create_full_feature_set(df):
+def create_full_feature_set(df) -> pd.DataFrame:
     """Crée le jeu complet de 153 features attendues par le modèle"""
     # Utiliser notre feature engineering centralisé
     try:
@@ -344,7 +346,6 @@ def create_full_feature_set(df):
             else:
                 df_full[feature] = 0.5
 
-
 def validate_business_rules(client_data):
     """Valide les règles métier avant prédiction"""
     try:
@@ -512,7 +513,7 @@ def get_refusal_reason(result, client_data):
         if result.get("decision") == "ACCORDÉ":
             return {
                 "status": "success",
-                "title": "✅ CRÉDIT ACCORDÉ",
+                "title": "CRÉDIT ACCORDÉ",
                 "message": "Félicitations ! Votre demande de crédit a été acceptée.",
                 "details": [
                     f"Score de risque : {result.get('risk_level', 'N/A')}",
@@ -557,7 +558,7 @@ def get_refusal_reason(result, client_data):
 
             return {
                 "status": "error",
-                "title": "❌ CRÉDIT REFUSÉ",
+                "title": "CRÉDIT REFUSÉ",
                 "message": (
                     f"Votre demande de crédit n'a pas pu être acceptée "
                     f"pour les raisons suivantes :"
@@ -576,7 +577,7 @@ def get_refusal_reason(result, client_data):
     except Exception as e:
         return {
             "status": "warning",
-            "title": "⚠️ ERREUR D'ANALYSE",
+            "title": "ERREUR D'ANALYSE",
             "message": f"Impossible d'analyser les raisons : {str(e)}",
             "details": ["Erreur technique lors de l'analyse"],
         }
@@ -797,7 +798,7 @@ def render_prediction_tab(model_data):
             })
 
             if not validation["valid"]:
-                st.error(f"❌ Validation échouée: {validation['message']}")
+                st.error(f"Validation échouée: {validation['message']}")
                 return
 
             # MAPPING CORRECT AVEC LES FEATURES DE BASE POUR LE FEATURE ENGINEERING
@@ -925,10 +926,10 @@ def render_prediction_tab(model_data):
                 # Ajout à l'historique
                 st.session_state.history.append(st.session_state.current_prediction)
 
-                st.success("✅ Prédiction effectuée avec succès !")
+                st.success("Prédiction effectuée avec succès")
                 st.rerun()
             else:
-                st.error("❌ Erreur lors de la prédiction")
+                st.error("Erreur lors de la prédiction")
 
     # Affichage des résultats
     with col2:
@@ -942,8 +943,8 @@ def render_prediction_tab(model_data):
             st.markdown("### Résultats de l'Analyse")
 
             # Décision
-            decision_color = "🟢" if result["decision"] == "ACCORDÉ" else "🔴"
-            st.markdown(f"## {decision_color} {result['decision']}")
+            decision_color = "VERT" if result["decision"] == "ACCORDÉ" else "ROUGE"
+            st.markdown(f"## {result['decision']}")
 
             # Probabilité et niveau de risque
             col2a, col2b = st.columns(2)
@@ -1074,7 +1075,7 @@ def render_history_tab():
 
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("🗑️ Vider l'Historique"):
+            if st.button("Vider l'Historique"):
                 st.session_state.history = []
                 st.rerun()
     else:
@@ -1092,9 +1093,9 @@ def render_dashboard_overview(model_data):
     with col1:
         # Statut de l'API
         if model_data.get("api_status") == "connected":
-            st.metric("API Status", "🟢 Connectée")
+            st.metric("API Status", "Connectée")
         else:
-            st.metric("API Status", "🔴 Déconnectée", "Modèle local")
+            st.metric("API Status", "Déconnectée", "Modèle local")
     with col2:
         st.metric("Modèle Actif", "Random Forest")
     with col3:
@@ -1813,9 +1814,9 @@ def main():
         st.markdown("---")
         st.markdown("### Statut de l'API")
         if model_data.get("api_status") == "connected":
-            st.success("🟢 API Connectée")
+            st.success("API Connectée")
         else:
-            st.error("🔴 API Déconnectée")
+            st.error("API Déconnectée")
             st.info("Utilisation du modèle local")
 
         st.markdown("---")
