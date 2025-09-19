@@ -2,10 +2,11 @@
 # Test du pipeline complet avec le modèle
 
 import sys
-import pytest
 from pathlib import Path
-import pandas as pd
+
 import joblib
+import pandas as pd
+import pytest
 from sklearn.ensemble import RandomForestClassifier
 
 # Ajouter le chemin vers src

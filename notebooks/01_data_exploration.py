@@ -10,22 +10,24 @@ OBJECTIFS DE CE NOTEBOOK :
 - Préparer les insights pour la modélisation
 """
 
+import json
+import logging
+import warnings
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Tuple
+
+import matplotlib.pyplot as plt
+import numpy as np
+
 # =============================================================================
 # Configuration et imports
 # =============================================================================
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 import plotly.express as px
 import plotly.graph_objects as go
+import seaborn as sns
 from plotly.subplots import make_subplots
-import warnings
-from pathlib import Path
-import logging
-from typing import Dict, List, Tuple, Any
-import json
-from datetime import datetime
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)

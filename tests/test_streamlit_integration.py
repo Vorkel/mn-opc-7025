@@ -2,10 +2,11 @@
 # Test final de l'intégration Streamlit avec le nouveau pipeline
 
 import sys
-import pytest
 from pathlib import Path
-import pandas as pd
+
 import joblib
+import pandas as pd
+import pytest
 
 # Ajouter le chemin pour les imports
 sys.path.append(str(Path(__file__).parent.parent / "src"))

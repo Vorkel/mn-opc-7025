@@ -1,8 +1,8 @@
 # feature_engineering.py
 # Pipeline complet de feature engineering pour générer les 153 features attendues
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 
 def create_complete_feature_set(client_data: dict | pd.DataFrame) -> pd.DataFrame:

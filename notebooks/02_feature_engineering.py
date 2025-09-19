@@ -10,18 +10,20 @@ OBJECTIFS DE CE NOTEBOOK :
 - Évaluer l'impact des nouvelles features
 """
 
+import logging
+import warnings
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Tuple
+
+import matplotlib.pyplot as plt
+import numpy as np
+
 # =============================================================================
 # Configuration et imports
 # =============================================================================
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 import seaborn as sns
-import warnings
-from pathlib import Path
-import logging
-from typing import Dict, List, Tuple, Any
-from datetime import datetime
 
 # Configuration
 warnings.filterwarnings("ignore")
@@ -467,9 +469,9 @@ if existing_features:
 print("\nÉVALUATION DES PERFORMANCES")
 print("=" * 35)
 
-from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score
+from sklearn.model_selection import train_test_split
 
 # Préparer les données
 train_len = len(target)

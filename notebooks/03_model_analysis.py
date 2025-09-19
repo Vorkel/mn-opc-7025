@@ -1,25 +1,25 @@
 # Notebook: 03_model_analysis.py
 
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-import warnings
-from pathlib import Path
 import logging
-from typing import Dict, List, Tuple, Any
+import warnings
 from datetime import datetime
-import joblib
+from pathlib import Path
+from typing import Any, Dict, List, Tuple
 
-# Imports scikit-learn
-from sklearn.model_selection import train_test_split, cross_val_score
+import joblib
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from imblearn.over_sampling import SMOTE
+from numpy.typing import NDArray
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import roc_auc_score, classification_report, confusion_matrix
+from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score
+
+# Imports scikit-learn
+from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.preprocessing import StandardScaler
-from imblearn.over_sampling import SMOTE
-import numpy as np
-from numpy.typing import NDArray
 
 # Configuration
 warnings.filterwarnings("ignore")

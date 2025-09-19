@@ -2,11 +2,12 @@
 Test simple pour Streamlit - Version robuste
 """
 
-import pytest
-import pandas as pd
-import numpy as np
-from pathlib import Path
 import sys
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import pytest
 
 # Ajouter le répertoire racine au path
 sys.path.append(str(Path(__file__).parent.parent))

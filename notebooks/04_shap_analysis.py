@@ -1,15 +1,16 @@
 # Notebook: 04_shap_analysis.py
 
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-import warnings
-from pathlib import Path
 import logging
-from typing import Dict, List, Tuple, Any
+import warnings
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Tuple
+
 import joblib
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
 import shap
 
 # Configuration
