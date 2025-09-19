@@ -67,7 +67,8 @@ try:
 except FileNotFoundError:
     print("Erreur lors du chargement des données")
     print(
-        "Assurez-vous que les fichiers sont dans data/raw/ et que vous exécutez depuis la racine"
+        "Assurez-vous que les fichiers sont dans data/raw/ et que vous exécutez depuis"
+        " la racine"
     )
 
 # Vérification des colonnes
@@ -176,16 +177,14 @@ print("=" * 40)
 missing_data = df_train.isnull().sum()
 missing_pct = (missing_data / len(df_train)) * 100
 
-missing_df = pd.DataFrame(
-    {
-        "Colonne": missing_data.index,
-        "Manquantes": missing_data.values,
-        "Pourcentage": missing_pct.values,
-    }
-)
+missing_df = pd.DataFrame({
+    "Colonne": missing_data.index,
+    "Manquantes": missing_data.values,
+    "Pourcentage": missing_pct.values,
+})
 
 # Filtrer et trier
-missing_df = missing_df[missing_df["Manquantes"] > 0].sort_values( # type: ignore[attr-defined]
+missing_df = missing_df[missing_df["Manquantes"] > 0].sort_values(  # type: ignore[attr-defined]
     "Pourcentage", ascending=False
 )
 
@@ -322,7 +321,7 @@ for feature in existing_categorical[:6]:  # Limiter à 6 pour l'affichage
             df_train.groupby(feature)["TARGET"].agg(["count", "mean"]).round(4)
         )
         target_analysis.columns = ["Count", "Default_Rate"]
-        target_analysis = target_analysis.sort_values("Default_Rate", ascending=False) # type: ignore
+        target_analysis = target_analysis.sort_values("Default_Rate", ascending=False)  # type: ignore
 
         print(f"\nTaux de défaut par catégorie:")
         print(target_analysis)
@@ -365,7 +364,7 @@ numeric_features = [col for col in numeric_features if col != "SK_ID_CURR"]
 numeric_features = numeric_features[:20]
 
 # Matrice de corrélation
-corr_matrix = df_train[numeric_features].corr() # type: ignore
+corr_matrix = df_train[numeric_features].corr()  # type: ignore
 
 # Visualisation avec seaborn
 plt.figure(figsize=(16, 12))
@@ -388,10 +387,10 @@ print("Graphique matplotlib généré et sauvegardé")
 # Corrélations les plus fortes avec TARGET
 if "TARGET" in corr_matrix.columns:
     target_corr = (
-        corr_matrix["TARGET"].abs().sort_values(ascending=False)[1:11] # type: ignore
+        corr_matrix["TARGET"].abs().sort_values(ascending=False)[1:11]  # type: ignore
     )  # Top 10
     print(f"\nTop 10 corrélations avec TARGET:")
-    for feature, corr in target_corr.items(): # type: ignore
+    for feature, corr in target_corr.items():  # type: ignore
         print(f"  {feature}: {corr:.4f}")
 
 # =============================================================================
@@ -562,19 +561,19 @@ summary = {
     "categorical_features_count": len(existing_categorical),
     "outliers_detected": {k: v["count"] for k, v in outliers_info.items()},
     "age_statistics": {
-        "mean": float(age_stats["mean"]), # type: ignore
-        "median": float(age_stats["50%"]), # type: ignore
-        "min": float(age_stats["min"]), # type: ignore
-        "max": float(age_stats["max"]), # type: ignore
+        "mean": float(age_stats["mean"]),  # type: ignore
+        "median": float(age_stats["50%"]),  # type: ignore
+        "min": float(age_stats["min"]),  # type: ignore
+        "max": float(age_stats["max"]),  # type: ignore
     },
     "employment_statistics": {
-        "mean": float(emp_stats["mean"]), # type: ignore
-        "median": float(emp_stats["50%"]), # type: ignore
-        "min": float(emp_stats["min"]), # type: ignore
-        "max": float(emp_stats["max"]), # type: ignore
+        "mean": float(emp_stats["mean"]),  # type: ignore
+        "median": float(emp_stats["50%"]),  # type: ignore
+        "min": float(emp_stats["min"]),  # type: ignore
+        "max": float(emp_stats["max"]),  # type: ignore
     },
     "top_correlations_with_target": (
-        target_corr.to_dict() if "TARGET" in corr_matrix.columns else {} # type: ignore
+        target_corr.to_dict() if "TARGET" in corr_matrix.columns else {}  # type: ignore
     ),
     "recommendations": [
         "Gérer le déséquilibre des classes",

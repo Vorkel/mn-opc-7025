@@ -13,7 +13,7 @@ sys.path.append(str(Path(__file__).parent.parent / "src"))
 from src.feature_engineering import create_complete_feature_set
 
 
-def test_streamlit_integration () -> None:
+def test_streamlit_integration() -> None:
     """
     Test complet de l'intégration Streamlit avec données de formulaire
     """
@@ -23,7 +23,9 @@ def test_streamlit_integration () -> None:
     # Charger le modèle
     try:
         model = joblib.load("models/best_credit_model.pkl")
-        assert hasattr(model, 'predict_proba'), "Le modèle doit avoir la méthode predict_proba"
+        assert hasattr(
+            model, "predict_proba"
+        ), "Le modèle doit avoir la méthode predict_proba"
         print("Modèle chargé")
     except Exception as e:
         print(f"Erreur chargement modèle: {e}")

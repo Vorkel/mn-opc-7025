@@ -337,7 +337,9 @@ for col in categorical_cols:
         mode_val = df_engineered[col].mode()
         if len(mode_val) > 0:
             # S'assurer que mode_val[0] est une valeur simple
-            mode_value = str(mode_val.iloc[0] if hasattr(mode_val, 'iloc') else mode_val[0])
+            mode_value = str(
+                mode_val.iloc[0] if hasattr(mode_val, "iloc") else mode_val[0]
+            )
             df_engineered[col] = df_engineered[col].fillna(mode_value)
         else:
             df_engineered[col] = df_engineered[col].fillna("Unknown")
@@ -570,7 +572,7 @@ report = {
     "execution_date": datetime.now().isoformat(),
     "original_features": len(df_all.columns),
     "new_features_created": len(new_features),
-    "total_features": df_engineered.shape[1] if hasattr(df_engineered, 'shape') else 0,
+    "total_features": df_engineered.shape[1] if hasattr(df_engineered, "shape") else 0,
     "data_quality": {
         "train_shape": df_train_final.shape,
         "test_shape": df_test_final.shape,

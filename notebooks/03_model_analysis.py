@@ -74,6 +74,7 @@ except Exception as e:
 print("\nDÉFINITION DES MÉTRIQUES MÉTIER")
 print("=" * 40)
 
+
 class BusinessScorer:
     """Classe pour évaluer les modèles avec des métriques métier"""
 
@@ -100,8 +101,12 @@ class BusinessScorer:
             "precision": tp / (tp + fp) if (tp + fp) > 0 else 0,
             "recall": tp / (tp + fn) if (tp + fn) > 0 else 0,
             "f1_score": 2 * tp / (2 * tp + fp + fn) if (2 * tp + fp + fn) > 0 else 0,
-            "tn": tn, "fp": fp, "fn": fn, "tp": tp
+            "tn": tn,
+            "fp": fp,
+            "fn": fn,
+            "tp": tp,
         }
+
 
 scorer = BusinessScorer(fp_cost=1, fn_cost=10)
 models_results = {}
@@ -133,10 +138,10 @@ print(f"  Coût métier: {metrics_lr['business_cost']:.2f}")
 print("Entraînement Random Forest...")
 rf = RandomForestClassifier(
     n_estimators=50,  # Réduit de 100 à 50
-    max_depth=10,     # Limité pour accélérer
+    max_depth=10,  # Limité pour accélérer
     random_state=42,
-    n_jobs=1,         # Éviter la parallélisation
-    class_weight="balanced"
+    n_jobs=1,  # Éviter la parallélisation
+    class_weight="balanced",
 )
 rf.fit(X_train, y_train)
 
@@ -162,7 +167,9 @@ print("\nGESTION DU DÉSÉQUILIBRE AVEC SMOTE")
 print("=" * 40)
 
 print("Entraînement Random Forest + SMOTE...")
-smote = SMOTE(random_state=42, sampling_strategy='auto')  # Utiliser auto pour compatibilité
+smote = SMOTE(
+    random_state=42, sampling_strategy="auto"
+)  # Utiliser auto pour compatibilité
 # SMOTE peut retourner 2 ou 3 valeurs, s'assurer d'en avoir 2
 resampled_data = smote.fit_resample(X_train, y_train)
 if len(resampled_data) == 2:
@@ -172,11 +179,7 @@ else:
     X_train_smote, y_train_smote, _ = resampled_data
 
 rf_smote = RandomForestClassifier(
-    n_estimators=50,
-    max_depth=10,
-    random_state=42,
-    n_jobs=1,
-    class_weight="balanced"
+    n_estimators=50, max_depth=10, random_state=42, n_jobs=1, class_weight="balanced"
 )
 rf_smote.fit(X_train_smote, y_train_smote)
 
@@ -208,7 +211,7 @@ for name, result in models_results.items():
         "model": name,
         "auc": result["metrics"]["auc_score"],
         "business_cost": result["metrics"]["business_cost"],
-        "f1": result["metrics"]["f1_score"]
+        "f1": result["metrics"]["f1_score"],
     })
 
 comparison_df = pd.DataFrame(comparison)
@@ -237,10 +240,10 @@ Path("models").mkdir(exist_ok=True)
 model_data = {
     "model": best_model,
     "threshold": 0.5,
-    "feature_names": X_train.columns.tolist() if hasattr(X_train, 'columns') else [],  # type: ignore[attr-defined]
+    "feature_names": X_train.columns.tolist() if hasattr(X_train, "columns") else [],  # type: ignore[attr-defined]
     "metrics": best_metrics,
     "model_name": best_model_name,
-    "training_date": datetime.now().isoformat()
+    "training_date": datetime.now().isoformat(),
 }
 
 joblib.dump(model_data, "models/best_credit_model.pkl")
@@ -261,22 +264,20 @@ report = {
     "dataset_info": {
         "train_samples": len(df_train_sample),
         "validation_samples": len(X_val),
-        "features": len(X_train.columns) if hasattr(X_train, 'columns') else 0  # type: ignore[attr-defined]
+        "features": len(X_train.columns) if hasattr(X_train, "columns") else 0,  # type: ignore[attr-defined]
     },
     "models_comparison": comparison,
-    "best_model": {
-        "name": best_model_name,
-        "metrics": best_metrics
-    },
+    "best_model": {"name": best_model_name, "metrics": best_metrics},
     "recommendations": [
         "Modèle Random Forest avec SMOTE recommandé pour la production",
         "AUC > 0.7 acceptable pour ce type de problème",
-        "Coût métier optimisé pour minimiser les faux négatifs"
-    ]
+        "Coût métier optimisé pour minimiser les faux négatifs",
+    ],
 }
 
 # Sauvegarder le rapport
 import json
+
 with open("reports/model_analysis_report.json", "w") as f:
     json.dump(report, f, indent=2, default=str)
 

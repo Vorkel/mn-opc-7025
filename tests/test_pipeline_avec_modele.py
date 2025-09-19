@@ -13,7 +13,7 @@ sys.path.append(str(Path(__file__).parent.parent / "src"))
 from src.feature_engineering import create_complete_feature_set
 
 
-def test_avec_modele () -> None:
+def test_avec_modele() -> None:
     """
     Test du pipeline complet avec prédiction du modèle
     """
@@ -26,7 +26,9 @@ def test_avec_modele () -> None:
         print(f"Type de modèle: {type(model)}")
 
         # Vérifier que c'est bien un RandomForest
-        assert hasattr(model, 'predict_proba'), "Le modèle doit avoir la méthode predict_proba"
+        assert hasattr(
+            model, "predict_proba"
+        ), "Le modèle doit avoir la méthode predict_proba"
 
         # Données d'exemple du formulaire Streamlit
         sample_data = {

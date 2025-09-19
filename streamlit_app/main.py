@@ -33,9 +33,9 @@ API_TIMEOUT = 30
 
 # Configuration automatique basée sur l'environnement
 import os
+
 IS_PRODUCTION = (
-    os.getenv('STREAMLIT_ENV') == 'production' or
-    os.getenv('RENDER') is not None
+    os.getenv("STREAMLIT_ENV") == "production" or os.getenv("RENDER") is not None
 )
 USE_REMOTE_API = IS_PRODUCTION  # True en production, False en local
 
@@ -99,12 +99,13 @@ def load_model(force_reload=False):
                         model_data = joblib.load(model_path)
 
                         # Vérifier le type de modèle chargé
-                        if hasattr(model_data, 'predict'):
+                        if hasattr(model_data, "predict"):
                             # C'est directement un modèle sklearn
                             from sklearn.preprocessing import StandardScaler
+
                             scaler = StandardScaler()
                             st.info(
-                                f"Modèle RandomForest chargé directement depuis "
+                                "Modèle RandomForest chargé directement depuis "
                                 f"{model_path}"
                             )
 
@@ -125,6 +126,7 @@ def load_model(force_reload=False):
                             scaler = model_data.get("scaler")
                             if scaler is None:
                                 from sklearn.preprocessing import StandardScaler
+
                                 scaler = StandardScaler()
                                 st.info("Scaler par défaut créé (StandardScaler)")
 
@@ -155,6 +157,7 @@ def create_full_feature_set(df):
     # Utiliser notre feature engineering centralisé
     try:
         from feature_engineering import create_complete_feature_set
+
         return create_complete_feature_set(df)
     except ImportError:
         # Fallback vers l'ancien système
@@ -313,7 +316,7 @@ def create_full_feature_set(df):
             "DAYS_EMPLOYED_MISSING",
             "CNT_FAM_MEMBERS_MISSING",
             "DAYS_REGISTRATION_MISSING",
-    ]
+        ]
 
     df_full = df.copy()
 
@@ -340,6 +343,7 @@ def create_full_feature_set(df):
                 df_full[feature] = 0.5
             else:
                 df_full[feature] = 0.5
+
 
 def validate_business_rules(client_data):
     """Valide les règles métier avant prédiction"""
@@ -512,8 +516,10 @@ def get_refusal_reason(result, client_data):
                 "message": "Félicitations ! Votre demande de crédit a été acceptée.",
                 "details": [
                     f"Score de risque : {result.get('risk_level', 'N/A')}",
-                    f"Probabilité de remboursement : "
-                    f"{(1 - result.get('probability', 0)) * 100:.1f}%",
+                    (
+                        "Probabilité de remboursement : "
+                        f"{(1 - result.get('probability', 0)) * 100:.1f}%"
+                    ),
                     f"Seuil d'acceptation : {result.get('threshold', 0.5) * 100:.1f}%",
                 ],
             }
@@ -784,13 +790,11 @@ def render_prediction_tab(model_data):
         # Bouton de validation
         if st.button("Analyser le Dossier", type="primary", use_container_width=True):
             # Validation des règles métier
-            validation = validate_business_rules(
-                {
-                    "AMT_INCOME_TOTAL": income_monthly * 12,
-                    "AMT_CREDIT": credit_amount,
-                    "AMT_ANNUITY": annuity_amount,
-                }
-            )
+            validation = validate_business_rules({
+                "AMT_INCOME_TOTAL": income_monthly * 12,
+                "AMT_CREDIT": credit_amount,
+                "AMT_ANNUITY": annuity_amount,
+            })
 
             if not validation["valid"]:
                 st.error(f"❌ Validation échouée: {validation['message']}")
@@ -810,41 +814,33 @@ def render_prediction_tab(model_data):
                 "AMT_GOODS_PRICE": goods_price,
                 # === FEATURES PERSONNELLES ===
                 "NAME_TYPE_SUITE": "Unaccompanied",
-                "NAME_INCOME_TYPE": (
-                    {
-                        "Salarié": "Working",
-                        "Indépendant": "Commercial associate",
-                        "Fonctionnaire": "State servant",
-                        "Retraité": "Pensioner",
-                        "Étudiant": "Student",
-                        "Sans emploi": "Unemployed",
-                    }.get(income_type, "Working")
-                ),
-                "NAME_EDUCATION_TYPE": (
-                    {
-                        "Primaire": "Lower secondary",
-                        "Secondaire": "Secondary / secondary special",
-                        "Supérieur": "Higher education",
-                        "Post-universitaire": "Academic degree",
-                    }.get(education, "Secondary / secondary special")
-                ),
-                "NAME_FAMILY_STATUS": (
-                    {
-                        "Célibataire": "Single / not married",
-                        "Marié(e)": "Married",
-                        "Union libre": "Civil marriage",
-                        "Divorcé(e)": "Separated",
-                        "Veuf(ve)": "Widow",
-                    }.get(family_status, "Single / not married")
-                ),
-                "NAME_HOUSING_TYPE": (
-                    {
-                        "Propriétaire": "House / apartment",
-                        "Locataire": "Rented apartment",
-                        "Chez les parents": "With parents",
-                        "Logement social": "Municipal apartment",
-                    }.get(housing_type, "House / apartment")
-                ),
+                "NAME_INCOME_TYPE": {
+                    "Salarié": "Working",
+                    "Indépendant": "Commercial associate",
+                    "Fonctionnaire": "State servant",
+                    "Retraité": "Pensioner",
+                    "Étudiant": "Student",
+                    "Sans emploi": "Unemployed",
+                }.get(income_type, "Working"),
+                "NAME_EDUCATION_TYPE": {
+                    "Primaire": "Lower secondary",
+                    "Secondaire": "Secondary / secondary special",
+                    "Supérieur": "Higher education",
+                    "Post-universitaire": "Academic degree",
+                }.get(education, "Secondary / secondary special"),
+                "NAME_FAMILY_STATUS": {
+                    "Célibataire": "Single / not married",
+                    "Marié(e)": "Married",
+                    "Union libre": "Civil marriage",
+                    "Divorcé(e)": "Separated",
+                    "Veuf(ve)": "Widow",
+                }.get(family_status, "Single / not married"),
+                "NAME_HOUSING_TYPE": {
+                    "Propriétaire": "House / apartment",
+                    "Locataire": "Rented apartment",
+                    "Chez les parents": "With parents",
+                    "Logement social": "Municipal apartment",
+                }.get(housing_type, "House / apartment"),
                 # === FEATURES TEMPORELLES ===
                 "DAYS_BIRTH": int(-age_years * 365.25),  # Négatif
                 "DAYS_EMPLOYED": int(-employment_years * 365.25),  # Négatif
@@ -862,15 +858,13 @@ def render_prediction_tab(model_data):
                 "REGION_RATING_CLIENT": region_rating,
                 "REGION_RATING_CLIENT_W_CITY": region_rating_city,
                 "REGION_POPULATION_RELATIVE": 0.5,  # Valeur par défaut
-                "ORGANIZATION_TYPE": (
-                    {
-                        "Entreprise": "Business Entity Type 3",
-                        "Administration": "Government",
-                        "Banque": "Bank",
-                        "École": "School",
-                        "Autre": "Other",
-                    }.get(organization_type, "Business Entity Type 3")
-                ),
+                "ORGANIZATION_TYPE": {
+                    "Entreprise": "Business Entity Type 3",
+                    "Administration": "Government",
+                    "Banque": "Bank",
+                    "École": "School",
+                    "Autre": "Other",
+                }.get(organization_type, "Business Entity Type 3"),
                 "OCCUPATION_TYPE": "Laborers",  # Valeur par défaut
                 # === FEATURES GÉOGRAPHIQUES ===
                 "LIVE_CITY_NOT_WORK_CITY": 0,
@@ -1014,12 +1008,10 @@ def render_prediction_tab(model_data):
             with col2:
                 st.markdown("### Comparaison Risque vs Seuil")
                 # Graphique en barres pour comparaison
-                risk_data = pd.DataFrame(
-                    {
-                        "Métrique": ["Risque Client", "Seuil Optimal"],
-                        "Valeur (%)": [risk_percentage, result["threshold"] * 100],
-                    }
-                )
+                risk_data = pd.DataFrame({
+                    "Métrique": ["Risque Client", "Seuil Optimal"],
+                    "Valeur (%)": [risk_percentage, result["threshold"] * 100],
+                })
 
                 fig = px.bar(
                     risk_data,
@@ -1254,16 +1246,13 @@ def render_dashboard_overview(model_data):
                 ]
 
                 # Créer un DataFrame pour l'analyse temporelle
-                df_temp = pd.DataFrame(
-                    {
-                        "timestamp": timestamps,
-                        "probability": probabilities,
-                        "decision": [
-                            pred["result"]["decision"]
-                            for pred in st.session_state.history
-                        ],
-                    }
-                )
+                df_temp = pd.DataFrame({
+                    "timestamp": timestamps,
+                    "probability": probabilities,
+                    "decision": [
+                        pred["result"]["decision"] for pred in st.session_state.history
+                    ],
+                })
                 df_temp["timestamp"] = pd.to_datetime(df_temp["timestamp"])
                 df_temp = df_temp.sort_values("timestamp")
 
@@ -1739,15 +1728,13 @@ def render_features_tab():
         display_df["Catégorie"] = "Standard"
 
         # Réorganiser les colonnes
-        display_df = display_df[
-            [
-                "Nom Compréhensible",
-                "importance",
-                "Description",
-                "Catégorie",
-                "feature",
-            ]
-        ]
+        display_df = display_df[[
+            "Nom Compréhensible",
+            "importance",
+            "Description",
+            "Catégorie",
+            "feature",
+        ]]
 
         # Affichage direct sans recherche problématique
         st.dataframe(display_df, use_container_width=True)

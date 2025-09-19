@@ -12,7 +12,7 @@ import sys
 sys.path.append(str(Path(__file__).parent.parent))
 
 
-def test_streamlit_simple () -> None:
+def test_streamlit_simple() -> None:
     """Test simple pour Streamlit sans dépendances complexes"""
 
     # Test de base avec données numériques
@@ -41,14 +41,16 @@ def test_streamlit_simple () -> None:
 
     # Vérifier que toutes les valeurs sont numériques
     for col in df.columns:
-        assert pd.api.types.is_numeric_dtype(df[col]), f"Colonne {col} doit être numérique"
+        assert pd.api.types.is_numeric_dtype(
+            df[col]
+        ), f"Colonne {col} doit être numérique"
         value = df[col].iloc[0]
         assert value is not None, f"Valeur de {col} ne doit pas être None"
 
     print("✅ Test Streamlit simple réussi")
 
 
-def test_model_compatibility () -> None:
+def test_model_compatibility() -> None:
     """Test de compatibilité du modèle"""
 
     model_path = Path("models/best_credit_model.pkl")
@@ -57,6 +59,7 @@ def test_model_compatibility () -> None:
 
     try:
         import joblib
+
         model_data = joblib.load(model_path)
 
         # Vérifier la structure du modèle
@@ -71,7 +74,7 @@ def test_model_compatibility () -> None:
         assert model is not None, "Modèle chargé ne doit pas être None"
 
         # Test de prédiction avec le bon nombre de features
-        n_features = getattr(model, 'n_features_in_', 153)  # Utiliser 153 par défaut
+        n_features = getattr(model, "n_features_in_", 153)  # Utiliser 153 par défaut
         test_data = np.random.random((1, n_features))
         prediction = model.predict_proba(test_data)
 

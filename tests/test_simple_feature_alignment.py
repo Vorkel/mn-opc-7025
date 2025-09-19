@@ -12,7 +12,7 @@ import sys
 sys.path.append(str(Path(__file__).parent.parent))
 
 
-def test_simple_feature_alignment () -> None:
+def test_simple_feature_alignment() -> None:
     """Test simple d'alignement des features sans dépendances complexes"""
 
     # Vérifier que le modèle existe
@@ -59,7 +59,7 @@ def test_simple_feature_alignment () -> None:
     print("✅ Test d'alignement simple réussi")
 
 
-def test_model_loading () -> None:
+def test_model_loading() -> None:
     """Test de chargement du modèle"""
 
     model_path = Path("models/best_credit_model.pkl")
@@ -68,6 +68,7 @@ def test_model_loading () -> None:
 
     try:
         import joblib
+
         model_data = joblib.load(model_path)
 
         # Vérifier la structure du modèle
